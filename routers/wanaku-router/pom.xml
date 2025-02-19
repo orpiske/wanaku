@@ -63,6 +63,17 @@
             <groupId>org.apache.camel.quarkus</groupId>
             <artifactId>camel-quarkus-direct</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.wanaku</groupId>
+            <artifactId>core-exchange</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-grpc</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

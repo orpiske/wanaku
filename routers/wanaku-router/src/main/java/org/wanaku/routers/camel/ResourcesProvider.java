@@ -25,7 +25,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
+import io.quarkus.grpc.GrpcClient;
 import org.apache.camel.CamelContext;
+import org.wanaku.core.exchange.ToolInvoker;
 import org.wanaku.core.mcp.common.resolvers.ResourceResolver;
 import org.wanaku.core.mcp.common.resolvers.util.NoopResourceResolver;
 import org.wanaku.routers.camel.proxies.ResourceProxy;
@@ -39,6 +41,9 @@ import static org.wanaku.core.mcp.common.resolvers.Resolver.DEFAULT_RESOURCES_IN
 public class ResourcesProvider extends AbstractProvider<ResourceProxy, ResourceResolver> {
     @Inject
     CommandLine.ParseResult parseResult;
+
+    @GrpcClient
+    ToolInvoker toolInvoker;
 
     @Inject
     CamelContext camelContext;

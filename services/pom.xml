@@ -27,15 +27,12 @@
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>core</artifactId>
     <packaging>pom</packaging>
-    <name>Wanaku :: Core</name>
+    <artifactId>services</artifactId>
+    <name>Wanaku :: Services </name>
 
     <modules>
-        <module>core-util</module>
-        <module>core-mcp</module>
-        <module>core-exchange</module>
+        <module>wanaku-routing-service</module>
     </modules>
-
 
 </project>
