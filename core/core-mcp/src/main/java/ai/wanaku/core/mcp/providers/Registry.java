@@ -5,12 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ai.wanaku.api.types.management.Service;
+import java.util.concurrent.ConcurrentHashMap;
 
 class Registry {
     private final Map<String, Service> registry;
 
     protected Registry() {
-        registry = new HashMap<>();
+        registry = new ConcurrentHashMap<>();
     }
 
     public void link(String service, Service target) {
