@@ -32,6 +32,11 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-catalog</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

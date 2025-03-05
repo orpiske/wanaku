@@ -1,5 +1,8 @@
 package ai.wanaku.core.services.provider;
 
+import ai.wanaku.core.service.discovery.LinkService;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,5 +128,23 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
         }
 
         return opt;
+    }
+
+    @Override
+    public void register(String host, String service, int port) {
+        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(host))
+                .build(LinkService.class);
+
+        linkService.resourcesLink(service, port);
+    }
+
+    @Override
+    public void deregister(String host, String service) {
+        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(host))
+                .build(LinkService.class);
+
+        linkService.resourcesUnlink(service);
     }
 }

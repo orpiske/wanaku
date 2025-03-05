@@ -1,5 +1,6 @@
 package ai.wanaku.server.quarkus.api.v1.management.targets;
 
+import io.vertx.core.http.HttpServerRequest;
 import java.io.IOException;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -27,11 +29,15 @@ public class TargetsResource {
     @Inject
     TargetsBean targetsBean;
 
+    @Context
+    HttpServerRequest request;
+
     @Path("/tools/link")
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response toolsLink(@QueryParam("service") String service, @QueryParam("target") String target) {
+    public Response toolsLink(@QueryParam("service") String service, @QueryParam("port") int port) {
         try {
+            String target = String.format("%s:%d", request.remoteAddress().hostAddress().toString(), port);
             targetsBean.toolsLink(service, target);
             return Response.ok().build();
         } catch (IOException e) {
@@ -79,8 +85,9 @@ public class TargetsResource {
     @Path("/resources/link")
     @PUT
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response resourcesLink(@QueryParam("service") String service, @QueryParam("target") String target) {
+    public Response resourcesLink(@QueryParam("service") String service, @QueryParam("port") int port) {
         try {
+            String target = String.format("%s:%d", request.remoteAddress().host(), port);
             targetsBean.resourcesLink(service, target);
             return Response.ok().build();
         } catch (IOException e) {

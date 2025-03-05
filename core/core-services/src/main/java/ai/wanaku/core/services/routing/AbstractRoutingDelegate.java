@@ -1,5 +1,8 @@
 package ai.wanaku.core.services.routing;
 
+import ai.wanaku.core.service.discovery.LinkService;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
+import java.net.URI;
 import java.util.Map;
 
 import jakarta.inject.Inject;
@@ -73,5 +76,23 @@ public abstract class AbstractRoutingDelegate implements InvocationDelegate {
     @Override
     public Map<String, String> credentialsConfigurations() {
         return config.credentials().configurations();
+    }
+
+    @Override
+    public void register(String host, String service, int port) {
+        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(host))
+                .build(LinkService.class);
+
+        linkService.toolsLink(service, port);
+    }
+
+    @Override
+    public void deregister(String host, String service) {
+        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(host))
+                .build(LinkService.class);
+
+        linkService.resourcesUnlink(service);
     }
 }
