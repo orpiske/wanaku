@@ -16,6 +16,4 @@ public interface WanakuProviderConfig extends WanakuServiceConfig {
 
     Service service();
     Credentials credentials();
-
-    Router router();
 }

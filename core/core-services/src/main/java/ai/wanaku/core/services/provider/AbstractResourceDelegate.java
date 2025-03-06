@@ -1,21 +1,18 @@
 package ai.wanaku.core.services.provider;
 
-import ai.wanaku.core.service.discovery.LinkService;
-import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import ai.wanaku.api.exceptions.ResourceNotFoundException;
 import jakarta.inject.Inject;
 
 import ai.wanaku.api.exceptions.InvalidResponseTypeException;
 import ai.wanaku.api.exceptions.NonConvertableResponseException;
+import ai.wanaku.api.exceptions.ResourceNotFoundException;
 import ai.wanaku.core.exchange.ResourceAcquirerDelegate;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
+import ai.wanaku.core.service.discovery.ServiceRegistry;
 import ai.wanaku.core.services.config.WanakuProviderConfig;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.camel.catalog.CamelCatalog;
 import org.apache.camel.catalog.DefaultCamelCatalog;
 import org.apache.camel.tooling.model.BaseOptionModel;
@@ -33,6 +30,9 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
 
     @Inject
     ResourceConsumer consumer;
+
+    @Inject
+    ServiceRegistry serviceRegistry;
 
     /**
      * Gets the endpoint URI.
@@ -131,20 +131,12 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
     }
 
     @Override
-    public void register(String host, String service, int port) {
-        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
-                .baseUri(URI.create(host))
-                .build(LinkService.class);
-
-        linkService.resourcesLink(service, port);
+    public void register(String service, String address, int port) {
+        serviceRegistry.register(service, address, port);
     }
 
     @Override
-    public void deregister(String host, String service) {
-        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
-                .baseUri(URI.create(host))
-                .build(LinkService.class);
-
-        linkService.resourcesUnlink(service);
+    public void deregister(String service, String address, int port) {
+        serviceRegistry.deregister(service, address, port);
     }
 }

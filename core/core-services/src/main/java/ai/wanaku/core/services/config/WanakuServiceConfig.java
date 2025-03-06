@@ -19,8 +19,4 @@ public interface WanakuServiceConfig extends WanakuConfig {
     interface Credentials {
         Map<String, String> configurations();
     }
-
-    interface Router {
-        String address();
-    }
 }

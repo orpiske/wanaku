@@ -7,6 +7,7 @@ import ai.wanaku.core.exchange.ResourceAcquirer;
 import ai.wanaku.core.exchange.ResourceAcquirerDelegate;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
+import ai.wanaku.core.service.discovery.util.DiscoveryUtil;
 import ai.wanaku.core.services.config.WanakuProviderConfig;
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.runtime.ShutdownEvent;
@@ -49,11 +50,12 @@ public class ResourceService implements ResourceAcquirer, Inquirer {
     void register(@Observes StartupEvent ev) {
         LOG.info("Registering resource service");
 
-        delegate.register(config.router().address(), config.name(), port);
+        delegate.register(config.name(), DiscoveryUtil.resolveRegistrationAddress(), port);
     }
 
     void deregister(@Observes ShutdownEvent ev) {
-        LOG.info("Deregistering resource service");
-        delegate.deregister(config.router().address(), config.name());
+        LOG.info("De-registering resource service");
+
+        delegate.deregister(config.name(), DiscoveryUtil.resolveRegistrationAddress(), port);
     }
 }

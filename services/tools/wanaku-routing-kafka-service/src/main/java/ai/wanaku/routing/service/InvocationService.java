@@ -10,6 +10,7 @@ import ai.wanaku.core.exchange.InvocationDelegate;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvoker;
+import ai.wanaku.core.service.discovery.util.DiscoveryUtil;
 import ai.wanaku.core.services.config.WanakuRoutingConfig;
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.runtime.ShutdownEvent;
@@ -49,13 +50,14 @@ public class InvocationService implements ToolInvoker, Inquirer {
     }
 
     void register(@Observes StartupEvent ev) {
-        LOG.info("Registering resource service");
+        LOG.info("Registering tool service");
 
-        delegate.register(config.router().address(), config.name(), port);
+        delegate.register(config.name(), DiscoveryUtil.resolveRegistrationAddress(), port);
     }
 
     void deregister(@Observes ShutdownEvent ev) {
-        LOG.info("Deregistering resource service");
-        delegate.deregister(config.router().address(), config.name());
+        LOG.info("De-registering tool service");
+
+        delegate.deregister(config.name(), DiscoveryUtil.resolveRegistrationAddress(), port);
     }
 }

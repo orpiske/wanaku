@@ -1,10 +1,5 @@
 package ai.wanaku.core.services.routing;
 
-import ai.wanaku.core.service.discovery.LinkService;
-import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
-import java.net.URI;
-import java.util.Map;
-
 import jakarta.inject.Inject;
 
 import ai.wanaku.api.exceptions.InvalidResponseTypeException;
@@ -12,7 +7,9 @@ import ai.wanaku.api.exceptions.NonConvertableResponseException;
 import ai.wanaku.core.exchange.InvocationDelegate;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
+import ai.wanaku.core.service.discovery.ServiceRegistry;
 import ai.wanaku.core.services.config.WanakuRoutingConfig;
+import java.util.Map;
 import org.jboss.logging.Logger;
 
 /**
@@ -26,6 +23,9 @@ public abstract class AbstractRoutingDelegate implements InvocationDelegate {
 
     @Inject
     Client client;
+
+    @Inject
+    ServiceRegistry serviceRegistry;
 
 
     /**
@@ -79,20 +79,12 @@ public abstract class AbstractRoutingDelegate implements InvocationDelegate {
     }
 
     @Override
-    public void register(String host, String service, int port) {
-        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
-                .baseUri(URI.create(host))
-                .build(LinkService.class);
-
-        linkService.toolsLink(service, port);
+    public void register(String service, String address, int port) {
+        serviceRegistry.register(service, address, port);
     }
 
     @Override
-    public void deregister(String host, String service) {
-        LinkService linkService = QuarkusRestClientBuilder.newBuilder()
-                .baseUri(URI.create(host))
-                .build(LinkService.class);
-
-        linkService.resourcesUnlink(service);
+    public void deregister(String service, String address, int port) {
+        serviceRegistry.deregister(service, address, port);
     }
 }
