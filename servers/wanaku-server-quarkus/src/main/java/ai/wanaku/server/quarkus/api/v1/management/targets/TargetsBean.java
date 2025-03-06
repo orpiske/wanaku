@@ -33,6 +33,9 @@ public class TargetsBean {
     @Inject
     ToolsResolver toolsResolver;
 
+    @Inject
+    ServiceRegistry serviceRegistry;
+
     public void configureTools(String service, String option, String value)
             throws IOException, ConfigurationNotFoundException, ServiceNotFoundException {
         Service entry = ServiceRegistry.getInstance().getEntryForService(service);

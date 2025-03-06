@@ -3,8 +3,13 @@ package ai.wanaku.core.service.discovery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import ai.wanaku.api.types.management.Service;
 import io.vertx.ext.consul.ConsulClient;
+import io.vertx.ext.consul.ServiceList;
 import io.vertx.ext.consul.ServiceOptions;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -32,5 +37,19 @@ public class ServiceRegistry {
 
     private static String toId(String address, int port) {
         return address + "-" + port;
+    }
+
+    public Map<String, Service> getEntries() {
+        ServiceList result = consulClient.catalogServices().result();
+        List<io.vertx.ext.consul.Service> list = result.getList();
+        Map<String, Service> map = new HashMap<>();
+        for (var service : list) {
+            Service wanakuService = new Service();
+
+            wanakuService.setTarget(service.getAddress());
+            map.put(service.getName(), wanakuService);
+        }
+
+        return map;
     }
 }
