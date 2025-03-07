@@ -32,33 +32,6 @@ public class TargetsResource {
     @Context
     HttpServerRequest request;
 
-    @Path("/tools/link")
-    @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response toolsLink(@QueryParam("service") String service, @QueryParam("port") int port) {
-        try {
-            String target = String.format("%s:%d", request.remoteAddress().hostAddress().toString(), port);
-            targetsBean.toolsLink(service, target);
-            return Response.ok().build();
-        } catch (IOException e) {
-            LOG.errorf(e, "Unable to link tools to targets: %s", e.getMessage());
-            return Response.serverError().build();
-        }
-    }
-
-    @Path("/tools/unlink")
-    @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response toolsUnlink(@QueryParam("service") String service) {
-        try {
-            targetsBean.toolsUnlink(service);
-            return Response.ok().build();
-        } catch (IOException e) {
-            LOG.errorf(e, "Unable to link tools to targets: %s", e.getMessage());
-            return Response.serverError().build();
-        }
-    }
-
     @Path("/tools/list")
     @GET
     @Consumes(MediaType.TEXT_PLAIN)
@@ -79,33 +52,6 @@ public class TargetsResource {
         } catch (ServiceNotFoundException | ConfigurationNotFoundException e) {
             LOG.warnf(e.getMessage());
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
-
-    @Path("/resources/link")
-    @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response resourcesLink(@QueryParam("service") String service, @QueryParam("port") int port) {
-        try {
-            String target = String.format("%s:%d", request.remoteAddress().host(), port);
-            targetsBean.resourcesLink(service, target);
-            return Response.ok().build();
-        } catch (IOException e) {
-            LOG.errorf(e, "Unable to link resources to targets: %s", e.getMessage());
-            return Response.serverError().build();
-        }
-    }
-
-    @Path("/resources/unlink")
-    @PUT
-    @Consumes(MediaType.TEXT_PLAIN)
-    public Response resourcesUnlink(@QueryParam("service") String service) {
-        try {
-            targetsBean.resourcesUnlink(service);
-            return Response.ok().build();
-        } catch (IOException e) {
-            LOG.errorf(e, "Unable to unlink resources to targets: %s", e.getMessage());
-            return Response.serverError().build();
         }
     }
 
