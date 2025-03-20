@@ -81,6 +81,16 @@
             <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-zerodep</artifactId>
+        </dependency>
+
         <!-- For building containers -->
         <dependency>
             <groupId>io.quarkus</groupId>
