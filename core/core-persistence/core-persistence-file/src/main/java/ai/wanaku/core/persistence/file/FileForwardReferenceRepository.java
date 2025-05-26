@@ -6,7 +6,7 @@ import ai.wanaku.core.persistence.api.ForwardReferenceRepository;
 import ai.wanaku.core.persistence.types.ForwardEntity;
 import java.nio.file.Path;
 
-public class FileForwardReferenceRepository  extends AbstractFileRepository<ForwardReference, ForwardEntity, String> implements ForwardReferenceRepository {
+public class FileForwardReferenceRepository extends AbstractFileRepository<ForwardReference, ForwardEntity, String> implements ForwardReferenceRepository {
 
     public FileForwardReferenceRepository(
             WanakuMarshallerService wanakuMarshallerService, Path file) {

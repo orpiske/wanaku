@@ -28,6 +28,7 @@ public class FilePersistenceConfiguration {
     @ConfigProperty(name = "wanaku.persistence.file.forwards-reference", defaultValue = "forwards.json")
     String forwardsReferenceFileName;
 
+    @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "infinispan", lookupIfMissing = true)
     @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "mongodb", lookupIfMissing = true)
     @Produces
     ResourceReferenceRepository resourceReferenceRepository() {
@@ -35,6 +36,7 @@ public class FilePersistenceConfiguration {
                 baseFolder.replace("${user.home}", System.getProperty("user.home")), resourceReferenceFileName));
     }
 
+    @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "infinispan", lookupIfMissing = true)
     @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "mongodb", lookupIfMissing = true)
     @Produces
     ToolReferenceRepository toolReferenceRepository() {
@@ -51,6 +53,7 @@ public class FilePersistenceConfiguration {
                         baseFolder.replace("${user.home}", System.getProperty("user.home"))));
     }
 
+    @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "infinispan", lookupIfMissing = true)
     @LookupUnlessProperty(name = "wanaku.persistence", stringValue = "mongodb", lookupIfMissing = true)
     @Produces
     ForwardReferenceRepository forwardReferenceRepository() {

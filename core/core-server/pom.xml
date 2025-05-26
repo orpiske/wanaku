@@ -44,9 +44,14 @@
             <artifactId>core-persistence-file</artifactId>
             <version>${project.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>ai.wanaku</groupId>-->
+<!--            <artifactId>core-persistence-mongodb</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>ai.wanaku</groupId>
-            <artifactId>core-persistence-mongodb</artifactId>
+            <artifactId>core-persistence-infinispan</artifactId>
             <version>${project.version}</version>
         </dependency>
 
