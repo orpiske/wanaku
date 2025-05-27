@@ -16,6 +16,12 @@
             <artifactId>core-mcp</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>io.quarkiverse.infinispan</groupId>-->
+<!--            <artifactId>quarkus-infinispan-embedded</artifactId>-->
+<!--            <version>${quarkus-infinispan-embedded.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

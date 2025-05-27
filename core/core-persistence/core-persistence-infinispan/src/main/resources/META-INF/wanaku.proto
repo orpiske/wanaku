@@ -1,0 +1,23 @@
+package wanaku;
+
+
+message ResourceReference {
+  required string name = 1;
+  required string type = 2;
+  required string location = 3;
+  required string description = 4;
+  required string mimeType = 5;
+  map<string, string> params = 6;
+}
+
+message ToolReferenceEntity {
+  required string name = 1;
+  required string uri = 2;
+  required string type = 3;
+  required string description = 4;
+}
+
+message ForwardReference {
+  required string name = 1;
+  required string address = 2;
+}
