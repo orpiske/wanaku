@@ -1,7 +1,6 @@
 package ai.wanaku.core.services.tool;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import ai.wanaku.api.exceptions.InvalidResponseTypeException;
@@ -10,12 +9,13 @@ import ai.wanaku.core.exchange.InvocationDelegate;
 import ai.wanaku.core.exchange.PropertySchema;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
-import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.core.service.discovery.client.DiscoveryService;
 import ai.wanaku.core.service.discovery.util.DiscoveryUtil;
 import ai.wanaku.core.services.config.WanakuServiceConfig;
 import ai.wanaku.core.services.config.WanakuToolConfig;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,15 +37,19 @@ public abstract class AbstractToolDelegate implements InvocationDelegate {
     @Inject
     Client client;
 
-    @Inject
-    Instance<ServiceRegistry> serviceRegistryInstance;
-
-    ServiceRegistry serviceRegistry;
+    DiscoveryService discoveryService;
+    private ServiceTarget serviceTarget;
 
     @PostConstruct
     public void init() {
-        serviceRegistry = serviceRegistryInstance.get();
-        LOG.info("Using service registry implementation " + serviceRegistry.getClass().getName());
+        discoveryService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(config.registration().uri()))
+                .build(DiscoveryService.class);
+
+        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.tool.name").getValue();
+        serviceTarget = newServiceTarget(service, serviceConfigurations());
+
+        LOG.info("Registering service with " + config.registration().uri());
     }
 
     /**
@@ -73,26 +77,29 @@ public abstract class AbstractToolDelegate implements InvocationDelegate {
             try {
                 return builder.build();
             } finally {
-                serviceRegistry.saveState(service, true, null);
+                discoveryService.deregister(serviceTarget);
             }
         } catch (InvalidResponseTypeException e) {
             String stateMsg = "Invalid response type from the consumer: " + e.getMessage();
             LOG.errorf(e, stateMsg);
-            serviceRegistry.saveState(service, false, stateMsg);
+            // TODO
+            // serviceRegistry.saveState(service, false, stateMsg);
             return ToolInvokeReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
         } catch (NonConvertableResponseException e) {
             String stateMsg = "Non-convertable response from the consumer " + e.getMessage();
             LOG.errorf(e, stateMsg);
-            serviceRegistry.saveState(service, false, stateMsg);
+            // TODO
+            // serviceRegistry.saveState(service, false, stateMsg);
             return ToolInvokeReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
         } catch (Exception e) {
             String stateMsg = "Unable to invoke tool: " + e.getMessage();
             LOG.errorf(e, stateMsg, e);
-            serviceRegistry.saveState(service, false, stateMsg);
+            // TODO
+            // serviceRegistry.saveState(service, false, stateMsg);
             return ToolInvokeReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
@@ -109,34 +116,29 @@ public abstract class AbstractToolDelegate implements InvocationDelegate {
         return config.credentials().configurations();
     }
 
-    private void tryRegistering(String service, String address, int port) {
+    private void tryRegistering() {
         int retries = config.registration().retries();
         boolean registered = false;
         do {
             try {
-                serviceRegistry.register(ServiceTarget.toolInvoker(service, address, port), serviceConfigurations());
+                discoveryService.register(serviceTarget);
                 registered = true;
             } catch (Exception e) {
                 int waitSeconds = config.registration().retryWaitSeconds();
-                retries = waitAndRetry(service, e, retries, waitSeconds);
+                retries = waitAndRetry(serviceTarget.getService(), e, retries, waitSeconds);
             }
         } while (!registered && (retries > 0));
     }
 
     @Override
     public void register() {
-        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.tool.name").getValue();
-        String port = ConfigProvider.getConfig().getConfigValue("quarkus.grpc.server.port").getValue();
-
-        final String address = DiscoveryUtil.resolveRegistrationAddress();
-        LOG.debugf("Registering tool service %s with address %s:%s", service, address, port);
-
-        tryRegistering(service, address, Integer.parseInt(port));
+        LOG.debugf("Registering resource service %s with address %s", serviceTarget.getService(), serviceTarget.toAddress());
+        tryRegistering();
     }
 
     @Override
-    public void deregister(String service, String address, int port) {
-        serviceRegistry.deregister(service, ServiceType.TOOL_INVOKER);
+    public void deregister() {
+        discoveryService.deregister(serviceTarget);
     }
 
     @Override
@@ -153,5 +155,13 @@ public abstract class AbstractToolDelegate implements InvocationDelegate {
                 .setType(configProp.type())
                 .setRequired(configProp.required())
                 .build();
+    }
+
+    private static ServiceTarget newServiceTarget(String service, Map<String, String> configurations) {
+        String portStr = ConfigProvider.getConfig().getConfigValue("quarkus.grpc.server.port").getValue();
+        final int port = Integer.parseInt(portStr);
+
+        final String address = DiscoveryUtil.resolveRegistrationAddress();
+        return ServiceTarget.toolInvoker(service, address, port, configurations);
     }
 }

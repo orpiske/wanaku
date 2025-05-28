@@ -2,28 +2,6 @@
   "openapi" : "3.1.0",
   "components" : {
     "schemas" : {
-      "Configuration" : {
-        "type" : "object",
-        "properties" : {
-          "value" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          }
-        }
-      },
-      "Configurations" : {
-        "type" : "object",
-        "properties" : {
-          "configurations" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "$ref" : "#/components/schemas/Configuration"
-            }
-          }
-        }
-      },
       "ForwardReference" : {
         "type" : "object",
         "properties" : {
@@ -120,16 +98,33 @@
           }
         }
       },
-      "Service" : {
+      "ServiceTarget" : {
         "type" : "object",
         "properties" : {
-          "target" : {
+          "service" : {
             "type" : "string"
           },
+          "host" : {
+            "type" : "string"
+          },
+          "port" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "serviceType" : {
+            "$ref" : "#/components/schemas/ServiceType"
+          },
           "configurations" : {
-            "$ref" : "#/components/schemas/Configurations"
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
           }
         }
+      },
+      "ServiceType" : {
+        "type" : "string",
+        "enum" : [ "RESOURCE_PROVIDER", "TOOL_INVOKER" ]
       },
       "State" : {
         "type" : "object",
@@ -210,6 +205,20 @@
           }
         }
       },
+      "WanakuResponseListServiceTarget" : {
+        "type" : "object",
+        "properties" : {
+          "error" : {
+            "$ref" : "#/components/schemas/WanakuError"
+          },
+          "data" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ServiceTarget"
+            }
+          }
+        }
+      },
       "WanakuResponseListToolReference" : {
         "type" : "object",
         "properties" : {
@@ -237,20 +246,6 @@
               "items" : {
                 "$ref" : "#/components/schemas/State"
               }
-            }
-          }
-        }
-      },
-      "WanakuResponseMapStringService" : {
-        "type" : "object",
-        "properties" : {
-          "error" : {
-            "$ref" : "#/components/schemas/WanakuError"
-          },
-          "data" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "$ref" : "#/components/schemas/Service"
             }
           }
         }
@@ -385,6 +380,54 @@
         "tags" : [ "Info Resource" ]
       }
     },
+    "/api/v1/management/targets/deregister" : {
+      "post" : {
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ServiceTarget"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Deregister",
+        "tags" : [ "Targets Resource" ]
+      }
+    },
+    "/api/v1/management/targets/register" : {
+      "post" : {
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ServiceTarget"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Register",
+        "tags" : [ "Targets Resource" ]
+      }
+    },
     "/api/v1/management/targets/resources/configure/{service}" : {
       "put" : {
         "parameters" : [ {
@@ -424,7 +467,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/WanakuResponseMapStringService"
+                  "$ref" : "#/components/schemas/WanakuResponseListServiceTarget"
                 }
               }
             }
@@ -491,7 +534,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/WanakuResponseMapStringService"
+                  "$ref" : "#/components/schemas/WanakuResponseListServiceTarget"
                 }
               }
             }
@@ -516,6 +559,30 @@
           }
         },
         "summary" : "Tools State",
+        "tags" : [ "Targets Resource" ]
+      }
+    },
+    "/api/v1/management/targets/update" : {
+      "post" : {
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ServiceTarget"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "summary" : "Update",
         "tags" : [ "Targets Resource" ]
       }
     },

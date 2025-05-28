@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
+import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
 import java.util.HashMap;
 import java.util.List;
@@ -37,17 +38,17 @@ public class TargetsBean {
         serviceRegistry.update(service, option, value);
     }
 
-    public Map<String, Service> toolList() {
+    public List<ServiceTarget> toolList() {
         return serviceRegistry.getEntries(ServiceType.TOOL_INVOKER);
     }
 
-    public Map<String, Service> resourcesList() {
+    public List<ServiceTarget> resourcesList() {
         return serviceRegistry.getEntries(ServiceType.RESOURCE_PROVIDER);
     }
 
     public Map<String, List<State>> toolsState() {
         Map<String, List<State>> states = new HashMap<>();
-        Map<String, Service> toolsServices = toolList();
+        List<ServiceTarget> toolsServices = toolList();
         buildState(toolsServices, states);
 
         return states;
@@ -56,17 +57,26 @@ public class TargetsBean {
     public Map<String, List<State>> resourcesState() {
         Map<String, List<State>> states = new HashMap<>();
 
-        Map<String, Service> resourcesServices = resourcesList();
+        List<ServiceTarget> resourcesServices = resourcesList();
         buildState(resourcesServices, states);
 
         return states;
     }
 
-    private void buildState(Map<String, Service> stringServiceMap, Map<String, List<State>> states) {
-        for (var entry : stringServiceMap.entrySet()) {
-            List<State> state = serviceRegistry.getState(entry.getKey(), 10);
+    private void buildState(List<ServiceTarget> serviceTargets, Map<String, List<State>> states) {
+        for (var entry : serviceTargets) {
+// TODO
+//            List<State> state = serviceRegistry.getState(entry.getKey(), 10);
 
-            states.put(entry.getKey(), state);
+//            states.put(entry.getKey(), state);
         }
+    }
+
+    public void registerService(ServiceTarget target) {
+        serviceRegistry.register(target);
+    }
+
+    public void deregisterService(ServiceTarget target) {
+        serviceRegistry.deregister(target);
     }
 }

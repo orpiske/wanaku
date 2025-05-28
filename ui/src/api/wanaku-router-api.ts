@@ -11,12 +11,13 @@ import type {
   PutApiV1ResourcesRemoveParams,
   PutApiV1ToolsRemoveParams,
   ResourceReference,
+  ServiceTarget,
   ToolReference,
   WanakuResponseListForwardReference,
   WanakuResponseListResourceReference,
+  WanakuResponseListServiceTarget,
   WanakuResponseListToolReference,
   WanakuResponseMapStringListState,
-  WanakuResponseMapStringService,
   WanakuResponseServerInfo,
 } from "../models";
 
@@ -209,6 +210,88 @@ export const getApiV1ManagementInfoVersion = async (
 };
 
 /**
+ * @summary Deregister
+ */
+export type postApiV1ManagementTargetsDeregisterResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementTargetsDeregisterResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementTargetsDeregisterResponseComposite =
+  | postApiV1ManagementTargetsDeregisterResponse200
+  | postApiV1ManagementTargetsDeregisterResponse400;
+
+export type postApiV1ManagementTargetsDeregisterResponse =
+  postApiV1ManagementTargetsDeregisterResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementTargetsDeregisterUrl = () => {
+  return `/api/v1/management/targets/deregister`;
+};
+
+export const postApiV1ManagementTargetsDeregister = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementTargetsDeregisterResponse> => {
+  return customFetch<postApiV1ManagementTargetsDeregisterResponse>(
+    getPostApiV1ManagementTargetsDeregisterUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
+    },
+  );
+};
+
+/**
+ * @summary Register
+ */
+export type postApiV1ManagementTargetsRegisterResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementTargetsRegisterResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementTargetsRegisterResponseComposite =
+  | postApiV1ManagementTargetsRegisterResponse200
+  | postApiV1ManagementTargetsRegisterResponse400;
+
+export type postApiV1ManagementTargetsRegisterResponse =
+  postApiV1ManagementTargetsRegisterResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementTargetsRegisterUrl = () => {
+  return `/api/v1/management/targets/register`;
+};
+
+export const postApiV1ManagementTargetsRegister = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementTargetsRegisterResponse> => {
+  return customFetch<postApiV1ManagementTargetsRegisterResponse>(
+    getPostApiV1ManagementTargetsRegisterUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
+    },
+  );
+};
+
+/**
  * @summary Resources Configure
  */
 export type putApiV1ManagementTargetsResourcesConfigureServiceResponse200 = {
@@ -261,7 +344,7 @@ export const putApiV1ManagementTargetsResourcesConfigureService = async (
  * @summary Resources List
  */
 export type getApiV1ManagementTargetsResourcesListResponse200 = {
-  data: WanakuResponseMapStringService;
+  data: WanakuResponseListServiceTarget;
   status: 200;
 };
 
@@ -374,7 +457,7 @@ export const putApiV1ManagementTargetsToolsConfigureService = async (
  * @summary Tool List
  */
 export type getApiV1ManagementTargetsToolsListResponse200 = {
-  data: WanakuResponseMapStringService;
+  data: WanakuResponseListServiceTarget;
   status: 200;
 };
 
@@ -430,6 +513,47 @@ export const getApiV1ManagementTargetsToolsState = async (
     {
       ...options,
       method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Update
+ */
+export type postApiV1ManagementTargetsUpdateResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementTargetsUpdateResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementTargetsUpdateResponseComposite =
+  | postApiV1ManagementTargetsUpdateResponse200
+  | postApiV1ManagementTargetsUpdateResponse400;
+
+export type postApiV1ManagementTargetsUpdateResponse =
+  postApiV1ManagementTargetsUpdateResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementTargetsUpdateUrl = () => {
+  return `/api/v1/management/targets/update`;
+};
+
+export const postApiV1ManagementTargetsUpdate = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementTargetsUpdateResponse> => {
+  return customFetch<postApiV1ManagementTargetsUpdateResponse>(
+    getPostApiV1ManagementTargetsUpdateUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
     },
   );
 };

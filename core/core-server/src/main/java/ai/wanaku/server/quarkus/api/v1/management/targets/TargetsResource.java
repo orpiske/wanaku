@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
@@ -13,9 +14,9 @@ import jakarta.ws.rs.core.Response;
 import ai.wanaku.api.exceptions.ConfigurationNotFoundException;
 import ai.wanaku.api.exceptions.ServiceNotFoundException;
 import ai.wanaku.api.types.WanakuResponse;
-import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 
+import ai.wanaku.core.mcp.providers.ServiceTarget;
 import java.util.List;
 import java.util.Map;
 import org.jboss.logging.Logger;
@@ -32,10 +33,9 @@ public class TargetsResource {
     @Path("/tools/list")
     @GET
     @Consumes(MediaType.TEXT_PLAIN)
-    public WanakuResponse<Map<String, Service>> toolList() {
+    public WanakuResponse<List<ServiceTarget>> toolList() {
         return new WanakuResponse<>(targetsBean.toolList());
     }
-
 
     @Path("/tools/state")
     @GET
@@ -56,7 +56,7 @@ public class TargetsResource {
     @Path("/resources/list")
     @GET
     @Consumes(MediaType.TEXT_PLAIN)
-    public WanakuResponse<Map<String,Service>> resourcesList() {
+    public WanakuResponse<List<ServiceTarget>> resourcesList() {
         return new WanakuResponse<>(targetsBean.resourcesList());
     }
 
@@ -74,5 +74,29 @@ public class TargetsResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public WanakuResponse<Map<String, List<State>>> resourcesState() {
         return new WanakuResponse<>(targetsBean.resourcesState());
+    }
+
+    @Path("/register")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response register(ServiceTarget serviceTarget) {
+        targetsBean.registerService(serviceTarget);
+        return Response.ok().build();
+    }
+
+    @Path("/deregister")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deregister(ServiceTarget serviceTarget) {
+        targetsBean.deregisterService(serviceTarget);
+        return Response.ok().build();
+    }
+
+    @Path("/update")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(ServiceTarget serviceTarget) {
+        targetsBean.registerService(serviceTarget);
+        return Response.ok().build();
     }
 }

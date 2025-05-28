@@ -1,7 +1,5 @@
 package ai.wanaku.core.persistence.infinispan;
 
-import jakarta.inject.Inject;
-
 import ai.wanaku.api.types.management.Configurations;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
@@ -9,40 +7,34 @@ import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
 import java.util.List;
-import java.util.Map;
 
 public class InfinispanServiceRegistry implements ServiceRegistry {
 
-    @Inject
-    InfinispanToolTargetRepository toolRepository;
+    private final InfinispanToolTargetRepository toolRepository;
 
-    @Inject
-    InfinispanResourceTargetRepository resourceTargetRepository;
+    private final InfinispanResourceTargetRepository resourceTargetRepository;
+
+    public InfinispanServiceRegistry(InfinispanResourceTargetRepository resourceTargetRepository, InfinispanToolTargetRepository toolRepository) {
+        this.resourceTargetRepository = resourceTargetRepository;
+        this.toolRepository = toolRepository;
+    }
 
     @Override
-    public void register(ServiceTarget serviceTarget, Map<String, String> configurations) {
+    public void register(ServiceTarget serviceTarget) {
         if (serviceTarget.getServiceType() == ServiceType.TOOL_INVOKER) {
-            // TODO: how about the configs?
             toolRepository.persist(serviceTarget);
         } else {
-            // TODO: how about the configs?
             resourceTargetRepository.persist(serviceTarget);
         }
-
     }
 
     @Override
-    public void deregister(String service, ServiceType serviceType) {
-        if (serviceType == ServiceType.TOOL_INVOKER) {
-            toolRepository.deleteById(service);
+    public void deregister(ServiceTarget serviceTarget) {
+        if (serviceTarget.getServiceType() == ServiceType.TOOL_INVOKER) {
+            toolRepository.deleteById(serviceTarget.getService());
         } else {
-            resourceTargetRepository.deleteById(service);
+            resourceTargetRepository.deleteById(serviceTarget.getService());
         }
-    }
-
-    @Override
-    public Service getService(String service) {
-        throw new UnsupportedOperationException("The service type must be informed for Infinispan");
     }
 
     @Override
@@ -69,8 +61,17 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
     }
 
     @Override
-    public Map<String, Service> getEntries(ServiceType serviceType) {
-        return Map.of();
+    public List<ServiceTarget> getEntries(ServiceType serviceType) {
+        if (serviceType == ServiceType.TOOL_INVOKER) {
+            return toolRepository.listAll();
+        } else {
+            return resourceTargetRepository.listAll();
+        }
+    }
+
+    @Override
+    public void update(ServiceTarget serviceTarget) {
+        register(serviceTarget);
     }
 
     @Override
@@ -91,4 +92,11 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
         return model;
     }
 
+    /**
+     * Used for testing
+     */
+    void clear() {
+        resourceTargetRepository.deleteALl();
+        toolRepository.deleteALl();
+    }
 }

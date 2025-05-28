@@ -1,8 +1,7 @@
 package ai.wanaku.core.services.provider;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
 
 import ai.wanaku.api.exceptions.InvalidResponseTypeException;
 import ai.wanaku.api.exceptions.NonConvertableResponseException;
@@ -10,14 +9,15 @@ import ai.wanaku.api.exceptions.ResourceNotFoundException;
 import ai.wanaku.core.exchange.ResourceAcquirerDelegate;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
-import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.core.service.discovery.client.DiscoveryService;
 import ai.wanaku.core.service.discovery.util.DiscoveryUtil;
 import ai.wanaku.core.services.config.WanakuProviderConfig;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
+import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 
@@ -35,15 +35,19 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
     @Inject
     ResourceConsumer consumer;
 
-    @Inject
-    Instance<ServiceRegistry> serviceRegistryInstance;
-
-    ServiceRegistry serviceRegistry;
+    DiscoveryService discoveryService;
+    private ServiceTarget serviceTarget;
 
     @PostConstruct
     public void init() {
-        serviceRegistry = serviceRegistryInstance.get();
-        LOG.info("Using service registry implementation " + serviceRegistry.getClass().getName());
+        discoveryService = QuarkusRestClientBuilder.newBuilder()
+                .baseUri(URI.create(config.registration().uri()))
+                .build(DiscoveryService.class);
+
+        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.provider.name").getValue();
+        serviceTarget = newServiceTarget(service, serviceConfigurations());
+
+        LOG.info("Registering service with " + config.registration().uri());
     }
 
     /**
@@ -84,26 +88,28 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
                         .setIsError(false)
                         .addAllContent(response).build();
             } finally {
-                serviceRegistry.saveState(service, true, null);
+                discoveryService.deregister(serviceTarget);
             }
         } catch (InvalidResponseTypeException e) {
             String stateMsg = "Invalid response type from the consumer: " + e.getMessage();
             LOG.errorf(e,stateMsg);
-            serviceRegistry.saveState(service, false, stateMsg);
+//            serviceRegistry.saveState(service, false, stateMsg);
             return ResourceReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
         } catch (NonConvertableResponseException e) {
             String stateMsg = "Non-convertable response from the consumer " + e.getMessage();
             LOG.errorf(e,stateMsg);
-            serviceRegistry.saveState(service, false, stateMsg);
+            // TODO
+            //            serviceRegistry.saveState(service, false, stateMsg);
             return ResourceReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
         } catch (Exception e) {
             String stateMsg = "Unable to read or acquire resource: " + e.getMessage();
             LOG.errorf(e, stateMsg);
-            serviceRegistry.saveState(service, false, stateMsg);
+            // TODO
+            //  serviceRegistry.saveState(service, false, stateMsg);
             return ResourceReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
@@ -139,33 +145,36 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
         }
     }
 
-    private void tryRegistering(String service, String address, int port) {
+    private void tryRegistering() {
         int retries = config.registration().retries();
         boolean registered = false;
         do {
             try {
-                serviceRegistry.register(ServiceTarget.provider(service, address, port), serviceConfigurations());
+                discoveryService.register(serviceTarget);
                 registered = true;
             } catch (Exception e) {
                 int waitSeconds = config.registration().retryWaitSeconds();
-                retries = waitAndRetry(service, e, retries, waitSeconds);
+                retries = waitAndRetry(serviceTarget.getService(), e, retries, waitSeconds);
             }
         } while (!registered && (retries > 0));
     }
 
     @Override
     public void register() {
-        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.provider.name").getValue();
-        String port = ConfigProvider.getConfig().getConfigValue("quarkus.grpc.server.port").getValue();
-
-        final String address = DiscoveryUtil.resolveRegistrationAddress();
-        LOG.debugf("Registering resource service %s with address %s:%s", service, address, port);
-
-        tryRegistering(service, address, Integer.parseInt(port));
+        LOG.debugf("Registering resource service %s with address %s", serviceTarget.getService(), serviceTarget.toAddress());
+        tryRegistering();
     }
 
     @Override
-    public void deregister(String service, String address, int port) {
-        serviceRegistry.deregister(service, ServiceType.RESOURCE_PROVIDER);
+    public void deregister() {
+        discoveryService.deregister(serviceTarget);
+    }
+
+    private static ServiceTarget newServiceTarget(String service, Map<String, String> configurations) {
+        String portStr = ConfigProvider.getConfig().getConfigValue("quarkus.grpc.server.port").getValue();
+        final int port = Integer.parseInt(portStr);
+
+        final String address = DiscoveryUtil.resolveRegistrationAddress();
+        return ServiceTarget.provider(service, address, port, configurations);
     }
 }

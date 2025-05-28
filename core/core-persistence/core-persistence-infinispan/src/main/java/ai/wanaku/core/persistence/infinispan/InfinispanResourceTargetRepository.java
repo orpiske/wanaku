@@ -1,11 +1,14 @@
 package ai.wanaku.core.persistence.infinispan;
 
+import jakarta.inject.Singleton;
+
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
 import ai.wanaku.core.persistence.types.ServiceTargetEntity;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
 
+@Singleton
 public class InfinispanResourceTargetRepository extends AbstractInfinispanRepository<ServiceTarget, ServiceTargetEntity, String> {
 
     protected InfinispanResourceTargetRepository(
@@ -26,11 +29,11 @@ public class InfinispanResourceTargetRepository extends AbstractInfinispanReposi
 
     @Override
     public ServiceTargetEntity convertToEntity(ServiceTarget model) {
-        return new ServiceTargetEntity(model.getService(), model.getHost(), model.getPort(), model.getServiceType());
+        return new ServiceTargetEntity(model.getService(), model.getHost(), model.getPort(), model.getServiceType(), model.getConfigurations());
     }
 
     @Override
     public ServiceTarget convertToModel(ServiceTargetEntity entity) {
-        return new ServiceTarget(entity.getService(), entity.getHost(), entity.getPort(), entity.getServiceType());
+        return new ServiceTarget(entity.getService(), entity.getHost(), entity.getPort(), entity.getServiceType(), entity.getConfigurations());
     }
 }

@@ -117,5 +117,12 @@ public interface WanakuServiceConfig extends WanakuConfig {
          */
         @WithDefault("1")
         int retryWaitSeconds();
+
+        /**
+         * The URI used for the registration service
+         * @return The URI used for the registration service
+         */
+        @WithDefault("http://localhost:8080")
+        String uri();
     }
 }

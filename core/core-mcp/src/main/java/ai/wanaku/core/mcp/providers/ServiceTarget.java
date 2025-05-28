@@ -1,5 +1,9 @@
 package ai.wanaku.core.mcp.providers;
 
+import ai.wanaku.api.types.management.Configuration;
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Represents a target service endpoint that can be either a resource provider or a tool invoker.
  */
@@ -8,20 +12,24 @@ public class ServiceTarget {
     private final String host;
     private final int port;
     private final ServiceType serviceType;
+    private final Map<String, String> configurations;
 
     /**
      * Constructs a new instance of {@link ServiceTarget}.
      *
-     * @param service The name of the service.
-     * @param host The host address of the service.
-     * @param port The port number of the service.
-     * @param serviceType The type of service, either RESOURCE_PROVIDER or TOOL_INVOKER.
+     * @param service        The name of the service.
+     * @param host           The host address of the service.
+     * @param port           The port number of the service.
+     * @param serviceType    The type of service, either RESOURCE_PROVIDER or TOOL_INVOKER.
+     * @param configurations The available configuration options on the service
      */
-    public ServiceTarget(String service, String host, int port, ServiceType serviceType) {
+    public ServiceTarget(String service, String host, int port, ServiceType serviceType,
+            Map<String, String> configurations) {
         this.service = service;
         this.host = host;
         this.port = port;
         this.serviceType = serviceType;
+        this.configurations = configurations;
     }
 
     /**
@@ -69,16 +77,21 @@ public class ServiceTarget {
         return String.format("%s:%d", host, port);
     }
 
-    /**
+    public Map<String, String> getConfigurations() {
+        return configurations;
+    }
+
+     /**
      * Creates a new instance of {@link ServiceTarget} with the specified parameters and a service type of RESOURCE_PROVIDER.
      *
      * @param service The name of the service.
      * @param address The host address of the service.
      * @param port The port number of the service.
+     * @param configurations The available configuration options on the service
      * @return A new instance of {@link ServiceTarget}.
      */
-    public static ServiceTarget provider(String service, String address, int port) {
-        return new ServiceTarget(service, address, port, ServiceType.RESOURCE_PROVIDER);
+    public static ServiceTarget provider(String service, String address, int port, Map<String, String> configurations) {
+        return new ServiceTarget(service, address, port, ServiceType.RESOURCE_PROVIDER, configurations);
     }
 
     /**
@@ -87,9 +100,12 @@ public class ServiceTarget {
      * @param service The name of the service.
      * @param address The host address of the service.
      * @param port The port number of the service.
+     * @param configurations The available configuration options on the service
      * @return A new instance of {@link ServiceTarget}.
      */
-    public static ServiceTarget toolInvoker(String service, String address, int port) {
-        return new ServiceTarget(service, address, port, ServiceType.TOOL_INVOKER);
+    public static ServiceTarget toolInvoker(String service, String address, int port, Map<String, String> configurations) {
+        return new ServiceTarget(service, address, port, ServiceType.TOOL_INVOKER, configurations);
     }
+
+
 }

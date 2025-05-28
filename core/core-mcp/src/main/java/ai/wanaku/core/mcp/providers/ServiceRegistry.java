@@ -4,7 +4,6 @@ import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Defines a registry of downstream services
@@ -14,32 +13,22 @@ public interface ServiceRegistry {
     /**
      * Register a service target in the registry
      * @param serviceTarget the service target
-     * @param configurations any configurations applicable for the service
      */
-    void register(ServiceTarget serviceTarget, Map<String, String> configurations);
+    void register(ServiceTarget serviceTarget);
 
     /**
      * De-register a service from the registry
-     * @param service the service name
+     * @param serviceTarget the service target
      */
-    void deregister(String service, ServiceType serviceType);
+    void deregister(ServiceTarget serviceTarget);
 
     /**
      * Gets a registered service by name
      * @param service the name of the service
+     * @param serviceType the service type
      * @return the service instance or null if not found
      */
-    @Deprecated
-    Service getService(String service);
-
-    /**
-     * Gets a registered service by name
-     * @param service the name of the service
-     * @return the service instance or null if not found
-     */
-    default Service getService(String service, ServiceType serviceType) {
-        return getService(service);
-    }
+    Service getService(String service, ServiceType serviceType);
 
     /**
      * Saves the current state of the service
@@ -47,6 +36,7 @@ public interface ServiceRegistry {
      * @param healthy whether it is healthy (true for healthy, false otherwise)
      * @param message Optional state message (ignored if healthy)
      */
+    @Deprecated
     void saveState(String service, boolean healthy, String message);
 
     /**
@@ -59,10 +49,18 @@ public interface ServiceRegistry {
 
     /**
      * Get a map of all registered services and their configurations
+     *
      * @param serviceType the type of service to get
      * @return a map of all registered services and their configurations
      */
-    Map<String, Service> getEntries(ServiceType serviceType);
+    List<ServiceTarget> getEntries(ServiceType serviceType);
+
+
+    /**
+     * Update a registered service target in the registry
+     * @param serviceTarget the service target
+     */
+    void update(ServiceTarget serviceTarget);
 
     void update(String target, String option, String value);
 }
