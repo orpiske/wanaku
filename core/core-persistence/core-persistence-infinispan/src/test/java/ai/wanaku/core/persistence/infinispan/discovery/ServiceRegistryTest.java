@@ -1,4 +1,4 @@
-package ai.wanaku.core.persistence.infinispan;
+package ai.wanaku.core.persistence.infinispan.discovery;
 
 import jakarta.inject.Inject;
 
@@ -8,7 +8,6 @@ import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
 import io.quarkus.test.junit.QuarkusTest;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;

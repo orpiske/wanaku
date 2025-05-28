@@ -1,4 +1,4 @@
-package ai.wanaku.core.persistence.infinispan;
+package ai.wanaku.core.persistence.infinispan.discovery;
 
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;

@@ -1,4 +1,4 @@
-package ai.wanaku.core.persistence.infinispan;
+package ai.wanaku.core.persistence.infinispan.discovery;
 
 import ai.wanaku.api.types.management.Configurations;
 import ai.wanaku.api.types.management.Service;
@@ -96,7 +96,7 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
      * Used for testing
      */
     void clear() {
-        resourceTargetRepository.deleteALl();
-        toolRepository.deleteALl();
+        resourceTargetRepository.deleteAll();
+        toolRepository.deleteAll();
     }
 }

@@ -103,7 +103,7 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
 
 
     // For testing only
-    void deleteALl() {
+    protected void deleteALl() {
         final Cache<Object, T> cache = cacheManager.getCache(entityName());
 
         cache.clear();

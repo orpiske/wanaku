@@ -1,17 +1,19 @@
-package ai.wanaku.core.persistence.infinispan;
+package ai.wanaku.core.persistence.infinispan.discovery;
 
 import jakarta.inject.Singleton;
 
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.core.persistence.infinispan.AbstractInfinispanRepository;
 import ai.wanaku.core.persistence.types.ServiceTargetEntity;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
 
 @Singleton
-public class InfinispanToolTargetRepository extends AbstractInfinispanRepository<ServiceTarget, ServiceTargetEntity, String> {
+public class InfinispanResourceTargetRepository extends
+        AbstractInfinispanRepository<ServiceTarget, ServiceTargetEntity, String> {
 
-    protected InfinispanToolTargetRepository(
+    protected InfinispanResourceTargetRepository(
             EmbeddedCacheManager cacheManager,
             Configuration configuration) {
         super(cacheManager, configuration);
@@ -24,7 +26,7 @@ public class InfinispanToolTargetRepository extends AbstractInfinispanRepository
 
     @Override
     protected String entityName() {
-        return ServiceType.TOOL_INVOKER.asValue();
+        return ServiceType.RESOURCE_PROVIDER.asValue();
     }
 
     @Override
@@ -35,5 +37,10 @@ public class InfinispanToolTargetRepository extends AbstractInfinispanRepository
     @Override
     public ServiceTarget convertToModel(ServiceTargetEntity entity) {
         return new ServiceTarget(entity.getService(), entity.getHost(), entity.getPort(), entity.getServiceType(), entity.getConfigurations());
+    }
+
+    // For testing
+    void deleteAll() {
+        super.deleteALl();
     }
 }
