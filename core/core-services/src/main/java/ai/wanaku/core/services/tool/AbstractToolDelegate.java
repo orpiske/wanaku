@@ -65,7 +65,6 @@ public abstract class AbstractToolDelegate implements InvocationDelegate {
 
     @Override
     public ToolInvokeReply invoke(ToolInvokeRequest request) {
-        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.tool.name").getValue();
         try {
             Object obj = client.exchange(request);
 
