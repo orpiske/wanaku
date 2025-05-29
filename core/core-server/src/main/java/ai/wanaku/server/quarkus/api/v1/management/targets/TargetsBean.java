@@ -7,8 +7,8 @@ import jakarta.inject.Inject;
 
 import ai.wanaku.api.types.management.State;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
-import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

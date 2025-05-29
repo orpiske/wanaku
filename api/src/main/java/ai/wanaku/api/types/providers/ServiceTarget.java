@@ -1,18 +1,22 @@
-package ai.wanaku.core.mcp.providers;
+package ai.wanaku.api.types.providers;
 
-import ai.wanaku.api.types.management.Configuration;
-import java.util.Collections;
+import ai.wanaku.api.types.WanakuEntity;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a target service endpoint that can be either a resource provider or a tool invoker.
  */
-public class ServiceTarget {
-    private final String service;
-    private final String host;
-    private final int port;
-    private final ServiceType serviceType;
-    private final Map<String, String> configurations;
+public class ServiceTarget implements WanakuEntity {
+    private String id;
+    private String service;
+    private String host;
+    private int port;
+    private ServiceType serviceType;
+    private Map<String, String> configurations;
+
+    public ServiceTarget() {
+    }
 
     /**
      * Constructs a new instance of {@link ServiceTarget}.
@@ -23,8 +27,9 @@ public class ServiceTarget {
      * @param serviceType    The type of service, either RESOURCE_PROVIDER or TOOL_INVOKER.
      * @param configurations The available configuration options on the service
      */
-    public ServiceTarget(String service, String host, int port, ServiceType serviceType,
+    public ServiceTarget(String id, String service, String host, int port, ServiceType serviceType,
             Map<String, String> configurations) {
+        this.id = id;
         this.service = service;
         this.host = host;
         this.port = port;
@@ -81,7 +86,45 @@ public class ServiceTarget {
         return configurations;
     }
 
-     /**
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ServiceTarget that = (ServiceTarget) o;
+        return port == that.port && Objects.equals(id, that.id) && Objects.equals(service,
+                that.service) && Objects.equals(host,
+                that.host) && serviceType == that.serviceType && Objects.equals(configurations, that.configurations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, service, host, port, serviceType, configurations);
+    }
+
+    @Override
+    public String toString() {
+        return "ServiceTarget{" +
+                "id='" + id + '\'' +
+                ", service='" + service + '\'' +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                ", serviceType=" + serviceType +
+                ", configurations=" + configurations +
+                '}';
+    }
+
+    /**
      * Creates a new instance of {@link ServiceTarget} with the specified parameters and a service type of RESOURCE_PROVIDER.
      *
      * @param service The name of the service.
@@ -91,7 +134,7 @@ public class ServiceTarget {
      * @return A new instance of {@link ServiceTarget}.
      */
     public static ServiceTarget provider(String service, String address, int port, Map<String, String> configurations) {
-        return new ServiceTarget(service, address, port, ServiceType.RESOURCE_PROVIDER, configurations);
+        return new ServiceTarget(null, service, address, port, ServiceType.RESOURCE_PROVIDER, configurations);
     }
 
     /**
@@ -104,7 +147,7 @@ public class ServiceTarget {
      * @return A new instance of {@link ServiceTarget}.
      */
     public static ServiceTarget toolInvoker(String service, String address, int port, Map<String, String> configurations) {
-        return new ServiceTarget(service, address, port, ServiceType.TOOL_INVOKER, configurations);
+        return new ServiceTarget(null, service, address, port, ServiceType.TOOL_INVOKER, configurations);
     }
 
 

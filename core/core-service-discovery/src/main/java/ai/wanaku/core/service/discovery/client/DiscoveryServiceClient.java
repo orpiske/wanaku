@@ -1,6 +1,6 @@
 package ai.wanaku.core.service.discovery.client;
 
-import ai.wanaku.core.mcp.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceTarget;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;

@@ -15,7 +15,7 @@ import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokerGrpc;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceType;
 import ai.wanaku.core.util.CollectionsHelper;
 import ai.wanaku.routers.proxies.ToolsProxy;
 import com.google.protobuf.ProtocolStringList;

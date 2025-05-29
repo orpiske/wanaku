@@ -6,7 +6,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import ai.wanaku.core.mcp.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceTarget;
 
 @Path("/api/v1/management/discovery")
 public interface DiscoveryService {

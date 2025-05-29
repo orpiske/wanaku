@@ -8,6 +8,7 @@ import type { ServiceType } from "./serviceType";
 import type { ServiceTargetConfigurations } from "./serviceTargetConfigurations";
 
 export interface ServiceTarget {
+  id?: string;
   service?: string;
   host?: string;
   port?: number;

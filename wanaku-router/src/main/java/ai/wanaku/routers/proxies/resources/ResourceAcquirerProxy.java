@@ -8,7 +8,7 @@ import ai.wanaku.core.exchange.ResourceAcquirerGrpc;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceType;
 import ai.wanaku.routers.proxies.ResourceProxy;
 import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;

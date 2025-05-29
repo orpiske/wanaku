@@ -45,5 +45,7 @@ export * from "./wanakuResponseMapStringListState";
 export * from "./wanakuResponseMapStringListStateData";
 export * from "./wanakuResponseMapStringService";
 export * from "./wanakuResponseMapStringServiceData";
+export * from "./wanakuResponseResourceReference";
 export * from "./wanakuResponseServerInfo";
 export * from "./wanakuResponseString";
+export * from "./wanakuResponseToolReference";

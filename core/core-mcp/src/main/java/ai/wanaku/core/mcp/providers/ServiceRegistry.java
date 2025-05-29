@@ -3,6 +3,8 @@ package ai.wanaku.core.mcp.providers;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 
+import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceType;
 import java.util.List;
 
 /**

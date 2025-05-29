@@ -5,6 +5,8 @@ components:
     ForwardReference:
       type: object
       properties:
+        id:
+          type: string
         name:
           type: string
         address:
@@ -45,6 +47,8 @@ components:
     ResourceReference:
       type: object
       properties:
+        id:
+          type: string
         location:
           type: string
         type:
@@ -67,6 +71,8 @@ components:
     ServiceTarget:
       type: object
       properties:
+        id:
+          type: string
         service:
           type: string
         host:
@@ -97,6 +103,8 @@ components:
     ToolReference:
       type: object
       properties:
+        id:
+          type: string
         name:
           type: string
         description:
@@ -165,6 +173,13 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/State"
+    WanakuResponseResourceReference:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/WanakuError"
+        data:
+          $ref: "#/components/schemas/ResourceReference"
     WanakuResponseServerInfo:
       type: object
       properties:
@@ -172,6 +187,13 @@ components:
           $ref: "#/components/schemas/WanakuError"
         data:
           $ref: "#/components/schemas/ServerInfo"
+    WanakuResponseToolReference:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/WanakuError"
+        data:
+          $ref: "#/components/schemas/ToolReference"
 paths:
   /api/v1/forwards/add:
     post:
@@ -239,19 +261,7 @@ paths:
       summary: Update
       tags:
       - Forwards Resource
-  /api/v1/management/info/version:
-    get:
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseServerInfo"
-      summary: Version
-      tags:
-      - Info Resource
-  /api/v1/management/targets/deregister:
+  /api/v1/management/discovery/deregister:
     post:
       requestBody:
         content:
@@ -266,8 +276,8 @@ paths:
           description: Bad Request
       summary: Deregister
       tags:
-      - Targets Resource
-  /api/v1/management/targets/register:
+      - Discovery Resource
+  /api/v1/management/discovery/register:
     post:
       requestBody:
         content:
@@ -282,7 +292,59 @@ paths:
           description: Bad Request
       summary: Register
       tags:
-      - Targets Resource
+      - Discovery Resource
+  /api/v1/management/discovery/resources/state:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseMapStringListState"
+      summary: Resources State
+      tags:
+      - Discovery Resource
+  /api/v1/management/discovery/tools/state:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseMapStringListState"
+      summary: Tools State
+      tags:
+      - Discovery Resource
+  /api/v1/management/discovery/update:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceTarget"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Update
+      tags:
+      - Discovery Resource
+  /api/v1/management/info/version:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseServerInfo"
+      summary: Version
+      tags:
+      - Info Resource
   /api/v1/management/targets/resources/configure/{service}:
     put:
       parameters:
@@ -375,22 +437,6 @@ paths:
       summary: Tools State
       tags:
       - Targets Resource
-  /api/v1/management/targets/update:
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ServiceTarget"
-        required: true
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Targets Resource
   /api/v1/resources/expose:
     post:
       requestBody:
@@ -402,6 +448,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseResourceReference"
         "500":
           description: Wanaku error
           content: {}
@@ -471,9 +521,16 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseToolReference"
         "500":
           description: Wanaku error
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponse"
         "400":
           description: Bad Request
       summary: Add
@@ -490,7 +547,10 @@ paths:
                 $ref: "#/components/schemas/WanakuResponseListToolReference"
         "500":
           description: Wanaku error
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponse"
       summary: List
       tags:
       - Tools Resource
@@ -506,7 +566,10 @@ paths:
           description: OK
         "500":
           description: Wanaku error
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponse"
       summary: Remove
       tags:
       - Tools Resource
@@ -523,7 +586,10 @@ paths:
           description: OK
         "500":
           description: Wanaku error
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponse"
         "400":
           description: Bad Request
       summary: Update

@@ -13,12 +13,15 @@ import type {
   ResourceReference,
   ServiceTarget,
   ToolReference,
+  WanakuResponse,
   WanakuResponseListForwardReference,
   WanakuResponseListResourceReference,
   WanakuResponseListServiceTarget,
   WanakuResponseListToolReference,
   WanakuResponseMapStringListState,
+  WanakuResponseResourceReference,
   WanakuResponseServerInfo,
+  WanakuResponseToolReference,
 } from "../models";
 
 import { customFetch } from "../custom-fetch";
@@ -178,6 +181,193 @@ export const postApiV1ForwardsUpdate = async (
 };
 
 /**
+ * @summary Deregister
+ */
+export type postApiV1ManagementDiscoveryDeregisterResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementDiscoveryDeregisterResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementDiscoveryDeregisterResponseComposite =
+  | postApiV1ManagementDiscoveryDeregisterResponse200
+  | postApiV1ManagementDiscoveryDeregisterResponse400;
+
+export type postApiV1ManagementDiscoveryDeregisterResponse =
+  postApiV1ManagementDiscoveryDeregisterResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementDiscoveryDeregisterUrl = () => {
+  return `/api/v1/management/discovery/deregister`;
+};
+
+export const postApiV1ManagementDiscoveryDeregister = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementDiscoveryDeregisterResponse> => {
+  return customFetch<postApiV1ManagementDiscoveryDeregisterResponse>(
+    getPostApiV1ManagementDiscoveryDeregisterUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
+    },
+  );
+};
+
+/**
+ * @summary Register
+ */
+export type postApiV1ManagementDiscoveryRegisterResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementDiscoveryRegisterResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementDiscoveryRegisterResponseComposite =
+  | postApiV1ManagementDiscoveryRegisterResponse200
+  | postApiV1ManagementDiscoveryRegisterResponse400;
+
+export type postApiV1ManagementDiscoveryRegisterResponse =
+  postApiV1ManagementDiscoveryRegisterResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementDiscoveryRegisterUrl = () => {
+  return `/api/v1/management/discovery/register`;
+};
+
+export const postApiV1ManagementDiscoveryRegister = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementDiscoveryRegisterResponse> => {
+  return customFetch<postApiV1ManagementDiscoveryRegisterResponse>(
+    getPostApiV1ManagementDiscoveryRegisterUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
+    },
+  );
+};
+
+/**
+ * @summary Resources State
+ */
+export type getApiV1ManagementDiscoveryResourcesStateResponse200 = {
+  data: WanakuResponseMapStringListState;
+  status: 200;
+};
+
+export type getApiV1ManagementDiscoveryResourcesStateResponseComposite =
+  getApiV1ManagementDiscoveryResourcesStateResponse200;
+
+export type getApiV1ManagementDiscoveryResourcesStateResponse =
+  getApiV1ManagementDiscoveryResourcesStateResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV1ManagementDiscoveryResourcesStateUrl = () => {
+  return `/api/v1/management/discovery/resources/state`;
+};
+
+export const getApiV1ManagementDiscoveryResourcesState = async (
+  options?: RequestInit,
+): Promise<getApiV1ManagementDiscoveryResourcesStateResponse> => {
+  return customFetch<getApiV1ManagementDiscoveryResourcesStateResponse>(
+    getGetApiV1ManagementDiscoveryResourcesStateUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Tools State
+ */
+export type getApiV1ManagementDiscoveryToolsStateResponse200 = {
+  data: WanakuResponseMapStringListState;
+  status: 200;
+};
+
+export type getApiV1ManagementDiscoveryToolsStateResponseComposite =
+  getApiV1ManagementDiscoveryToolsStateResponse200;
+
+export type getApiV1ManagementDiscoveryToolsStateResponse =
+  getApiV1ManagementDiscoveryToolsStateResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV1ManagementDiscoveryToolsStateUrl = () => {
+  return `/api/v1/management/discovery/tools/state`;
+};
+
+export const getApiV1ManagementDiscoveryToolsState = async (
+  options?: RequestInit,
+): Promise<getApiV1ManagementDiscoveryToolsStateResponse> => {
+  return customFetch<getApiV1ManagementDiscoveryToolsStateResponse>(
+    getGetApiV1ManagementDiscoveryToolsStateUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Update
+ */
+export type postApiV1ManagementDiscoveryUpdateResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementDiscoveryUpdateResponse400 = {
+  data: void;
+  status: 400;
+};
+
+export type postApiV1ManagementDiscoveryUpdateResponseComposite =
+  | postApiV1ManagementDiscoveryUpdateResponse200
+  | postApiV1ManagementDiscoveryUpdateResponse400;
+
+export type postApiV1ManagementDiscoveryUpdateResponse =
+  postApiV1ManagementDiscoveryUpdateResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementDiscoveryUpdateUrl = () => {
+  return `/api/v1/management/discovery/update`;
+};
+
+export const postApiV1ManagementDiscoveryUpdate = async (
+  serviceTarget: ServiceTarget,
+  options?: RequestInit,
+): Promise<postApiV1ManagementDiscoveryUpdateResponse> => {
+  return customFetch<postApiV1ManagementDiscoveryUpdateResponse>(
+    getPostApiV1ManagementDiscoveryUpdateUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(serviceTarget),
+    },
+  );
+};
+
+/**
  * @summary Version
  */
 export type getApiV1ManagementInfoVersionResponse200 = {
@@ -205,88 +395,6 @@ export const getApiV1ManagementInfoVersion = async (
     {
       ...options,
       method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Deregister
- */
-export type postApiV1ManagementTargetsDeregisterResponse200 = {
-  data: void;
-  status: 200;
-};
-
-export type postApiV1ManagementTargetsDeregisterResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1ManagementTargetsDeregisterResponseComposite =
-  | postApiV1ManagementTargetsDeregisterResponse200
-  | postApiV1ManagementTargetsDeregisterResponse400;
-
-export type postApiV1ManagementTargetsDeregisterResponse =
-  postApiV1ManagementTargetsDeregisterResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1ManagementTargetsDeregisterUrl = () => {
-  return `/api/v1/management/targets/deregister`;
-};
-
-export const postApiV1ManagementTargetsDeregister = async (
-  serviceTarget: ServiceTarget,
-  options?: RequestInit,
-): Promise<postApiV1ManagementTargetsDeregisterResponse> => {
-  return customFetch<postApiV1ManagementTargetsDeregisterResponse>(
-    getPostApiV1ManagementTargetsDeregisterUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(serviceTarget),
-    },
-  );
-};
-
-/**
- * @summary Register
- */
-export type postApiV1ManagementTargetsRegisterResponse200 = {
-  data: void;
-  status: 200;
-};
-
-export type postApiV1ManagementTargetsRegisterResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1ManagementTargetsRegisterResponseComposite =
-  | postApiV1ManagementTargetsRegisterResponse200
-  | postApiV1ManagementTargetsRegisterResponse400;
-
-export type postApiV1ManagementTargetsRegisterResponse =
-  postApiV1ManagementTargetsRegisterResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1ManagementTargetsRegisterUrl = () => {
-  return `/api/v1/management/targets/register`;
-};
-
-export const postApiV1ManagementTargetsRegister = async (
-  serviceTarget: ServiceTarget,
-  options?: RequestInit,
-): Promise<postApiV1ManagementTargetsRegisterResponse> => {
-  return customFetch<postApiV1ManagementTargetsRegisterResponse>(
-    getPostApiV1ManagementTargetsRegisterUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(serviceTarget),
     },
   );
 };
@@ -518,51 +626,10 @@ export const getApiV1ManagementTargetsToolsState = async (
 };
 
 /**
- * @summary Update
- */
-export type postApiV1ManagementTargetsUpdateResponse200 = {
-  data: void;
-  status: 200;
-};
-
-export type postApiV1ManagementTargetsUpdateResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1ManagementTargetsUpdateResponseComposite =
-  | postApiV1ManagementTargetsUpdateResponse200
-  | postApiV1ManagementTargetsUpdateResponse400;
-
-export type postApiV1ManagementTargetsUpdateResponse =
-  postApiV1ManagementTargetsUpdateResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1ManagementTargetsUpdateUrl = () => {
-  return `/api/v1/management/targets/update`;
-};
-
-export const postApiV1ManagementTargetsUpdate = async (
-  serviceTarget: ServiceTarget,
-  options?: RequestInit,
-): Promise<postApiV1ManagementTargetsUpdateResponse> => {
-  return customFetch<postApiV1ManagementTargetsUpdateResponse>(
-    getPostApiV1ManagementTargetsUpdateUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(serviceTarget),
-    },
-  );
-};
-
-/**
  * @summary Expose
  */
 export type postApiV1ResourcesExposeResponse200 = {
-  data: void;
+  data: WanakuResponseResourceReference;
   status: 200;
 };
 
@@ -723,7 +790,7 @@ export const postApiV1ResourcesUpdate = async (
  * @summary Add
  */
 export type postApiV1ToolsAddResponse200 = {
-  data: void;
+  data: WanakuResponseToolReference;
   status: 200;
 };
 
@@ -732,9 +799,15 @@ export type postApiV1ToolsAddResponse400 = {
   status: 400;
 };
 
+export type postApiV1ToolsAddResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
 export type postApiV1ToolsAddResponseComposite =
   | postApiV1ToolsAddResponse200
-  | postApiV1ToolsAddResponse400;
+  | postApiV1ToolsAddResponse400
+  | postApiV1ToolsAddResponse500;
 
 export type postApiV1ToolsAddResponse = postApiV1ToolsAddResponseComposite & {
   headers: Headers;
@@ -764,7 +837,14 @@ export type getApiV1ToolsListResponse200 = {
   status: 200;
 };
 
-export type getApiV1ToolsListResponseComposite = getApiV1ToolsListResponse200;
+export type getApiV1ToolsListResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type getApiV1ToolsListResponseComposite =
+  | getApiV1ToolsListResponse200
+  | getApiV1ToolsListResponse500;
 
 export type getApiV1ToolsListResponse = getApiV1ToolsListResponseComposite & {
   headers: Headers;
@@ -791,8 +871,14 @@ export type putApiV1ToolsRemoveResponse200 = {
   status: 200;
 };
 
+export type putApiV1ToolsRemoveResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
 export type putApiV1ToolsRemoveResponseComposite =
-  putApiV1ToolsRemoveResponse200;
+  | putApiV1ToolsRemoveResponse200
+  | putApiV1ToolsRemoveResponse500;
 
 export type putApiV1ToolsRemoveResponse =
   putApiV1ToolsRemoveResponseComposite & {
@@ -843,9 +929,15 @@ export type postApiV1ToolsUpdateResponse400 = {
   status: 400;
 };
 
+export type postApiV1ToolsUpdateResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
 export type postApiV1ToolsUpdateResponseComposite =
   | postApiV1ToolsUpdateResponse200
-  | postApiV1ToolsUpdateResponse400;
+  | postApiV1ToolsUpdateResponse400
+  | postApiV1ToolsUpdateResponse500;
 
 export type postApiV1ToolsUpdateResponse =
   postApiV1ToolsUpdateResponseComposite & {

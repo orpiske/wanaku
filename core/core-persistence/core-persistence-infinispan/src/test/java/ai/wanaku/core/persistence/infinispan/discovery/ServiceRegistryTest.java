@@ -5,8 +5,8 @@ import jakarta.inject.Inject;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
-import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceType;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,7 @@ public class ServiceRegistryTest {
     @Inject
     ServiceRegistry serviceRegistry;
 
+    private static final String TEST_SERVICE_ID = "service1";
     private static final String TEST_SERVICE_NAME = "myService";
 
     @BeforeAll
@@ -36,7 +37,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(1)
     public void register() {
-        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_NAME, "localhost", 8081, ServiceType.TOOL_INVOKER, Map.of("myProperty", "myDescription"));
+        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 8081, ServiceType.TOOL_INVOKER, Map.of("myProperty", "myDescription"));
 
         Assertions.assertDoesNotThrow(() -> serviceRegistry.register(serviceTarget));
     }
@@ -44,7 +45,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(2)
     public void getService() {
-        Service service = serviceRegistry.getService(TEST_SERVICE_NAME, ServiceType.TOOL_INVOKER);
+        Service service = serviceRegistry.getService(TEST_SERVICE_ID, ServiceType.TOOL_INVOKER);
 
         Assertions.assertEquals("localhost:8081", service.getTarget());
     }
@@ -63,7 +64,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(4)
     public void saveState() {
-        serviceRegistry.saveState(TEST_SERVICE_NAME, true, "myMessage");
+        serviceRegistry.saveState(TEST_SERVICE_ID, true, "myMessage");
 
         // TODO
 //        Assertions.assertTrue(Files.readString(statusPath).contains("myMessage"));
@@ -72,7 +73,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(5)
     public void getState() {
-        List<State> states = serviceRegistry.getState(TEST_SERVICE_NAME, 10);
+        List<State> states = serviceRegistry.getState(TEST_SERVICE_ID, 10);
 
         // TODO
 //        Assertions.assertEquals(1, states.size());
@@ -81,7 +82,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(6)
     public void updateProperty() {
-        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_NAME, "localhost", 8081, ServiceType.TOOL_INVOKER, Map.of("myProperty", "myDescription-2"));
+        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_ID,  TEST_SERVICE_NAME, "localhost", 8081, ServiceType.TOOL_INVOKER, Map.of("myProperty", "myDescription-2"));
 
         serviceRegistry.update(serviceTarget);
 
@@ -98,7 +99,7 @@ public class ServiceRegistryTest {
     @Test
     @Order(7)
     public void deregister() {
-        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_NAME, "localhost", 0, ServiceType.TOOL_INVOKER, Map.of());
+        ServiceTarget serviceTarget = new ServiceTarget(TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 0, ServiceType.TOOL_INVOKER, Map.of());
 
         // The testServiceName is a TOOL, this line of code should not deregister
         serviceRegistry.deregister(serviceTarget);

@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.Response;
 
 import ai.wanaku.api.types.WanakuResponse;
 import ai.wanaku.api.types.management.State;
-import ai.wanaku.core.mcp.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceTarget;
 import java.util.List;
 import java.util.Map;
 import org.jboss.logging.Logger;

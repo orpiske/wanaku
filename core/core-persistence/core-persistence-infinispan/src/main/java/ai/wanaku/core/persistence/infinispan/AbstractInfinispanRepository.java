@@ -1,16 +1,17 @@
 package ai.wanaku.core.persistence.infinispan;
 
 import ai.wanaku.core.persistence.api.WanakuRepository;
-import ai.wanaku.core.persistence.types.WanakuEntity;
+import ai.wanaku.api.types.WanakuEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
 
-public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K> implements WanakuRepository<A, T, K> {
+public abstract class AbstractInfinispanRepository<A extends WanakuEntity, K> implements WanakuRepository<A, K> {
 
     protected final EmbeddedCacheManager cacheManager;
     private final ObjectMapper mapper;
@@ -24,11 +25,14 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
     }
 
     @Override
-    public void persist(A model) {
+    public A persist(A entity) {
         final Cache<Object, String> cache = cacheManager.getCache(entityName());
 
-        T entity = convertToEntity(model);
         try {
+            if (entity.getId() == null) {
+                entity.setId(UUID.randomUUID().toString());
+            }
+
             String json = mapper.writeValueAsString(entity);
 
             try {
@@ -41,15 +45,17 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+
+        return entity;
     }
 
     @Override
     public List<A> listAll() {
         final Cache<Object, String> cache = cacheManager.getCache(entityName());
-        return convertToModels(cache.values().stream().map(this::convert).toList());
+        return cache.values().stream().map(this::convert).toList();
     }
 
-    private T convert(String data) {
+    private A convert(String data) {
         try {
             return mapper.readValue(data, entityType());
         } catch (JsonProcessingException e) {
@@ -59,7 +65,7 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
 
     @Override
     public boolean deleteById(K id) {
-        final Cache<Object, T> cache = cacheManager.getCache(entityName());
+        final Cache<Object, A> cache = cacheManager.getCache(entityName());
 
         if (cache.remove(id) != null) {
             return true;
@@ -78,17 +84,15 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
                 return null;
             }
 
-            return convertToModel(mapper.readValue(strVal, entityType()));
+            return mapper.readValue(strVal, entityType());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean update(K id, A model) {
+    public boolean update(K id, A entity) {
         final Cache<Object, String> cache = cacheManager.getCache(entityName());
-
-        T entity =  convertToEntity(model);
 
         try {
             try {
@@ -107,7 +111,7 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
         return false;
     }
 
-    protected abstract Class<T> entityType();
+    protected abstract Class<A> entityType();
 
     protected abstract String entityName();
 
@@ -118,7 +122,7 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
 
     // For testing only
     protected void deleteALl() {
-        final Cache<Object, T> cache = cacheManager.getCache(entityName());
+        final Cache<Object, A> cache = cacheManager.getCache(entityName());
 
         try {
             lock.lock();

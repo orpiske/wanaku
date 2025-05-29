@@ -1,4 +1,4 @@
-package ai.wanaku.core.mcp.providers;
+package ai.wanaku.api.types.providers;
 
 /**
  * Defines types of downstream services

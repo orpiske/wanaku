@@ -2,15 +2,14 @@ package ai.wanaku.core.persistence.infinispan.discovery;
 
 import jakarta.inject.Singleton;
 
-import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceType;
 import ai.wanaku.core.persistence.infinispan.AbstractInfinispanRepository;
-import ai.wanaku.core.persistence.types.ServiceTargetEntity;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
 
 @Singleton
-public class InfinispanToolTargetRepository extends AbstractInfinispanRepository<ServiceTarget, ServiceTargetEntity, String> {
+public class InfinispanToolTargetRepository extends AbstractInfinispanRepository<ServiceTarget, String> {
 
     protected InfinispanToolTargetRepository(
             EmbeddedCacheManager cacheManager,
@@ -19,23 +18,13 @@ public class InfinispanToolTargetRepository extends AbstractInfinispanRepository
     }
 
     @Override
-    protected Class<ServiceTargetEntity> entityType() {
-        return ServiceTargetEntity.class;
+    protected Class<ServiceTarget> entityType() {
+        return ServiceTarget.class;
     }
 
     @Override
     protected String entityName() {
         return ServiceType.TOOL_INVOKER.asValue();
-    }
-
-    @Override
-    public ServiceTargetEntity convertToEntity(ServiceTarget model) {
-        return new ServiceTargetEntity(model.getService(), model.getHost(), model.getPort(), model.getServiceType(), model.getConfigurations());
-    }
-
-    @Override
-    public ServiceTarget convertToModel(ServiceTargetEntity entity) {
-        return new ServiceTarget(entity.getService(), entity.getHost(), entity.getPort(), entity.getServiceType(), entity.getConfigurations());
     }
 
     // For testing

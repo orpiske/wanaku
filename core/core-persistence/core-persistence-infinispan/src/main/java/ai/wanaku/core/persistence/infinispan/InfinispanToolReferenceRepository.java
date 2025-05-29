@@ -2,11 +2,10 @@ package ai.wanaku.core.persistence.infinispan;
 
 import ai.wanaku.api.types.ToolReference;
 import ai.wanaku.core.persistence.api.ToolReferenceRepository;
-import ai.wanaku.core.persistence.types.ToolReferenceEntity;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
 
-public class InfinispanToolReferenceRepository extends AbstractInfinispanRepository<ToolReference, ToolReferenceEntity, String> implements
+public class InfinispanToolReferenceRepository extends AbstractInfinispanRepository<ToolReference, String> implements
         ToolReferenceRepository {
 
     public InfinispanToolReferenceRepository(EmbeddedCacheManager cacheManager, Configuration configuration) {
@@ -19,7 +18,7 @@ public class InfinispanToolReferenceRepository extends AbstractInfinispanReposit
     }
 
     @Override
-    protected Class<ToolReferenceEntity> entityType() {
-        return ToolReferenceEntity.class;
+    protected Class<ToolReference> entityType() {
+        return ToolReference.class;
     }
 }

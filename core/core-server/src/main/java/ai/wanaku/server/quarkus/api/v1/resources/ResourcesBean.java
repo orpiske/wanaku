@@ -35,9 +35,9 @@ public class ResourcesBean {
         resourceReferenceRepository = resourceReferenceRepositoryInstance.get();
     }
 
-    public void expose(ResourceReference mcpResource) {
+    public ResourceReference expose(ResourceReference mcpResource) {
         doExposeResource(mcpResource);
-        resourceReferenceRepository.persist(mcpResource);
+        return resourceReferenceRepository.persist(mcpResource);
     }
 
     public List<ResourceReference> list() {
@@ -54,18 +54,18 @@ public class ResourcesBean {
         ResourceHelper.expose(resourceReference, resourceManager, resourceResolver::read);
     }
 
-    public void remove(String name) {
-        ResourceReference resourceReference = resourceReferenceRepository.findById(name);
+    public void remove(String resourceId) {
+        ResourceReference resourceReference = resourceReferenceRepository.findById(resourceId);
 
         try {
             resourceManager.removeResource(resourceReference.getLocation());
         } finally {
-            resourceReferenceRepository.deleteById(resourceReference.getName());
+            resourceReferenceRepository.deleteById(resourceId);
         }
 
     }
 
     public void update(ResourceReference resource) {
-        resourceReferenceRepository.update(resource.getName(), resource);
+        resourceReferenceRepository.update(resource.getId(), resource);
     }
 }

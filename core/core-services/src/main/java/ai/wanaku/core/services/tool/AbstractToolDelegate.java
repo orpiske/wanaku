@@ -9,7 +9,7 @@ import ai.wanaku.core.exchange.InvocationDelegate;
 import ai.wanaku.core.exchange.PropertySchema;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
-import ai.wanaku.core.mcp.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceTarget;
 import ai.wanaku.core.service.discovery.client.DiscoveryService;
 import ai.wanaku.core.service.discovery.util.DiscoveryUtil;
 import ai.wanaku.core.services.config.WanakuServiceConfig;

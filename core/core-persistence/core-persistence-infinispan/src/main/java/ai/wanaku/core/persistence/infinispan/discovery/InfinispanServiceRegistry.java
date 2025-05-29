@@ -4,10 +4,9 @@ import ai.wanaku.api.types.management.Configurations;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
-import ai.wanaku.core.mcp.providers.ServiceTarget;
-import ai.wanaku.core.mcp.providers.ServiceType;
+import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.api.types.providers.ServiceType;
 import java.util.List;
-import java.util.UUID;
 
 public class InfinispanServiceRegistry implements ServiceRegistry {
 
@@ -34,20 +33,20 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
     @Override
     public void deregister(ServiceTarget serviceTarget) {
         if (serviceTarget.getServiceType() == ServiceType.TOOL_INVOKER) {
-            toolRepository.deleteById(serviceTarget.getService());
+            toolRepository.deleteById(serviceTarget.getId());
         } else {
             resourceTargetRepository.deleteById(serviceTarget.getService());
         }
     }
 
     @Override
-    public Service getService(String service, ServiceType serviceType) {
+    public Service getService(String serviceId, ServiceType serviceType) {
         if (serviceType == ServiceType.TOOL_INVOKER) {
-            final ServiceTarget target = toolRepository.findById(service);
+            final ServiceTarget target = toolRepository.findById(serviceId);
 
             return toService(target);
         } else {
-            final ServiceTarget target = resourceTargetRepository.findById(service);
+            final ServiceTarget target = resourceTargetRepository.findById(serviceId);
 
             return toService(target);
         }

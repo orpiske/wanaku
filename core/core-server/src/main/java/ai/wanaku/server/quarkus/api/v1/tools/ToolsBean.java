@@ -37,7 +37,7 @@ public class ToolsBean {
         toolReferenceRepository = toolReferenceRepositoryInstance.get();
     }
 
-    public void add(ToolReference toolReference) {
+    public ToolReference add(ToolReference toolReference) {
         // First, merge properties (arguments) defined by the remote
         toolsResolver.loadProperties(toolReference);
 
@@ -45,7 +45,7 @@ public class ToolsBean {
         registerTool(toolReference);
 
         // if all goes well, persist the tool, so it can be loaded back when restarting
-        toolReferenceRepository.persist(toolReference);
+        return toolReferenceRepository.persist(toolReference);
     }
 
     private void registerTool(ToolReference toolReference) throws ToolNotFoundException {
