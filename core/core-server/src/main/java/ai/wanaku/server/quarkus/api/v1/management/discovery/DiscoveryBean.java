@@ -1,4 +1,4 @@
-package ai.wanaku.server.quarkus.api.v1.management.targets;
+package ai.wanaku.server.quarkus.api.v1.management.discovery;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,8 +15,8 @@ import java.util.Map;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
-public class TargetsBean {
-    private static final Logger LOG = Logger.getLogger(TargetsBean.class);
+public class DiscoveryBean {
+    private static final Logger LOG = Logger.getLogger(DiscoveryBean.class);
 
     @Inject
     Instance<ServiceRegistry> serviceRegistryInstance;
@@ -29,19 +29,11 @@ public class TargetsBean {
         LOG.info("Using service registry implementation " + serviceRegistry.getClass().getName());
     }
 
-    public void configureTools(String service, String option, String value) {
-        serviceRegistry.update(service, option, value);
-    }
-
-    public void configureResources(String service, String option, String value) {
-        serviceRegistry.update(service, option, value);
-    }
-
-    public List<ServiceTarget> toolList() {
+    private List<ServiceTarget> toolList() {
         return serviceRegistry.getEntries(ServiceType.TOOL_INVOKER);
     }
 
-    public List<ServiceTarget> resourcesList() {
+    private List<ServiceTarget> resourcesList() {
         return serviceRegistry.getEntries(ServiceType.RESOURCE_PROVIDER);
     }
 
@@ -69,5 +61,13 @@ public class TargetsBean {
 
 //            states.put(entry.getKey(), state);
         }
+    }
+
+    public void registerService(ServiceTarget target) {
+        serviceRegistry.register(target);
+    }
+
+    public void deregisterService(ServiceTarget target) {
+        serviceRegistry.deregister(target);
     }
 }

@@ -7,6 +7,7 @@ import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 import ai.wanaku.core.mcp.providers.ServiceType;
 import java.util.List;
+import java.util.UUID;
 
 public class InfinispanServiceRegistry implements ServiceRegistry {
 
@@ -17,6 +18,8 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
     public InfinispanServiceRegistry(InfinispanResourceTargetRepository resourceTargetRepository, InfinispanToolTargetRepository toolRepository) {
         this.resourceTargetRepository = resourceTargetRepository;
         this.toolRepository = toolRepository;
+
+
     }
 
     @Override

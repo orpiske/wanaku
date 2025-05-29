@@ -75,28 +75,4 @@ public class TargetsResource {
     public WanakuResponse<Map<String, List<State>>> resourcesState() {
         return new WanakuResponse<>(targetsBean.resourcesState());
     }
-
-    @Path("/register")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(ServiceTarget serviceTarget) {
-        targetsBean.registerService(serviceTarget);
-        return Response.ok().build();
-    }
-
-    @Path("/deregister")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deregister(ServiceTarget serviceTarget) {
-        targetsBean.deregisterService(serviceTarget);
-        return Response.ok().build();
-    }
-
-    @Path("/update")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(ServiceTarget serviceTarget) {
-        targetsBean.registerService(serviceTarget);
-        return Response.ok().build();
-    }
 }

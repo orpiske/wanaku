@@ -5,6 +5,7 @@ import ai.wanaku.core.persistence.types.WanakuEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -13,13 +14,13 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
 
     protected final EmbeddedCacheManager cacheManager;
     private final ObjectMapper mapper;
+    private final ReentrantLock lock = new ReentrantLock();
 
     protected AbstractInfinispanRepository(EmbeddedCacheManager cacheManager, Configuration configuration) {
         this.cacheManager = cacheManager;
         mapper = new ObjectMapper();
 
         configure(configuration);
-
     }
 
     @Override
@@ -29,7 +30,14 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
         T entity = convertToEntity(model);
         try {
             String json = mapper.writeValueAsString(entity);
-            cache.put(entity.getId(), json);
+
+            try {
+                lock.lock();
+                cache.put(entity.getId(), json);
+            } finally {
+                lock.unlock();
+            }
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -83,9 +91,15 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
         T entity =  convertToEntity(model);
 
         try {
-            if (cache.put(id, mapper.writeValueAsString(entity)) != null) {
-                return true;
+            try {
+                lock.lock();
+                if (cache.put(id, mapper.writeValueAsString(entity)) != null) {
+                    return true;
+                }
+            } finally {
+                lock.unlock();
             }
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -106,6 +120,11 @@ public abstract class AbstractInfinispanRepository<A, T extends WanakuEntity, K>
     protected void deleteALl() {
         final Cache<Object, T> cache = cacheManager.getCache(entityName());
 
-        cache.clear();
+        try {
+            lock.lock();
+            cache.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 }

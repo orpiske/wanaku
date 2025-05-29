@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.Response;
 
 import ai.wanaku.core.mcp.providers.ServiceTarget;
 
-@Path("/api/v1/management/targets")
+@Path("/api/v1/management/discovery")
 public interface DiscoveryService {
 
     @Path("/register")

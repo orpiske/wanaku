@@ -73,8 +73,6 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
 
     @Override
     public ResourceReply acquire(ResourceRequest request) {
-        String service = ConfigProvider.getConfig().getConfigValue("wanaku.service.provider.name").getValue();
-
         try {
             Map<String, String> parameters = mergeParameters(request);
             String uri = getEndpointUri(request, parameters);
@@ -93,7 +91,7 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
         } catch (InvalidResponseTypeException e) {
             String stateMsg = "Invalid response type from the consumer: " + e.getMessage();
             LOG.errorf(e,stateMsg);
-//            serviceRegistry.saveState(service, false, stateMsg);
+            discoveryService.update(serviceTarget);
             return ResourceReply.newBuilder()
                     .setIsError(true)
                     .addAllContent(List.of(stateMsg)).build();
