@@ -67,7 +67,8 @@ public class DiscoveryResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response ping(String id) {
-//        discoveryBean.registerService(serviceTarget);
+        LOG.infof("Service %s is pinging", id);
+        discoveryBean.ping(id);
         return Response.ok().build();
     }
 }

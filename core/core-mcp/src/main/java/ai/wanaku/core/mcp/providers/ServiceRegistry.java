@@ -66,4 +66,6 @@ public interface ServiceRegistry {
     void update(ServiceTarget serviceTarget);
 
     void update(String target, String option, String value);
+
+    void ping(String id);
 }

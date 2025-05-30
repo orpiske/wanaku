@@ -26,5 +26,10 @@ public interface DiscoveryService {
     @Path("/update")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(ServiceTarget serviceTarget);
+    Response update(ServiceTarget serviceTarget);
+
+    @Path("/ping")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    Response ping(String id);
 }

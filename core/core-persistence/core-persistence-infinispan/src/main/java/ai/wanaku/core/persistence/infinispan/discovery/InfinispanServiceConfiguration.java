@@ -22,9 +22,13 @@ public class InfinispanServiceConfiguration {
     @Inject
     Instance<InfinispanToolTargetRepository> toolTargetRepositoryInstance;
 
+    @Inject
+    Instance<InfinispanServiceRecordRepository> serviceRecordInstance;
+
     @Produces
     @LookupIfProperty(name = "wanaku.persistence", stringValue = "infinispan")
     ServiceRegistry serviceRegistry() {
-        return new InfinispanServiceRegistry(targetRepositoryInstance.get(), toolTargetRepositoryInstance.get());
+        return new InfinispanServiceRegistry(targetRepositoryInstance.get(), toolTargetRepositoryInstance.get(),
+                serviceRecordInstance.get());
     }
 }

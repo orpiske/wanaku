@@ -35,16 +35,4 @@ public class InfinispanPersistenceConfiguration {
     ForwardReferenceRepository forwardReferenceRepository() {
         return new InfinispanForwardReferenceRepository(cacheManager, configuration);
     }
-
-//    @Produces
-//    @LookupIfProperty(name = "wanaku.persistence", stringValue = "infinispan")
-//    InfinispanToolTargetRepository toolTargetRepository() {
-//        return new InfinispanToolTargetRepository(cacheManager, configuration);
-//    }
-//
-//    @Produces
-//    @LookupIfProperty(name = "wanaku.persistence", stringValue = "infinispan")
-//    InfinispanResourceTargetRepository resourceTargetRepository() {
-//        return new InfinispanResourceTargetRepository(cacheManager, configuration);
-//    }
 }

@@ -70,4 +70,8 @@ public class DiscoveryBean {
     public void deregisterService(ServiceTarget target) {
         serviceRegistry.deregister(target);
     }
+
+    public void ping(String id) {
+        serviceRegistry.ping(id);
+    }
 }

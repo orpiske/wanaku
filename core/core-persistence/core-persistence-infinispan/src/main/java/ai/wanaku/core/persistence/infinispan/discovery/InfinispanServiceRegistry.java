@@ -1,24 +1,26 @@
 package ai.wanaku.core.persistence.infinispan.discovery;
 
+import ai.wanaku.api.types.discovery.ServiceRecord;
 import ai.wanaku.api.types.management.Configurations;
 import ai.wanaku.api.types.management.Service;
 import ai.wanaku.api.types.management.State;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.api.types.providers.ServiceTarget;
 import ai.wanaku.api.types.providers.ServiceType;
+import java.time.Instant;
 import java.util.List;
 
 public class InfinispanServiceRegistry implements ServiceRegistry {
 
     private final InfinispanToolTargetRepository toolRepository;
-
     private final InfinispanResourceTargetRepository resourceTargetRepository;
+    private final InfinispanServiceRecordRepository infinispanServiceRecordRepository;
 
-    public InfinispanServiceRegistry(InfinispanResourceTargetRepository resourceTargetRepository, InfinispanToolTargetRepository toolRepository) {
+    public InfinispanServiceRegistry(InfinispanResourceTargetRepository resourceTargetRepository, InfinispanToolTargetRepository toolRepository,
+            InfinispanServiceRecordRepository infinispanServiceRecordRepository) {
         this.resourceTargetRepository = resourceTargetRepository;
         this.toolRepository = toolRepository;
-
-
+        this.infinispanServiceRecordRepository = infinispanServiceRecordRepository;
     }
 
     @Override
@@ -100,5 +102,15 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
     void clear() {
         resourceTargetRepository.deleteAll();
         toolRepository.deleteAll();
+    }
+
+    @Override
+    public void ping(String id) {
+        ServiceRecord serviceRecord = new ServiceRecord();
+
+        serviceRecord.setId(id);
+        serviceRecord.setLastSeen(Instant.now());
+
+        infinispanServiceRecordRepository.persist(serviceRecord);
     }
 }

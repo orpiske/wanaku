@@ -99,6 +99,7 @@ public class DefaultRegistrationManager implements RegistrationManager {
     @Override
     public void ping() {
         LOG.infof("Should ping service ...");
+        service.ping(target.getId());
     }
 
     @Override
