@@ -431,6 +431,27 @@
         "tags" : [ "Discovery Resource" ]
       }
     },
+    "/api/v1/management/discovery/ping" : {
+      "post" : {
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Ping",
+        "tags" : [ "Discovery Resource" ]
+      }
+    },
     "/api/v1/management/discovery/register" : {
       "post" : {
         "requestBody" : {

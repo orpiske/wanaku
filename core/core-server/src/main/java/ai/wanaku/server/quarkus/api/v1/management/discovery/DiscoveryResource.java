@@ -62,4 +62,12 @@ public class DiscoveryResource {
         discoveryBean.registerService(serviceTarget);
         return Response.ok().build();
     }
+
+    @Path("/ping")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response ping(String id) {
+//        discoveryBean.registerService(serviceTarget);
+        return Response.ok().build();
+    }
 }

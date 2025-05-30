@@ -223,6 +223,41 @@ export const postApiV1ManagementDiscoveryDeregister = async (
 };
 
 /**
+ * @summary Ping
+ */
+export type postApiV1ManagementDiscoveryPingResponse200 = {
+  data: void;
+  status: 200;
+};
+
+export type postApiV1ManagementDiscoveryPingResponseComposite =
+  postApiV1ManagementDiscoveryPingResponse200;
+
+export type postApiV1ManagementDiscoveryPingResponse =
+  postApiV1ManagementDiscoveryPingResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV1ManagementDiscoveryPingUrl = () => {
+  return `/api/v1/management/discovery/ping`;
+};
+
+export const postApiV1ManagementDiscoveryPing = async (
+  postApiV1ManagementDiscoveryPingBody: string,
+  options?: RequestInit,
+): Promise<postApiV1ManagementDiscoveryPingResponse> => {
+  return customFetch<postApiV1ManagementDiscoveryPingResponse>(
+    getPostApiV1ManagementDiscoveryPingUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(postApiV1ManagementDiscoveryPingBody),
+    },
+  );
+};
+
+/**
  * @summary Register
  */
 export type postApiV1ManagementDiscoveryRegisterResponse200 = {

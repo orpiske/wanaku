@@ -11,6 +11,9 @@ import java.util.Set;
  */
 public interface WanakuServiceConfig extends WanakuConfig {
 
+    @WithDefault("${user.home}/.wanaku/services/")
+    String serviceHome();
+
     /**
      * Interface defining service-specific configurations.
      */

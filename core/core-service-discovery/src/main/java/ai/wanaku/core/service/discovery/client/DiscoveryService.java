@@ -6,7 +6,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import ai.wanaku.api.types.WanakuResponse;
 import ai.wanaku.api.types.providers.ServiceTarget;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("/api/v1/management/discovery")
 public interface DiscoveryService {
@@ -14,7 +16,7 @@ public interface DiscoveryService {
     @Path("/register")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    Response register(ServiceTarget serviceTarget);
+    RestResponse<WanakuResponse<ServiceTarget>> register(ServiceTarget serviceTarget);
 
     @Path("/deregister")
     @POST
