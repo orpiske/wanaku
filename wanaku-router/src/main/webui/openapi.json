@@ -284,6 +284,17 @@
           }
         }
       },
+      "WanakuResponseServiceTarget" : {
+        "type" : "object",
+        "properties" : {
+          "error" : {
+            "$ref" : "#/components/schemas/WanakuError"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/ServiceTarget"
+          }
+        }
+      },
       "WanakuResponseToolReference" : {
         "type" : "object",
         "properties" : {
@@ -434,7 +445,14 @@
         },
         "responses" : {
           "200" : {
-            "description" : "OK"
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WanakuResponseServiceTarget"
+                }
+              }
+            }
           },
           "400" : {
             "description" : "Bad Request"

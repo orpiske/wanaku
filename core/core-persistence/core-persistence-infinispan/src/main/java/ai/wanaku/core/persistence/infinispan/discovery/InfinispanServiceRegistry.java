@@ -22,11 +22,11 @@ public class InfinispanServiceRegistry implements ServiceRegistry {
     }
 
     @Override
-    public void register(ServiceTarget serviceTarget) {
+    public ServiceTarget register(ServiceTarget serviceTarget) {
         if (serviceTarget.getServiceType() == ServiceType.TOOL_INVOKER) {
-            toolRepository.persist(serviceTarget);
+            return toolRepository.persist(serviceTarget);
         } else {
-            resourceTargetRepository.persist(serviceTarget);
+            return resourceTargetRepository.persist(serviceTarget);
         }
     }
 

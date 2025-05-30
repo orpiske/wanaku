@@ -21,6 +21,7 @@ import type {
   WanakuResponseMapStringListState,
   WanakuResponseResourceReference,
   WanakuResponseServerInfo,
+  WanakuResponseServiceTarget,
   WanakuResponseToolReference,
 } from "../models";
 
@@ -225,7 +226,7 @@ export const postApiV1ManagementDiscoveryDeregister = async (
  * @summary Register
  */
 export type postApiV1ManagementDiscoveryRegisterResponse200 = {
-  data: void;
+  data: WanakuResponseServiceTarget;
   status: 200;
 };
 

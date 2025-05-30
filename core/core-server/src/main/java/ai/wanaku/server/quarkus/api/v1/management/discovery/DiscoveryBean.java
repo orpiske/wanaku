@@ -63,8 +63,8 @@ public class DiscoveryBean {
         }
     }
 
-    public void registerService(ServiceTarget target) {
-        serviceRegistry.register(target);
+    public ServiceTarget registerService(ServiceTarget target) {
+        return serviceRegistry.register(target);
     }
 
     public void deregisterService(ServiceTarget target) {

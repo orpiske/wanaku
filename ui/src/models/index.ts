@@ -49,3 +49,4 @@ export * from "./wanakuResponseResourceReference";
 export * from "./wanakuResponseServerInfo";
 export * from "./wanakuResponseString";
 export * from "./wanakuResponseToolReference";
+export * from "./wanakuResponseServiceTarget";

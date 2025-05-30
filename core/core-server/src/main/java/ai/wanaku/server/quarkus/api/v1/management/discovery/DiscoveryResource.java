@@ -15,6 +15,7 @@ import ai.wanaku.api.types.providers.ServiceTarget;
 import java.util.List;
 import java.util.Map;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 @Path("/api/v1/management/discovery")
@@ -41,9 +42,9 @@ public class DiscoveryResource {
     @Path("/register")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(ServiceTarget serviceTarget) {
-        discoveryBean.registerService(serviceTarget);
-        return Response.ok().build();
+    public RestResponse<WanakuResponse<ServiceTarget>> register(ServiceTarget serviceTarget) {
+        var ret = discoveryBean.registerService(serviceTarget);
+        return RestResponse.ok(new WanakuResponse<>(ret));
     }
 
     @Path("/deregister")

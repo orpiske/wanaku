@@ -15,8 +15,9 @@ public interface ServiceRegistry {
     /**
      * Register a service target in the registry
      * @param serviceTarget the service target
+     * @return the updated service target with its newly created ID if not previously provided
      */
-    void register(ServiceTarget serviceTarget);
+    ServiceTarget register(ServiceTarget serviceTarget);
 
     /**
      * De-register a service from the registry
