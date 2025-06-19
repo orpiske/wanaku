@@ -3,7 +3,8 @@ package ai.wanaku.tool.yaml.route;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import ai.wanaku.api.exceptions.WanakuException;
-import ai.wanaku.core.exchange.ParsedToolInvokeRequest;
+import ai.wanaku.core.config.provider.api.ConfigResource;
+import ai.wanaku.core.capabilities.common.ParsedToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.capabilities.config.WanakuServiceConfig;
 import ai.wanaku.core.capabilities.tool.Client;
@@ -28,7 +29,7 @@ public class RouteClient implements Client {
     }
 
     @Override
-    public Object exchange(ToolInvokeRequest request) throws WanakuException {
+    public Object exchange(ToolInvokeRequest request, ConfigResource configResource) throws WanakuException {
         producer.start();
 
         LOG.infof("Loading resource from URI: %s", request.getUri());
@@ -39,7 +40,7 @@ public class RouteClient implements Client {
             throw new WanakuException(e);
         }
 
-        ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(request);
+        ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(request, configResource);
 
         LOG.infof("Invoking tool at URI: %s", parsedRequest.uri());
         return producer.requestBody(config.baseUri(), parsedRequest.body(), String.class);

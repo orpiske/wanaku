@@ -1,9 +1,12 @@
 package ${package};
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
+import ai.wanaku.core.config.provider.api.ConfigResource;
 import ai.wanaku.core.exchange.ParsedToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
+import ai.wanaku.core.capabilities.config.WanakuServiceConfig;
 import ai.wanaku.core.capabilities.tool.Client;
 
 #if ( $wanaku-capability-type == "camel")
@@ -15,6 +18,9 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class ${name}Client implements Client {
     private static final Logger LOG = Logger.getLogger(${name}Client.class);
+
+    @Inject
+    WanakuServiceConfig config;
 
 #if ( $wanaku-capability-type == "camel")
     private final ProducerTemplate producer;
@@ -47,7 +53,7 @@ public class ${name}Client implements Client {
     }
 
     @Override
-    public Object exchange(ToolInvokeRequest request) {
+    public Object exchange(ToolInvokeRequest request, ConfigResource configResource) {
         ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(request);
 
         LOG.infof("Invoking tool at URI: %s", parsedRequest.uri());

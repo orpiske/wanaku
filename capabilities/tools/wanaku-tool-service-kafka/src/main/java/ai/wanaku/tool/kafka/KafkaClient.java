@@ -1,10 +1,12 @@
 package ai.wanaku.tool.kafka;
 
-import java.util.Map;
+import ai.wanaku.core.capabilities.config.WanakuServiceConfig;
+import ai.wanaku.core.config.provider.api.ConfigResource;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
-import ai.wanaku.core.exchange.ParsedToolInvokeRequest;
+import ai.wanaku.core.capabilities.common.ParsedToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.capabilities.tool.Client;
 import org.apache.camel.CamelContext;
@@ -19,6 +21,8 @@ public class KafkaClient implements Client {
 
     private final ProducerTemplate producer;
     private final ConsumerTemplate consumer;
+    @Inject
+    WanakuServiceConfig config;
 
     public KafkaClient(CamelContext camelContext) {
         this.producer = camelContext.createProducerTemplate();
@@ -26,23 +30,18 @@ public class KafkaClient implements Client {
     }
 
     @Override
-    public Object exchange(ToolInvokeRequest request) {
-        Map<String, String> serviceConfigurationsMap = request.getServiceConfigurationsMap();
+    public Object exchange(ToolInvokeRequest request, ConfigResource configResource) {
+        final String requestUri = buildRequestUri(configResource);
+        ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(requestUri, request, configResource);
 
-        String bootstrapServers = serviceConfigurationsMap.get("bootstrapHost");
-        String requestTopic = serviceConfigurationsMap.get("requestTopic");
-        ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(request);
-        String requestUri = String.format("kafka://%s?brokers=%s", requestTopic, bootstrapServers);
-
-        String replyToTopic = serviceConfigurationsMap.get("replyToTopic");
-        String responseUri = String.format("kafka://%s?brokers=%s", replyToTopic, bootstrapServers);
+        final String responseUri = buildResponseUri(configResource);
 
         LOG.infof("Invoking tool at URI: %s", requestUri);
         try {
             producer.start();
             consumer.start();
 
-            producer.sendBody(requestUri, parsedRequest.body());
+            producer.sendBody(parsedRequest.uri(), parsedRequest.body());
 
             LOG.infof("Waiting for reply at at URI: %s", responseUri);
             return consumer.receiveBody(responseUri);
@@ -50,5 +49,21 @@ public class KafkaClient implements Client {
             producer.stop();
             consumer.stop();
         }
+    }
+
+    private String buildRequestUri(ConfigResource configResource) {
+        final String baseUri = config.baseUri();
+        final String bootstrapHost = configResource.getConfig("bootstrapHost");
+        final String requestTopic = configResource.getConfig("requestTopic");
+
+        return String.format("%s//%s?brokers=%s", baseUri, requestTopic, bootstrapHost);
+    }
+
+    private String buildResponseUri(ConfigResource configResource) {
+        final String baseUri = config.baseUri();
+        final String bootstrapHost = configResource.getConfig("bootstrapHost");
+        final String replyToTopic = configResource.getConfig("replyToTopic");
+
+        return String.format("%s//%s?brokers=%s", baseUri, replyToTopic, bootstrapHost);
     }
 }

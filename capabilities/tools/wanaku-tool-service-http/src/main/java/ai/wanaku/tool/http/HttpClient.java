@@ -4,8 +4,10 @@ import ai.wanaku.api.exceptions.WanakuException;
 import ai.wanaku.core.capabilities.tool.Client;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import ai.wanaku.core.exchange.ParsedToolInvokeRequest;
+import ai.wanaku.core.config.provider.api.ConfigResource;
+import ai.wanaku.core.capabilities.common.ParsedToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
+import ai.wanaku.core.runtime.camel.CamelQueryParameterBuilder;
 import org.apache.camel.ProducerTemplate;
 import org.jboss.logging.Logger;
 
@@ -25,15 +27,16 @@ public class HttpClient implements Client {
 
 
     @Override
-    public Object exchange(ToolInvokeRequest request) throws WanakuException {
+    public Object exchange(ToolInvokeRequest request, ConfigResource configResource) throws WanakuException {
         producer.start();
 
-        ParsedToolInvokeRequest parsedRequest = ParsedToolInvokeRequest.parseRequest(request);
+        CamelQueryParameterBuilder parameterBuilder = new CamelQueryParameterBuilder(configResource);
+        ParsedToolInvokeRequest parsedRequest =
+                ParsedToolInvokeRequest.parseRequest(request.getUri(), request, parameterBuilder::build);
 
         LOG.infof("Invoking tool at URI: %s", parsedRequest.uri());
 
-
-        Map<String,Object> headers = new HashMap<>(parsedRequest.headers());
+        Map<String,Object> headers = new HashMap<>(request.getHeadersMap());
 
         return producer.requestBodyAndHeaders(parsedRequest.uri(), parsedRequest.body(), headers, String.class);
     }
