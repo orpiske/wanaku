@@ -1,5 +1,8 @@
 package ai.wanaku.core.capabilities.common;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import ai.wanaku.api.types.providers.ServiceTarget;
 import ai.wanaku.api.types.providers.ServiceType;
 import ai.wanaku.core.capabilities.config.WanakuServiceConfig;
@@ -14,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.rest.client.ext.ClientHeadersFactory;
 import org.jboss.logging.Logger;
 
 import static ai.wanaku.core.util.discovery.DiscoveryUtil.resolveRegistrationAddress;
@@ -59,10 +63,20 @@ public class ServicesHelper {
                 .build();
     }
 
-    public static RegistrationManager newRegistrationManager(WanakuServiceConfig config, ServiceType  serviceType) {
+    public static RegistrationManager newRegistrationManager(WanakuServiceConfig config, ServiceType  serviceType, String accessToken) {
         LOG.infof("Using registration service at %s", config.registration().uri());
         DiscoveryService discoveryService = QuarkusRestClientBuilder.newBuilder()
                 .baseUri(URI.create(config.registration().uri()))
+                .clientHeadersFactory(new ClientHeadersFactory() {
+                    @Override
+                    public MultivaluedMap<String, String> update(
+                            MultivaluedMap<String, String> multivaluedMap,
+                            MultivaluedMap<String, String> multivaluedMap1) {
+                        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+                        headers.add("Authorization", String.format("Bearer %s", accessToken));
+                        return headers;
+                    }
+                })
                 .build(DiscoveryService.class);
 
         String service = config.name();

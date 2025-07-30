@@ -41,7 +41,7 @@ public abstract class AbstractResourceDelegate implements ResourceAcquirerDelega
 
     @PostConstruct
     public void init() {
-        registrationManager = ServicesHelper.newRegistrationManager(config, ServiceType.RESOURCE_PROVIDER);
+        registrationManager = ServicesHelper.newRegistrationManager(config, ServiceType.RESOURCE_PROVIDER, "wanaku");
     }
 
     /**
