@@ -12,7 +12,7 @@ import {
 import { Link } from 'react-router-dom';
 import { ExternalLinks, Links } from "../router/links.models";
 
-import {LogoGithub, Logout, Notification, Search} from "@carbon/icons-react";
+import {Logout, Notification, Search, UserAdmin} from "@carbon/icons-react";
 import wanakuLogo from "../assets/wanaku.svg";
 
 
@@ -81,13 +81,13 @@ function HeaderComponent({ onClickSideNavExpand, isSideNavExpanded }:HeaderCompo
                     <Notification size={20} />
                 </HeaderGlobalAction>
                 <HeaderGlobalAction
-                    aria-label="GitHub"
+                    aria-label="Account"
                     onClick={() => {
-                        window.open(ExternalLinks.GitHub, "_blank");
+                        window.open(Links.Account);
                     }}
                     tooltipAlignment="end"
                 >
-                    <LogoGithub size={20} />
+                    <UserAdmin size={20} />
                 </HeaderGlobalAction>
                 <HeaderGlobalAction
                     aria-label="Logout"

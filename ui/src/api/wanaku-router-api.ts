@@ -1070,3 +1070,32 @@ export const postApiV1ToolsUpdate = async (
     },
   );
 };
+
+/**
+ * @summary Account
+ */
+export type getApiV1UserAccountResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type getApiV1UserAccountResponseComposite =
+  getApiV1UserAccountResponse204;
+
+export type getApiV1UserAccountResponse =
+  getApiV1UserAccountResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV1UserAccountUrl = () => {
+  return `/api/v1/user/account`;
+};
+
+export const getApiV1UserAccount = async (
+  options?: RequestInit,
+): Promise<getApiV1UserAccountResponse> => {
+  return customFetch<getApiV1UserAccountResponse>(getGetApiV1UserAccountUrl(), {
+    ...options,
+    method: "GET",
+  });
+};

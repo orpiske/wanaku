@@ -783,6 +783,14 @@ paths:
       summary: Update
       tags:
       - Tools Resource
+  /api/v1/user/account:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: Account
+      tags:
+      - User Resource
 info:
   title: wanaku-router-backend API
   version: 0.0.8-SNAPSHOT
