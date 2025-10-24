@@ -76,6 +76,7 @@ public class WanakuSpec {
     public static class RouterSpec {
         private Integer port;
         private String image;
+        private List<EnvVar> env;
 
         public Integer getPort() {
             return port;
@@ -91,6 +92,14 @@ public class WanakuSpec {
 
         public void setImage(String image) {
             this.image = image;
+        }
+
+        public List<EnvVar> getEnv() {
+            return env;
+        }
+
+        public void setEnv(List<EnvVar> env) {
+            this.env = env;
         }
     }
 

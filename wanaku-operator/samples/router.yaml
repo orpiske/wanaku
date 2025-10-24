@@ -9,8 +9,12 @@ spec:
   secrets:
     oidcCredentialsSecret: fjgE1vkb0x5UhXj8yrecwyOmRlYR9tR6
 # Router settings are optional
-#  router:
-#    port: 8080
+  router:
+    env:
+      - name: ABC
+        value: xyz
+      - name: CONFIG_DDDE
+        value: why
 #    image: quay.io/wanaku/wanaku-router-backend:latest # Optional
   services:
     - name: employee-system

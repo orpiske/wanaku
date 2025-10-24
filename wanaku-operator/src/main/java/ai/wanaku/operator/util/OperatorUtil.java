@@ -46,7 +46,25 @@ public final class OperatorUtil {
                 .withValue(authProxy)
                 .build();
 
-        service.setEnv(List.of(authServerEnv, authProxyEnv));
+        List<EnvVar> envVars = new java.util.ArrayList<>();
+        envVars.add(authServerEnv);
+        envVars.add(authProxyEnv);
+
+        // Add custom environment variables from router spec if provided
+        if (resource.getSpec().getRouter() != null
+                && resource.getSpec().getRouter().getEnv() != null
+                && !resource.getSpec().getRouter().getEnv().isEmpty()) {
+            for (ai.wanaku.operator.wanaku.WanakuSpec.EnvVar env :
+                    resource.getSpec().getRouter().getEnv()) {
+                EnvVar customEnvVar = new EnvVarBuilder()
+                        .withName(env.getName())
+                        .withValue(env.getValue())
+                        .build();
+                envVars.add(customEnvVar);
+            }
+        }
+
+        service.setEnv(envVars);
     }
 
     public static Deployment makeDesiredRouterBackendDeployment(Wanaku resource, Context<Wanaku> context) {
@@ -67,6 +85,50 @@ public final class OperatorUtil {
         serviceSpec.getTemplate().getMetadata().getLabels().put("component", "wanaku-router-backend");
 
         setupBackendContainer(resource, serviceSpec);
+
+        final Container routerContainer = serviceSpec.getTemplate().getSpec().getContainers().stream()
+                .filter(c -> c.getName().equals("wanaku-mcp-router"))
+                .findFirst()
+                .get();
+
+        // Override image if specified in router spec
+        if (resource.getSpec().getRouter() != null
+                && resource.getSpec().getRouter().getImage() != null
+                && !resource.getSpec().getRouter().getImage().isEmpty()) {
+            routerContainer.setImage(resource.getSpec().getRouter().getImage());
+            LOG.infof(
+                    "Using custom router image: %s",
+                    resource.getSpec().getRouter().getImage());
+        }
+
+        // Override port if specified in router spec
+        if (resource.getSpec().getRouter() != null
+                && resource.getSpec().getRouter().getPort() != null) {
+            Integer customPort = resource.getSpec().getRouter().getPort();
+            LOG.infof("Using custom router port: %d", customPort);
+
+            // Update container port
+            routerContainer.getPorts().get(0).setContainerPort(customPort);
+
+            // Update liveness probe port
+            if (routerContainer.getLivenessProbe() != null
+                    && routerContainer.getLivenessProbe().getHttpGet() != null) {
+                routerContainer
+                        .getLivenessProbe()
+                        .getHttpGet()
+                        .setPort(new io.fabric8.kubernetes.api.model.IntOrString(customPort));
+            }
+
+            // Update readiness probe port
+            if (routerContainer.getReadinessProbe() != null
+                    && routerContainer.getReadinessProbe().getHttpGet() != null) {
+                routerContainer
+                        .getReadinessProbe()
+                        .getHttpGet()
+                        .setPort(new io.fabric8.kubernetes.api.model.IntOrString(customPort));
+            }
+        }
+
         desiredDeployment.addOwnerReference(resource);
         return desiredDeployment;
     }
@@ -88,6 +150,18 @@ public final class OperatorUtil {
         ServiceSpec serviceSpec = service.getSpec();
         serviceSpec.setSelector(Map.of("app", deploymentName, "component", "wanaku-router-backend"));
 
+        // Override port if specified in router spec
+        if (resource.getSpec().getRouter() != null
+                && resource.getSpec().getRouter().getPort() != null) {
+            Integer customPort = resource.getSpec().getRouter().getPort();
+            LOG.infof("Using custom router service port: %d", customPort);
+
+            // Update service port and targetPort
+            serviceSpec.getPorts().get(0).setPort(customPort);
+            serviceSpec.getPorts().get(0).setTargetPort(new io.fabric8.kubernetes.api.model.IntOrString(customPort));
+            serviceSpec.getPorts().get(0).setName(customPort + "-tcp");
+        }
+
         service.addOwnerReference(resource);
 
         return service;
@@ -106,6 +180,16 @@ public final class OperatorUtil {
         route.getMetadata().getLabels().put("app", deploymentName);
         route.getMetadata().getLabels().put("component", "wanaku-router-backend");
         route.getSpec().getTo().setName("internal-" + deploymentName);
+
+        // Override port name in route if specified in router spec
+        if (resource.getSpec().getRouter() != null
+                && resource.getSpec().getRouter().getPort() != null) {
+            Integer customPort = resource.getSpec().getRouter().getPort();
+            route.getSpec()
+                    .getPort()
+                    .setTargetPort(new io.fabric8.kubernetes.api.model.IntOrString(customPort + "-tcp"));
+            LOG.infof("Using custom router route port: %d-tcp", customPort);
+        }
 
         route.addOwnerReference(resource);
 
