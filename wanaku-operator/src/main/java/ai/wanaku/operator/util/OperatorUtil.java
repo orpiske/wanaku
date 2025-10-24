@@ -5,6 +5,7 @@ import ai.wanaku.operator.wanaku.WanakuReconciler;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -23,6 +24,8 @@ public final class OperatorUtil {
     public static final String ROUTER_BACKEND_EXTERNAL_SERVICE_FILE = "wanaku-router-service-external.yaml";
     public static final String CAPABILITY_DEPLOYMENT_FILE = "wanaku-capability-deployment.yaml";
     public static final String CAPABILITY_INTERNAL_SERVICE_FILE = "wanaku-capability-service-internal.yaml";
+    public static final String SERVICES_VOLUME_PVC_FILE = "services-volume-pvc.yaml";
+    public static final String SHARED_DATA_PVC_FILE = "shared-data-pvc.yaml";
 
     private OperatorUtil() {}
 
@@ -71,7 +74,7 @@ public final class OperatorUtil {
         Deployment desiredDeployment =
                 ReconcilerUtils.loadYaml(Deployment.class, WanakuReconciler.class, ROUTER_BACKEND_DEPLOYMENT_FILE);
 
-        String deploymentName = resource.getMetadata().getName();
+        String deploymentName = "mcp-router-" + resource.getMetadata().getName();
         String ns = resource.getMetadata().getNamespace();
 
         desiredDeployment.getMetadata().setName(deploymentName);
@@ -196,6 +199,60 @@ public final class OperatorUtil {
         return route;
     }
 
+    public static PersistentVolumeClaim makeRouterVolumePVC(Wanaku resource) {
+        PersistentVolumeClaim pvc =
+                ReconcilerUtils.loadYaml(PersistentVolumeClaim.class, WanakuReconciler.class, SERVICES_VOLUME_PVC_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        LOG.infof("Creating services-volume PVC for deployment: %s", deploymentName);
+        pvc.getMetadata().setName("router-volume-claim");
+        pvc.getMetadata().setNamespace(ns);
+        pvc.getMetadata().getLabels().put("app", deploymentName);
+        pvc.getMetadata().getLabels().put("component", "wanaku-router-storage");
+
+        pvc.addOwnerReference(resource);
+
+        return pvc;
+    }
+
+    public static PersistentVolumeClaim makeServicesVolumePVC(Wanaku resource, String serviceName) {
+        PersistentVolumeClaim pvc =
+                ReconcilerUtils.loadYaml(PersistentVolumeClaim.class, WanakuReconciler.class, SERVICES_VOLUME_PVC_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        LOG.infof("Creating services-volume PVC for deployment: %s", deploymentName);
+        pvc.getMetadata().setName(serviceName + "-volume-claim");
+        pvc.getMetadata().setNamespace(ns);
+        pvc.getMetadata().getLabels().put("app", deploymentName);
+        pvc.getMetadata().getLabels().put("component", "wanaku-services-storage");
+
+        pvc.addOwnerReference(resource);
+
+        return pvc;
+    }
+
+    public static PersistentVolumeClaim makeSharedDataPVC(Wanaku resource) {
+        PersistentVolumeClaim pvc =
+                ReconcilerUtils.loadYaml(PersistentVolumeClaim.class, WanakuReconciler.class, SHARED_DATA_PVC_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        LOG.infof("Creating shared-data PVC for deployment: %s", deploymentName);
+        pvc.getMetadata().setName("shared-data-volume");
+        pvc.getMetadata().setNamespace(ns);
+        pvc.getMetadata().getLabels().put("app", deploymentName);
+        pvc.getMetadata().getLabels().put("component", "wanaku-shared-storage");
+
+        pvc.addOwnerReference(resource);
+
+        return pvc;
+    }
+
     private static void setupCapabilityContainer(
             Wanaku resource,
             DeploymentSpec spec,
@@ -266,8 +323,11 @@ public final class OperatorUtil {
         deploymentSpec.getSelector().getMatchLabels().put("component", serviceName);
         deploymentSpec.getTemplate().getMetadata().getLabels().put("app", parentName);
         deploymentSpec.getTemplate().getMetadata().getLabels().put("component", serviceName);
+        deploymentSpec.getTemplate().getSpec().getContainers().getFirst().getVolumeMounts().getFirst().setName(serviceName + "-volume");
+        deploymentSpec.getTemplate().getSpec().getVolumes().getFirst().getPersistentVolumeClaim().setClaimName(serviceName + "-volume-claim");
 
         setupCapabilityContainer(resource, deploymentSpec, serviceName, serviceSpec.getImage(), serviceSpec.getEnv());
+
         desiredDeployment.addOwnerReference(resource);
         return desiredDeployment;
     }

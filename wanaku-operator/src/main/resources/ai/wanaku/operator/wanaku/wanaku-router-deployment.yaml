@@ -46,5 +46,6 @@ spec:
             - mountPath: /home/default/.wanaku/router
               name: router-volume
       volumes:
-        - emptyDir: {}
-          name: router-volume
+        - name: router-volume
+          persistentVolumeClaim:
+            claimName: router-volume-claim

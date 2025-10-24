@@ -31,7 +31,8 @@ spec:
               protocol: TCP
           volumeMounts:
             - mountPath: /home/default/.wanaku/services
-              name: services-volume
+              name: ""
       volumes:
-        - emptyDir: {}
-          name: services-volume
+        - name: ""
+          persistentVolumeClaim:
+            claimName: ""

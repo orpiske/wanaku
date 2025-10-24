@@ -7,6 +7,7 @@ import static ai.wanaku.operator.util.OperatorUtil.makeRouterExternalService;
 import static ai.wanaku.operator.util.OperatorUtil.makeRouterInternalService;
 
 import ai.wanaku.operator.util.OperatorUtil;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -38,6 +39,9 @@ public class WanakuReconciler implements Reconciler<Wanaku> {
     }
 
     private void deployRouter(Wanaku resource, Context<Wanaku> context, String namespace) {
+        // Create PVCs first, before creating the deployment
+        createRouterPVCs(resource, namespace);
+
         // Create the router deployment
         final Deployment desiredDeployment = OperatorUtil.makeDesiredRouterBackendDeployment(resource, context);
 
@@ -117,6 +121,7 @@ public class WanakuReconciler implements Reconciler<Wanaku> {
         for (WanakuSpec.ServiceSpec serviceSpec : resource.getSpec().getServices()) {
             String serviceName = serviceSpec.getName();
             LOG.infof("Deploying capability: %s", serviceName);
+            createCapabilityPVCs(resource, namespace, serviceName);
 
             // Create the capability deployment
             final Deployment desiredDeployment = makeDesiredCapabilityDeployment(resource, context, serviceSpec);
@@ -156,6 +161,44 @@ public class WanakuReconciler implements Reconciler<Wanaku> {
                         .resource(desiredService)
                         .createOr(Replaceable::update);
             }
+        }
+    }
+
+    private void createRouterPVCs(Wanaku resource, String namespace) {
+        // Create services-volume PVC
+        final PersistentVolumeClaim servicesVolumePVC = OperatorUtil.makeRouterVolumePVC(resource);
+        PersistentVolumeClaim existingServicesVolume = kubernetesClient
+                .persistentVolumeClaims()
+                .inNamespace(namespace)
+                .withName("route-volume-claim")
+                .get();
+
+        if (!match(servicesVolumePVC, existingServicesVolume)) {
+            LOG.infof("Creating or updating PVC route-volume-claim in %s", namespace);
+            kubernetesClient
+                    .persistentVolumeClaims()
+                    .inNamespace(namespace)
+                    .resource(servicesVolumePVC)
+                    .createOr(Replaceable::update);
+        }
+    }
+
+    private void createCapabilityPVCs(Wanaku resource, String namespace, String serviceName) {
+        // Create services-volume PVC
+        final PersistentVolumeClaim servicesVolumePVC = OperatorUtil.makeServicesVolumePVC(resource, serviceName);
+        PersistentVolumeClaim existingServicesVolume = kubernetesClient
+                .persistentVolumeClaims()
+                .inNamespace(namespace)
+                .withName(serviceName + "-volume-claim")
+                .get();
+
+        if (!match(servicesVolumePVC, existingServicesVolume)) {
+            LOG.infof("Creating or updating PVC %s in %s", serviceName + "-volume-claim", namespace);
+            kubernetesClient
+                    .persistentVolumeClaims()
+                    .inNamespace(namespace)
+                    .resource(servicesVolumePVC)
+                    .createOr(Replaceable::update);
         }
     }
 }

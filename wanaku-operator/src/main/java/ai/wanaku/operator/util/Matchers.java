@@ -1,5 +1,6 @@
 package ai.wanaku.operator.util;
 
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -74,5 +75,20 @@ public final class Matchers {
         }
 
         return desiredRoute.getFullResourceName().equals(existingRoute.getFullResourceName());
+    }
+
+    public static boolean match(PersistentVolumeClaim desired, PersistentVolumeClaim existing) {
+        if (existing == null) {
+            return false;
+        }
+
+        // Check if storage request matches
+        String desiredStorage =
+                desired.getSpec().getResources().getRequests().get("storage").toString();
+        String existingStorage =
+                existing.getSpec().getResources().getRequests().get("storage").toString();
+
+        return desiredStorage.equals(existingStorage)
+                && desired.getSpec().getAccessModes().equals(existing.getSpec().getAccessModes());
     }
 }
