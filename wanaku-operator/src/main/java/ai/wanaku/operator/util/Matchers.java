@@ -65,11 +65,7 @@ public final class Matchers {
             return false;
         }
 
-        final ServiceSpec existingSpec = existing.getSpec();
-        final ServiceSpec desiredSpec = desired.getSpec();
-
-        return existingSpec.getExternalName().equals(desiredSpec.getExternalName())
-                && existingSpec.getPorts().equals(desiredSpec.getPorts());
+        return desired.getMetadata().getName().equals(existing.getMetadata().getName());
     }
 
     public static boolean match(Route desiredRoute, Route existingRoute) {
