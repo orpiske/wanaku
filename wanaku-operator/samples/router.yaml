@@ -17,14 +17,28 @@ spec:
         value: why
 #    image: quay.io/wanaku/wanaku-router-backend:latest # Optional
   services:
-    - name: employee-system
-      image: quay.io/wanaku/camel-integration-capability:latest
-    - name: finance-system
-      image: quay.io/wanaku/camel-integration-capability:latest
-#      env:
-#        - name: ABC
-#          value: xyz
-#        - name: CONFIG_DDDE
-#          value: why
     - name: wanaku-http
       image: quay.io/wanaku/wanaku-tool-service-http:latest
+    - name: finance-system
+      image: quay.io/wanaku/camel-integration-capability:latest
+    - name: employee-system
+      image: quay.io/wanaku/camel-integration-capability:latest
+      env:
+        - name: REGISTRATION_URL
+          value: ""
+        - name: REGISTRATION_ANNOUNCE_ADDRESS
+          value: ""
+        - name: GRPC_PORT
+          value: ""
+        - name: SERVICE_NAME
+          value: ""
+        - name: ROUTES_PATH
+          value: ""
+        - name: ROUTES_RULES
+          value: ""
+        - name: TOKEN_ENDPOINT
+          value: ""
+        - name: CLIENT_ID
+          value: "wanaku-service"
+        - name: CLIENT_SECRET
+          value: ""
