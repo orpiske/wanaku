@@ -2,7 +2,7 @@ package ai.wanaku.tool.http;
 
 import static ai.wanaku.core.runtime.camel.CamelQueryHelper.safeLog;
 
-import ai.wanaku.api.exceptions.WanakuException;
+import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.core.capabilities.common.ParsedToolInvokeRequest;
 import ai.wanaku.core.capabilities.tool.Client;
 import ai.wanaku.core.config.provider.api.ConfigResource;

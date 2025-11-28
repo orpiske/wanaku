@@ -1,9 +1,9 @@
 package ai.wanaku.core.capabilities.tool;
 
-import ai.wanaku.api.discovery.RegistrationManager;
-import ai.wanaku.api.exceptions.InvalidResponseTypeException;
-import ai.wanaku.api.exceptions.NonConvertableResponseException;
-import ai.wanaku.api.types.providers.ServiceType;
+import ai.wanaku.capabilities.sdk.api.discovery.RegistrationManager;
+import ai.wanaku.capabilities.sdk.api.exceptions.InvalidResponseTypeException;
+import ai.wanaku.capabilities.sdk.api.exceptions.NonConvertableResponseException;
+import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 import ai.wanaku.core.capabilities.common.ConfigProvisionerLoader;
 import ai.wanaku.core.capabilities.common.ConfigResourceLoader;
 import ai.wanaku.core.capabilities.common.ServicesHelper;

@@ -1,6 +1,6 @@
 package ai.wanaku.core.config.provider.file;
 
-import ai.wanaku.api.exceptions.WanakuException;
+import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.core.config.provider.api.PropertyProvider;
 import java.io.File;
 import java.io.FileInputStream;

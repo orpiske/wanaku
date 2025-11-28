@@ -1,6 +1,6 @@
 package ai.wanaku.core.capabilities.io;
 
-import ai.wanaku.api.types.providers.ServiceTarget;
+import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

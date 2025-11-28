@@ -1,6 +1,6 @@
 package ai.wanaku.core.capabilities.tool;
 
-import ai.wanaku.api.exceptions.WanakuException;
+import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.core.config.provider.api.ConfigResource;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 

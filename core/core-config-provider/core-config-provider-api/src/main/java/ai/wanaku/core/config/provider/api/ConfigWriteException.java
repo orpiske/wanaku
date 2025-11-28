@@ -1,6 +1,6 @@
 package ai.wanaku.core.config.provider.api;
 
-import ai.wanaku.api.exceptions.WanakuException;
+import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 
 /**
  * Exception thrown to indicate an error during the process of writing configuration data.

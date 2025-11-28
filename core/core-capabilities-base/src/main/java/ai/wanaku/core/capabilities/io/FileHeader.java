@@ -1,6 +1,6 @@
 package ai.wanaku.core.capabilities.io;
 
-import ai.wanaku.api.types.providers.ServiceType;
+import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 
 /**
  * Header structure for service instance data files.
@@ -18,6 +18,7 @@ import ai.wanaku.api.types.providers.ServiceType;
  *
  * @see ServiceType
  */
+@Deprecated
 public class FileHeader {
     /**
      * Format identifier for Wanaku service data files.

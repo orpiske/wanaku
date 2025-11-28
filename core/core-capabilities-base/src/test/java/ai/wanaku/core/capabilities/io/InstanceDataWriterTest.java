@@ -3,7 +3,7 @@ package ai.wanaku.core.capabilities.io;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import ai.wanaku.api.types.providers.ServiceType;
+import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
