@@ -4,10 +4,12 @@ import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
 import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
@@ -16,11 +18,9 @@ import java.util.List;
 
 /**
  * JAX-RS service interface for managing resource capabilities in the Wanaku system.
- * <p>
  * This service provides REST endpoints for exposing, listing, and removing resource
  * capabilities. Resources are data sources or content that can be accessed by AI agents,
  * such as files, databases, or external data sources.
- * <p>
  * All endpoints are available under the {@code /api/v1/resources} base path.
  */
 @Path("/api/v1/resources")
@@ -28,14 +28,14 @@ public interface ResourcesService {
 
     /**
      * Exposes a new resource capability with configuration and secrets payload.
-     * <p>
      * This endpoint allows exposing a resource along with its provisioning data,
      * including configuration settings and secrets required for resource access.
+     * HTTP: POST /api/v1/resources/with-payload
      *
      * @param resourceReference the resource payload containing the resource reference and provisioning data
      * @return a {@link Response} indicating the result of the expose operation
      */
-    @Path("/exposeWithPayload")
+    @Path("/with-payload")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -43,6 +43,7 @@ public interface ResourcesService {
 
     /**
      * Exposes a new resource capability in the system.
+     * HTTP: POST /api/v1/resources
      *
      * @param resourceReference the resource reference containing resource metadata
      * @return a {@link Response} indicating the result of the expose operation
@@ -50,16 +51,15 @@ public interface ResourcesService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/expose")
     Response expose(ResourceReference resourceReference);
 
     /**
      * Lists all exposed resource capabilities.
+     * HTTP: GET /api/v1/resources
      *
      * @param labelFilter optional label expression to filter resources by labels
      * @return a {@link WanakuResponse} containing a list of all resource references
      */
-    @Path("/list")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     WanakuResponse<List<ResourceReference>> list(@QueryParam("labelFilter") String labelFilter);
@@ -75,33 +75,34 @@ public interface ResourcesService {
 
     /**
      * Removes a resource capability from the system.
+     * HTTP: DELETE /api/v1/resources?resource={name}
      *
      * @param resource the name of the resource to remove
      * @return a {@link Response} indicating the result of the removal operation
      */
-    @Path("/remove")
-    @PUT
+    @DELETE
     Response remove(@QueryParam("resource") String resource);
 
     /**
      * Retrieves a resource capability by its name.
+     * HTTP: GET /api/v1/resources/{name}
      *
      * @param name the name of the resource to retrieve
      * @return a {@link WanakuResponse} containing the resource reference
      */
-    @Path("/")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    WanakuResponse<ResourceReference> getByName(@QueryParam("name") String name);
+    @Path("/{name}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    WanakuResponse<ResourceReference> getByName(@PathParam("name") String name);
 
     /**
      * Updates an existing resource capability.
+     * HTTP: PUT /api/v1/resources
      *
      * @param resource the updated resource reference
      * @return a {@link Response} indicating the result of the update operation
      */
-    @Path("/update")
-    @POST
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     Response update(ResourceReference resource);
 }

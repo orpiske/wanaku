@@ -1,29 +1,22 @@
 import { useCallback } from "react";
 import {
   getApiV1Capabilities,
-  postApiV1ResourcesExpose,
-  getApiV1ResourcesList,
-  putApiV1ResourcesRemove,
-  postApiV1ResourcesExposeResponse,
-  getApiV1ResourcesListResponse,
-  putApiV1ResourcesRemoveResponse,
-  getApiV1CapabilitiesResponse
+  postApiV1Resources,
+  getApiV1Resources,
+  deleteApiV1Resources,
+  postApiV1ResourcesResponse,
+  getApiV1ResourcesResponse,
+  deleteApiV1ResourcesResponse,
+  getApiV1CapabilitiesResponse,
 } from "../../api/wanaku-router-api";
-import {
-  PutApiV1ResourcesRemoveParams,
-  ResourceReference,
-} from "../../models";
+import { DeleteApiV1ResourcesParams, ResourceReference } from "../../models";
 
 export const useResources = () => {
-
-
   /**
    * List management resources.
    */
   const listManagementResources = useCallback(
-    (
-      options?: RequestInit
-    ): Promise<getApiV1CapabilitiesResponse> => {
+    (options?: RequestInit): Promise<getApiV1CapabilitiesResponse> => {
       return getApiV1Capabilities(options);
     },
     []
@@ -34,10 +27,10 @@ export const useResources = () => {
    */
   const exposeResource = useCallback(
     (
-      resourceReference: ResourceReference, // Define the proper type from your models if available.
+      resourceReference: ResourceReference,
       options?: RequestInit
-    ): Promise<postApiV1ResourcesExposeResponse> => {
-      return postApiV1ResourcesExpose(resourceReference, options);
+    ): Promise<postApiV1ResourcesResponse> => {
+      return postApiV1Resources(resourceReference, options);
     },
     []
   );
@@ -46,10 +39,8 @@ export const useResources = () => {
    * List resources.
    */
   const listResources = useCallback(
-    (
-      options?: RequestInit
-    ): Promise<getApiV1ResourcesListResponse> => {
-      return getApiV1ResourcesList(undefined, options);
+    (options?: RequestInit): Promise<getApiV1ResourcesResponse> => {
+      return getApiV1Resources(undefined, options);
     },
     []
   );
@@ -59,10 +50,10 @@ export const useResources = () => {
    */
   const removeResource = useCallback(
     (
-      params?: PutApiV1ResourcesRemoveParams, // Replace with the actual type if available from models.
+      params?: DeleteApiV1ResourcesParams,
       options?: RequestInit
-    ): Promise<putApiV1ResourcesRemoveResponse> => {
-      return putApiV1ResourcesRemove(params, options);
+    ): Promise<deleteApiV1ResourcesResponse> => {
+      return deleteApiV1Resources(params, options);
     },
     []
   );

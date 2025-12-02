@@ -23,7 +23,14 @@ public class NamespacesResource {
     @Inject
     NamespacesBean namespacesBean;
 
-    @Path("/list")
+    /**
+     * Lists all registered namespaces.
+     * <p>
+     * HTTP: GET /api/v1/namespaces
+     *
+     * @param labelFilter optional label expression to filter namespaces by labels
+     * @return a response containing a list of all namespaces
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public WanakuResponse<List<Namespace>> list(@QueryParam("labelFilter") String labelFilter) {

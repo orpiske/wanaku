@@ -1,4 +1,4 @@
-import { getApiV1NamespacesList } from "../../api/wanaku-router-api";
+import { getApiV1Namespaces } from "../../api/wanaku-router-api";
 import { Namespace } from "../../models";
 
 // Simple in-memory cache for Client Components
@@ -19,7 +19,7 @@ export const listNamespaces = async (options: any = null) => {
   if (process.env.NODE_ENV !== 'production') {
     console.log('Fetching fresh namespaces data');
   }
-  const result = await getApiV1NamespacesList(options);
+  const result = await getApiV1Namespaces(options);
   
   // Cache the result
   namespacesCache = {

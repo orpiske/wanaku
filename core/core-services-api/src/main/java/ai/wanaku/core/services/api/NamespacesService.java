@@ -15,11 +15,9 @@ import java.util.List;
 
 /**
  * JAX-RS service interface for managing namespaces in the Wanaku system.
- * <p>
  * This service provides REST endpoints for working with namespaces. Namespaces
  * provide logical grouping and isolation for capabilities, tools, and resources
  * within the Wanaku system.
- * <p>
  * All endpoints are available under the {@code /api/v1/namespaces} base path.
  */
 @Path("/api/v1/namespaces")
@@ -27,11 +25,11 @@ public interface NamespacesService {
 
     /**
      * Lists all registered namespaces in the system.
+     * HTTP: GET /api/v1/namespaces
      *
      * @param labelFilter optional label expression to filter namespaces by labels
      * @return a {@link WanakuResponse} containing a list of all namespaces
      */
-    @Path("/list")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     WanakuResponse<List<Namespace>> list(@QueryParam("labelFilter") String labelFilter);

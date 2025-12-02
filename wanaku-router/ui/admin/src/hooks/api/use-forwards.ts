@@ -1,4 +1,4 @@
-import { getApiV1ForwardsList } from "../../api/wanaku-router-api";
+import { getApiV1Forwards } from "../../api/wanaku-router-api";
 
 // Simple in-memory cache for Client Components
 let forwardsCache: {
@@ -8,23 +8,23 @@ let forwardsCache: {
 export const listForwards = async (options: any = null) => {
   // Check if we have valid cached data
   if (forwardsCache) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Returning cached forwards data');
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Returning cached forwards data");
     }
     return forwardsCache.data;
   }
-  
+
   // Fetch fresh data
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('Fetching fresh forwards data');
+  if (process.env.NODE_ENV !== "production") {
+    console.log("Fetching fresh forwards data");
   }
-  const result = await getApiV1ForwardsList(options);
-  
+  const result = await getApiV1Forwards(options);
+
   // Cache the result
   forwardsCache = {
-    data: result
+    data: result,
   };
-  
+
   return result;
 };
 

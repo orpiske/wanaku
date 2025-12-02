@@ -16,6 +16,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
@@ -44,12 +45,13 @@ public class ToolsResource {
 
     /**
      * Registers a new tool capability.
+     * <p>
+     * HTTP: POST /api/v1/tools
      *
      * @param resource the tool reference to register
      * @return a response containing the registered tool reference
      * @throws WanakuException if registration fails
      */
-    @Path("/add")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,12 +65,14 @@ public class ToolsResource {
      * <p>
      * This endpoint accepts a tool reference along with configuration and secrets
      * data, enabling complete provisioning of the tool capability.
+     * <p>
+     * HTTP: POST /api/v1/tools/with-payload
      *
      * @param resource the tool payload containing the tool reference and provisioning data
      * @return a response containing the registered tool reference
      * @throws WanakuException if registration fails or payload validation fails
      */
-    @Path("/addWithPayload")
+    @Path("/with-payload")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -98,11 +102,13 @@ public class ToolsResource {
      * <p>
      * This endpoint returns a combined list of both locally registered tools
      * and tools available through forward proxies to remote MCP servers.
+     * <p>
+     * HTTP: GET /api/v1/tools
      *
+     * @param labelFilter optional label expression to filter tools by labels
      * @return a response containing a list of all tool references
      * @throws WanakuException if listing fails
      */
-    @Path("/list")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public WanakuResponse<List<ToolReference>> list(@QueryParam("labelFilter") String labelFilter)
@@ -115,13 +121,14 @@ public class ToolsResource {
 
     /**
      * Removes a tool capability by name.
+     * <p>
+     * HTTP: DELETE /api/v1/tools?tool={name}
      *
      * @param tool the name of the tool to remove
      * @return HTTP 200 OK if removed successfully, HTTP 404 NOT FOUND if the tool doesn't exist
      * @throws WanakuException if removal fails
      */
-    @Path("/remove")
-    @PUT
+    @DELETE
     public Response remove(@QueryParam("tool") String tool) throws WanakuException {
         int deleteCount = toolsBean.remove(tool);
         if (deleteCount > 0) {
@@ -133,13 +140,14 @@ public class ToolsResource {
 
     /**
      * Updates an existing tool capability.
+     * <p>
+     * HTTP: PUT /api/v1/tools
      *
      * @param resource the updated tool reference
      * @return HTTP 200 OK if updated successfully
      * @throws WanakuException if update fails
      */
-    @Path("/update")
-    @POST
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(ToolReference resource) throws WanakuException {
         toolsBean.update(resource);
@@ -148,16 +156,18 @@ public class ToolsResource {
 
     /**
      * Retrieves a tool capability by name.
+     * <p>
+     * HTTP: GET /api/v1/tools/{name}
      *
      * @param name the name of the tool to retrieve
      * @return a response containing the tool reference
      * @throws ToolNotFoundException if the tool is not found
      * @throws WanakuException if retrieval fails
      */
-    @Path("/")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public WanakuResponse<ToolReference> getByName(@QueryParam("name") String name) throws WanakuException {
+    @Path("/{name}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public WanakuResponse<ToolReference> getByName(@PathParam("name") String name) throws WanakuException {
         ToolReference tool = toolsBean.getByName(name);
         if (tool == null) {
             throw new ToolNotFoundException(name);
@@ -166,12 +176,15 @@ public class ToolsResource {
     }
 
     /**
-     * Removes all tools from the system that match the label expression
+     * Removes all tools from the system that match the label expression.
+     * <p>
+     * HTTP: DELETE /api/v1/tools/by-label?labelExpression={expr}
      *
-     * @param labelExpression the name of the tool to remove
-     * @return a {@link Response} indicating the number of the tools removed.
+     * @param labelExpression the label expression to filter tools for removal
+     * @return a {@link WanakuResponse} containing the number of tools removed
+     * @throws WanakuException if removal fails
      */
-    @Path("/")
+    @Path("/by-label")
     @DELETE
     public WanakuResponse<Integer> removeIf(@QueryParam("labelExpression") String labelExpression)
             throws WanakuException {

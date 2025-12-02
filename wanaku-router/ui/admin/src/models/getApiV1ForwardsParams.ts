@@ -5,6 +5,6 @@
  * OpenAPI spec version: 0.0.9-SNAPSHOT
  */
 
-export type DeleteApiV1ToolsParams = {
-  tool?: string;
+export type GetApiV1ForwardsParams = {
+  labelFilter?: string;
 };

@@ -56,7 +56,7 @@ export const DataStoresPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteDataStore({ id });
+      await deleteDataStore(id);
 
       // Refresh the list
       listDataStores().then((result) => {

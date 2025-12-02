@@ -238,6 +238,14 @@ public class ForwardsBean extends AbstractBean<ForwardReference> {
         return forwardReferenceRepository.listAll();
     }
 
+    public ForwardReference getByName(String name) {
+        List<ForwardReference> references = forwardReferenceRepository.findByName(name);
+        if (references.isEmpty()) {
+            return null;
+        }
+        return references.getFirst();
+    }
+
     public List<ForwardReference> listForwards() {
         return listForwards(null);
     }

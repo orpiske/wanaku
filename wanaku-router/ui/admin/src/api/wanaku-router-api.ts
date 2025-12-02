@@ -6,24 +6,23 @@
  */
 import type {
   DataStore,
-  DeleteApiV1DataStoreRemoveByLabelParams,
-  DeleteApiV1DataStoreRemoveParams,
+  DeleteApiV1DataStoreByLabelParams,
+  DeleteApiV1DataStoreByNameParams,
   DeleteApiV1PromptsParams,
+  DeleteApiV1ResourcesParams,
+  DeleteApiV1ToolsByLabelParams,
   DeleteApiV1ToolsParams,
   ForwardReference,
-  GetApiV1DataStoreGetParams,
-  GetApiV1DataStoreListParams,
-  GetApiV1ForwardsListParams,
-  GetApiV1NamespacesListParams,
-  GetApiV1ResourcesListParams,
-  GetApiV1ToolsListParams,
+  GetApiV1DataStoreByNameParams,
+  GetApiV1DataStoreParams,
+  GetApiV1ForwardsParams,
+  GetApiV1NamespacesParams,
+  GetApiV1ResourcesParams,
+  GetApiV1ToolsParams,
   Namespace,
   OutboundSseEvent,
-  PostApiV1ToolsParams,
   PromptPayload,
   PromptReference,
-  PutApiV1ResourcesRemoveParams,
-  PutApiV1ToolsRemoveParams,
   ResourcePayload,
   ResourceReference,
   ServiceState,
@@ -32,6 +31,7 @@ import type {
   ToolReference,
   WanakuResponse,
   WanakuResponseDataStore,
+  WanakuResponseForwardReference,
   WanakuResponseInteger,
   WanakuResponseListDataStore,
   WanakuResponseListForwardReference,
@@ -42,7 +42,6 @@ import type {
   WanakuResponseListToolReference,
   WanakuResponseMapStringListActivityRecord,
   WanakuResponseNamespace,
-  WanakuResponseObject,
   WanakuResponsePromptReference,
   WanakuResponseResourceReference,
   WanakuResponseServerInfo,
@@ -180,77 +179,70 @@ export const getApiV1CapabilitiesToolsState = async (
 };
 
 /**
- * @summary Add
+ * @summary Update
  */
-export type postApiV1DataStoreAddResponse200 = {
-  data: WanakuResponseDataStore;
+export type putApiV1DataStoreResponse200 = {
+  data: null;
   status: 200;
 };
 
-export type postApiV1DataStoreAddResponse400 = {
+export type putApiV1DataStoreResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1DataStoreAddResponse500 = {
+export type putApiV1DataStoreResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1DataStoreAddResponseComposite =
-  | postApiV1DataStoreAddResponse200
-  | postApiV1DataStoreAddResponse400
-  | postApiV1DataStoreAddResponse500;
+export type putApiV1DataStoreResponseComposite =
+  | putApiV1DataStoreResponse200
+  | putApiV1DataStoreResponse400
+  | putApiV1DataStoreResponse500;
 
-export type postApiV1DataStoreAddResponse =
-  postApiV1DataStoreAddResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1DataStoreAddUrl = () => {
-  return `/api/v1/data-store/add`;
+export type putApiV1DataStoreResponse = putApiV1DataStoreResponseComposite & {
+  headers: Headers;
 };
 
-export const postApiV1DataStoreAdd = async (
+export const getPutApiV1DataStoreUrl = () => {
+  return `/api/v1/data-store`;
+};
+
+export const putApiV1DataStore = async (
   dataStore: DataStore,
   options?: RequestInit,
-): Promise<postApiV1DataStoreAddResponse> => {
-  return customFetch<postApiV1DataStoreAddResponse>(
-    getPostApiV1DataStoreAddUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(dataStore),
-    },
-  );
+): Promise<putApiV1DataStoreResponse> => {
+  return customFetch<putApiV1DataStoreResponse>(getPutApiV1DataStoreUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(dataStore),
+  });
 };
 
 /**
- * @summary Get
+ * @summary List
  */
-export type getApiV1DataStoreGetResponse200 = {
-  data: WanakuResponseObject;
+export type getApiV1DataStoreResponse200 = {
+  data: WanakuResponseListDataStore;
   status: 200;
 };
 
-export type getApiV1DataStoreGetResponse500 = {
+export type getApiV1DataStoreResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type getApiV1DataStoreGetResponseComposite =
-  | getApiV1DataStoreGetResponse200
-  | getApiV1DataStoreGetResponse500;
+export type getApiV1DataStoreResponseComposite =
+  | getApiV1DataStoreResponse200
+  | getApiV1DataStoreResponse500;
 
-export type getApiV1DataStoreGetResponse =
-  getApiV1DataStoreGetResponseComposite & {
-    headers: Headers;
-  };
+export type getApiV1DataStoreResponse = getApiV1DataStoreResponseComposite & {
+  headers: Headers;
+};
 
-export const getGetApiV1DataStoreGetUrl = (
-  params?: GetApiV1DataStoreGetParams,
-) => {
+export const getGetApiV1DataStoreUrl = (params?: GetApiV1DataStoreParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -262,16 +254,16 @@ export const getGetApiV1DataStoreGetUrl = (
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/api/v1/data-store/get?${stringifiedParams}`
-    : `/api/v1/data-store/get`;
+    ? `/api/v1/data-store?${stringifiedParams}`
+    : `/api/v1/data-store`;
 };
 
-export const getApiV1DataStoreGet = async (
-  params?: GetApiV1DataStoreGetParams,
+export const getApiV1DataStore = async (
+  params?: GetApiV1DataStoreParams,
   options?: RequestInit,
-): Promise<getApiV1DataStoreGetResponse> => {
-  return customFetch<getApiV1DataStoreGetResponse>(
-    getGetApiV1DataStoreGetUrl(params),
+): Promise<getApiV1DataStoreResponse> => {
+  return customFetch<getApiV1DataStoreResponse>(
+    getGetApiV1DataStoreUrl(params),
     {
       ...options,
       method: "GET",
@@ -280,29 +272,72 @@ export const getApiV1DataStoreGet = async (
 };
 
 /**
- * @summary List
+ * @summary Add
  */
-export type getApiV1DataStoreListResponse200 = {
-  data: WanakuResponseListDataStore;
+export type postApiV1DataStoreResponse200 = {
+  data: WanakuResponseDataStore;
   status: 200;
 };
 
-export type getApiV1DataStoreListResponse500 = {
+export type postApiV1DataStoreResponse400 = {
+  data: null;
+  status: 400;
+};
+
+export type postApiV1DataStoreResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type getApiV1DataStoreListResponseComposite =
-  | getApiV1DataStoreListResponse200
-  | getApiV1DataStoreListResponse500;
+export type postApiV1DataStoreResponseComposite =
+  | postApiV1DataStoreResponse200
+  | postApiV1DataStoreResponse400
+  | postApiV1DataStoreResponse500;
 
-export type getApiV1DataStoreListResponse =
-  getApiV1DataStoreListResponseComposite & {
+export type postApiV1DataStoreResponse = postApiV1DataStoreResponseComposite & {
+  headers: Headers;
+};
+
+export const getPostApiV1DataStoreUrl = () => {
+  return `/api/v1/data-store`;
+};
+
+export const postApiV1DataStore = async (
+  dataStore: DataStore,
+  options?: RequestInit,
+): Promise<postApiV1DataStoreResponse> => {
+  return customFetch<postApiV1DataStoreResponse>(getPostApiV1DataStoreUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(dataStore),
+  });
+};
+
+/**
+ * @summary Remove If
+ */
+export type deleteApiV1DataStoreByLabelResponse200 = {
+  data: WanakuResponseInteger;
+  status: 200;
+};
+
+export type deleteApiV1DataStoreByLabelResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type deleteApiV1DataStoreByLabelResponseComposite =
+  | deleteApiV1DataStoreByLabelResponse200
+  | deleteApiV1DataStoreByLabelResponse500;
+
+export type deleteApiV1DataStoreByLabelResponse =
+  deleteApiV1DataStoreByLabelResponseComposite & {
     headers: Headers;
   };
 
-export const getGetApiV1DataStoreListUrl = (
-  params?: GetApiV1DataStoreListParams,
+export const getDeleteApiV1DataStoreByLabelUrl = (
+  params?: DeleteApiV1DataStoreByLabelParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -315,16 +350,122 @@ export const getGetApiV1DataStoreListUrl = (
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/api/v1/data-store/list?${stringifiedParams}`
-    : `/api/v1/data-store/list`;
+    ? `/api/v1/data-store/by-label?${stringifiedParams}`
+    : `/api/v1/data-store/by-label`;
 };
 
-export const getApiV1DataStoreList = async (
-  params?: GetApiV1DataStoreListParams,
+export const deleteApiV1DataStoreByLabel = async (
+  params?: DeleteApiV1DataStoreByLabelParams,
   options?: RequestInit,
-): Promise<getApiV1DataStoreListResponse> => {
-  return customFetch<getApiV1DataStoreListResponse>(
-    getGetApiV1DataStoreListUrl(params),
+): Promise<deleteApiV1DataStoreByLabelResponse> => {
+  return customFetch<deleteApiV1DataStoreByLabelResponse>(
+    getDeleteApiV1DataStoreByLabelUrl(params),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * @summary Remove By Name
+ */
+export type deleteApiV1DataStoreByNameResponse200 = {
+  data: null;
+  status: 200;
+};
+
+export type deleteApiV1DataStoreByNameResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type deleteApiV1DataStoreByNameResponseComposite =
+  | deleteApiV1DataStoreByNameResponse200
+  | deleteApiV1DataStoreByNameResponse500;
+
+export type deleteApiV1DataStoreByNameResponse =
+  deleteApiV1DataStoreByNameResponseComposite & {
+    headers: Headers;
+  };
+
+export const getDeleteApiV1DataStoreByNameUrl = (
+  params?: DeleteApiV1DataStoreByNameParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/data-store/by-name?${stringifiedParams}`
+    : `/api/v1/data-store/by-name`;
+};
+
+export const deleteApiV1DataStoreByName = async (
+  params?: DeleteApiV1DataStoreByNameParams,
+  options?: RequestInit,
+): Promise<deleteApiV1DataStoreByNameResponse> => {
+  return customFetch<deleteApiV1DataStoreByNameResponse>(
+    getDeleteApiV1DataStoreByNameUrl(params),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+/**
+ * @summary Get By Name
+ */
+export type getApiV1DataStoreByNameResponse200 = {
+  data: WanakuResponseListDataStore;
+  status: 200;
+};
+
+export type getApiV1DataStoreByNameResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type getApiV1DataStoreByNameResponseComposite =
+  | getApiV1DataStoreByNameResponse200
+  | getApiV1DataStoreByNameResponse500;
+
+export type getApiV1DataStoreByNameResponse =
+  getApiV1DataStoreByNameResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV1DataStoreByNameUrl = (
+  params?: GetApiV1DataStoreByNameParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/data-store/by-name?${stringifiedParams}`
+    : `/api/v1/data-store/by-name`;
+};
+
+export const getApiV1DataStoreByName = async (
+  params?: GetApiV1DataStoreByNameParams,
+  options?: RequestInit,
+): Promise<getApiV1DataStoreByNameResponse> => {
+  return customFetch<getApiV1DataStoreByNameResponse>(
+    getGetApiV1DataStoreByNameUrl(params),
     {
       ...options,
       method: "GET",
@@ -335,49 +476,35 @@ export const getApiV1DataStoreList = async (
 /**
  * @summary Remove
  */
-export type deleteApiV1DataStoreRemoveResponse200 = {
+export type deleteApiV1DataStoreIdResponse200 = {
   data: null;
   status: 200;
 };
 
-export type deleteApiV1DataStoreRemoveResponse500 = {
+export type deleteApiV1DataStoreIdResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type deleteApiV1DataStoreRemoveResponseComposite =
-  | deleteApiV1DataStoreRemoveResponse200
-  | deleteApiV1DataStoreRemoveResponse500;
+export type deleteApiV1DataStoreIdResponseComposite =
+  | deleteApiV1DataStoreIdResponse200
+  | deleteApiV1DataStoreIdResponse500;
 
-export type deleteApiV1DataStoreRemoveResponse =
-  deleteApiV1DataStoreRemoveResponseComposite & {
+export type deleteApiV1DataStoreIdResponse =
+  deleteApiV1DataStoreIdResponseComposite & {
     headers: Headers;
   };
 
-export const getDeleteApiV1DataStoreRemoveUrl = (
-  params?: DeleteApiV1DataStoreRemoveParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/data-store/remove?${stringifiedParams}`
-    : `/api/v1/data-store/remove`;
+export const getDeleteApiV1DataStoreIdUrl = (id: string) => {
+  return `/api/v1/data-store/${id}`;
 };
 
-export const deleteApiV1DataStoreRemove = async (
-  params?: DeleteApiV1DataStoreRemoveParams,
+export const deleteApiV1DataStoreId = async (
+  id: string,
   options?: RequestInit,
-): Promise<deleteApiV1DataStoreRemoveResponse> => {
-  return customFetch<deleteApiV1DataStoreRemoveResponse>(
-    getDeleteApiV1DataStoreRemoveUrl(params),
+): Promise<deleteApiV1DataStoreIdResponse> => {
+  return customFetch<deleteApiV1DataStoreIdResponse>(
+    getDeleteApiV1DataStoreIdUrl(id),
     {
       ...options,
       method: "DELETE",
@@ -386,192 +513,37 @@ export const deleteApiV1DataStoreRemove = async (
 };
 
 /**
- * @summary Remove If
+ * @summary Get By Id
  */
-export type deleteApiV1DataStoreRemoveByLabelResponse200 = {
-  data: WanakuResponseInteger;
+export type getApiV1DataStoreIdResponse200 = {
+  data: WanakuResponseDataStore;
   status: 200;
 };
 
-export type deleteApiV1DataStoreRemoveByLabelResponse500 = {
+export type getApiV1DataStoreIdResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type deleteApiV1DataStoreRemoveByLabelResponseComposite =
-  | deleteApiV1DataStoreRemoveByLabelResponse200
-  | deleteApiV1DataStoreRemoveByLabelResponse500;
+export type getApiV1DataStoreIdResponseComposite =
+  | getApiV1DataStoreIdResponse200
+  | getApiV1DataStoreIdResponse500;
 
-export type deleteApiV1DataStoreRemoveByLabelResponse =
-  deleteApiV1DataStoreRemoveByLabelResponseComposite & {
+export type getApiV1DataStoreIdResponse =
+  getApiV1DataStoreIdResponseComposite & {
     headers: Headers;
   };
 
-export const getDeleteApiV1DataStoreRemoveByLabelUrl = (
-  params?: DeleteApiV1DataStoreRemoveByLabelParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/data-store/removeByLabel?${stringifiedParams}`
-    : `/api/v1/data-store/removeByLabel`;
+export const getGetApiV1DataStoreIdUrl = (id: string) => {
+  return `/api/v1/data-store/${id}`;
 };
 
-export const deleteApiV1DataStoreRemoveByLabel = async (
-  params?: DeleteApiV1DataStoreRemoveByLabelParams,
+export const getApiV1DataStoreId = async (
+  id: string,
   options?: RequestInit,
-): Promise<deleteApiV1DataStoreRemoveByLabelResponse> => {
-  return customFetch<deleteApiV1DataStoreRemoveByLabelResponse>(
-    getDeleteApiV1DataStoreRemoveByLabelUrl(params),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
-
-/**
- * @summary Update
- */
-export type postApiV1DataStoreUpdateResponse200 = {
-  data: null;
-  status: 200;
-};
-
-export type postApiV1DataStoreUpdateResponse400 = {
-  data: null;
-  status: 400;
-};
-
-export type postApiV1DataStoreUpdateResponse500 = {
-  data: WanakuResponse;
-  status: 500;
-};
-
-export type postApiV1DataStoreUpdateResponseComposite =
-  | postApiV1DataStoreUpdateResponse200
-  | postApiV1DataStoreUpdateResponse400
-  | postApiV1DataStoreUpdateResponse500;
-
-export type postApiV1DataStoreUpdateResponse =
-  postApiV1DataStoreUpdateResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1DataStoreUpdateUrl = () => {
-  return `/api/v1/data-store/update`;
-};
-
-export const postApiV1DataStoreUpdate = async (
-  dataStore: DataStore,
-  options?: RequestInit,
-): Promise<postApiV1DataStoreUpdateResponse> => {
-  return customFetch<postApiV1DataStoreUpdateResponse>(
-    getPostApiV1DataStoreUpdateUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(dataStore),
-    },
-  );
-};
-
-/**
- * @summary Add Forward
- */
-export type postApiV1ForwardsAddResponse200 = {
-  data: null;
-  status: 200;
-};
-
-export type postApiV1ForwardsAddResponse400 = {
-  data: null;
-  status: 400;
-};
-
-export type postApiV1ForwardsAddResponse500 = {
-  data: WanakuResponse;
-  status: 500;
-};
-
-export type postApiV1ForwardsAddResponseComposite =
-  | postApiV1ForwardsAddResponse200
-  | postApiV1ForwardsAddResponse400
-  | postApiV1ForwardsAddResponse500;
-
-export type postApiV1ForwardsAddResponse =
-  postApiV1ForwardsAddResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1ForwardsAddUrl = () => {
-  return `/api/v1/forwards/add`;
-};
-
-export const postApiV1ForwardsAdd = async (
-  forwardReference: ForwardReference,
-  options?: RequestInit,
-): Promise<postApiV1ForwardsAddResponse> => {
-  return customFetch<postApiV1ForwardsAddResponse>(
-    getPostApiV1ForwardsAddUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(forwardReference),
-    },
-  );
-};
-
-/**
- * @summary List Forwards
- */
-export type getApiV1ForwardsListResponse200 = {
-  data: WanakuResponseListForwardReference;
-  status: 200;
-};
-
-export type getApiV1ForwardsListResponseComposite =
-  getApiV1ForwardsListResponse200;
-
-export type getApiV1ForwardsListResponse =
-  getApiV1ForwardsListResponseComposite & {
-    headers: Headers;
-  };
-
-export const getGetApiV1ForwardsListUrl = (
-  params?: GetApiV1ForwardsListParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/forwards/list?${stringifiedParams}`
-    : `/api/v1/forwards/list`;
-};
-
-export const getApiV1ForwardsList = async (
-  params?: GetApiV1ForwardsListParams,
-  options?: RequestInit,
-): Promise<getApiV1ForwardsListResponse> => {
-  return customFetch<getApiV1ForwardsListResponse>(
-    getGetApiV1ForwardsListUrl(params),
+): Promise<getApiV1DataStoreIdResponse> => {
+  return customFetch<getApiV1DataStoreIdResponse>(
+    getGetApiV1DataStoreIdUrl(id),
     {
       ...options,
       method: "GET",
@@ -580,89 +552,198 @@ export const getApiV1ForwardsList = async (
 };
 
 /**
- * @summary Remove Forward
- */
-export type putApiV1ForwardsRemoveResponse200 = {
-  data: null;
-  status: 200;
-};
-
-export type putApiV1ForwardsRemoveResponse400 = {
-  data: null;
-  status: 400;
-};
-
-export type putApiV1ForwardsRemoveResponseComposite =
-  | putApiV1ForwardsRemoveResponse200
-  | putApiV1ForwardsRemoveResponse400;
-
-export type putApiV1ForwardsRemoveResponse =
-  putApiV1ForwardsRemoveResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPutApiV1ForwardsRemoveUrl = () => {
-  return `/api/v1/forwards/remove`;
-};
-
-export const putApiV1ForwardsRemove = async (
-  forwardReference: ForwardReference,
-  options?: RequestInit,
-): Promise<putApiV1ForwardsRemoveResponse> => {
-  return customFetch<putApiV1ForwardsRemoveResponse>(
-    getPutApiV1ForwardsRemoveUrl(),
-    {
-      ...options,
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(forwardReference),
-    },
-  );
-};
-
-/**
  * @summary Update
  */
-export type postApiV1ForwardsUpdateResponse200 = {
+export type putApiV1ForwardsResponse200 = {
   data: null;
   status: 200;
 };
 
-export type postApiV1ForwardsUpdateResponse400 = {
+export type putApiV1ForwardsResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1ForwardsUpdateResponse500 = {
+export type putApiV1ForwardsResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ForwardsUpdateResponseComposite =
-  | postApiV1ForwardsUpdateResponse200
-  | postApiV1ForwardsUpdateResponse400
-  | postApiV1ForwardsUpdateResponse500;
+export type putApiV1ForwardsResponseComposite =
+  | putApiV1ForwardsResponse200
+  | putApiV1ForwardsResponse400
+  | putApiV1ForwardsResponse500;
 
-export type postApiV1ForwardsUpdateResponse =
-  postApiV1ForwardsUpdateResponseComposite & {
+export type putApiV1ForwardsResponse = putApiV1ForwardsResponseComposite & {
+  headers: Headers;
+};
+
+export const getPutApiV1ForwardsUrl = () => {
+  return `/api/v1/forwards`;
+};
+
+export const putApiV1Forwards = async (
+  forwardReference: ForwardReference,
+  options?: RequestInit,
+): Promise<putApiV1ForwardsResponse> => {
+  return customFetch<putApiV1ForwardsResponse>(getPutApiV1ForwardsUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(forwardReference),
+  });
+};
+
+/**
+ * @summary Remove Forward
+ */
+export type deleteApiV1ForwardsResponse200 = {
+  data: null;
+  status: 200;
+};
+
+export type deleteApiV1ForwardsResponseComposite =
+  deleteApiV1ForwardsResponse200;
+
+export type deleteApiV1ForwardsResponse =
+  deleteApiV1ForwardsResponseComposite & {
     headers: Headers;
   };
 
-export const getPostApiV1ForwardsUpdateUrl = () => {
-  return `/api/v1/forwards/update`;
+export const getDeleteApiV1ForwardsUrl = () => {
+  return `/api/v1/forwards`;
 };
 
-export const postApiV1ForwardsUpdate = async (
+export const deleteApiV1Forwards = async (
   forwardReference: ForwardReference,
   options?: RequestInit,
-): Promise<postApiV1ForwardsUpdateResponse> => {
-  return customFetch<postApiV1ForwardsUpdateResponse>(
-    getPostApiV1ForwardsUpdateUrl(),
+): Promise<deleteApiV1ForwardsResponse> => {
+  return customFetch<deleteApiV1ForwardsResponse>(getDeleteApiV1ForwardsUrl(), {
+    ...options,
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(forwardReference),
+  });
+};
+
+/**
+ * @summary List Forwards
+ */
+export type getApiV1ForwardsResponse200 = {
+  data: WanakuResponseListForwardReference;
+  status: 200;
+};
+
+export type getApiV1ForwardsResponseComposite = getApiV1ForwardsResponse200;
+
+export type getApiV1ForwardsResponse = getApiV1ForwardsResponseComposite & {
+  headers: Headers;
+};
+
+export const getGetApiV1ForwardsUrl = (params?: GetApiV1ForwardsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/forwards?${stringifiedParams}`
+    : `/api/v1/forwards`;
+};
+
+export const getApiV1Forwards = async (
+  params?: GetApiV1ForwardsParams,
+  options?: RequestInit,
+): Promise<getApiV1ForwardsResponse> => {
+  return customFetch<getApiV1ForwardsResponse>(getGetApiV1ForwardsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+/**
+ * @summary Add Forward
+ */
+export type postApiV1ForwardsResponse200 = {
+  data: null;
+  status: 200;
+};
+
+export type postApiV1ForwardsResponse400 = {
+  data: null;
+  status: 400;
+};
+
+export type postApiV1ForwardsResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type postApiV1ForwardsResponseComposite =
+  | postApiV1ForwardsResponse200
+  | postApiV1ForwardsResponse400
+  | postApiV1ForwardsResponse500;
+
+export type postApiV1ForwardsResponse = postApiV1ForwardsResponseComposite & {
+  headers: Headers;
+};
+
+export const getPostApiV1ForwardsUrl = () => {
+  return `/api/v1/forwards`;
+};
+
+export const postApiV1Forwards = async (
+  forwardReference: ForwardReference,
+  options?: RequestInit,
+): Promise<postApiV1ForwardsResponse> => {
+  return customFetch<postApiV1ForwardsResponse>(getPostApiV1ForwardsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(forwardReference),
+  });
+};
+
+/**
+ * @summary Get By Name
+ */
+export type getApiV1ForwardsNameResponse200 = {
+  data: WanakuResponseForwardReference;
+  status: 200;
+};
+
+export type getApiV1ForwardsNameResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type getApiV1ForwardsNameResponseComposite =
+  | getApiV1ForwardsNameResponse200
+  | getApiV1ForwardsNameResponse500;
+
+export type getApiV1ForwardsNameResponse =
+  getApiV1ForwardsNameResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV1ForwardsNameUrl = (name: string) => {
+  return `/api/v1/forwards/${name}`;
+};
+
+export const getApiV1ForwardsName = async (
+  name: string,
+  options?: RequestInit,
+): Promise<getApiV1ForwardsNameResponse> => {
+  return customFetch<getApiV1ForwardsNameResponse>(
+    getGetApiV1ForwardsNameUrl(name),
     {
       ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(forwardReference),
+      method: "GET",
     },
   );
 };
@@ -861,22 +942,18 @@ export const getApiV1ManagementInfoVersion = async (
 /**
  * @summary List
  */
-export type getApiV1NamespacesListResponse200 = {
+export type getApiV1NamespacesResponse200 = {
   data: WanakuResponseListNamespace;
   status: 200;
 };
 
-export type getApiV1NamespacesListResponseComposite =
-  getApiV1NamespacesListResponse200;
+export type getApiV1NamespacesResponseComposite = getApiV1NamespacesResponse200;
 
-export type getApiV1NamespacesListResponse =
-  getApiV1NamespacesListResponseComposite & {
-    headers: Headers;
-  };
+export type getApiV1NamespacesResponse = getApiV1NamespacesResponseComposite & {
+  headers: Headers;
+};
 
-export const getGetApiV1NamespacesListUrl = (
-  params?: GetApiV1NamespacesListParams,
-) => {
+export const getGetApiV1NamespacesUrl = (params?: GetApiV1NamespacesParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -888,16 +965,16 @@ export const getGetApiV1NamespacesListUrl = (
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/api/v1/namespaces/list?${stringifiedParams}`
-    : `/api/v1/namespaces/list`;
+    ? `/api/v1/namespaces?${stringifiedParams}`
+    : `/api/v1/namespaces`;
 };
 
-export const getApiV1NamespacesList = async (
-  params?: GetApiV1NamespacesListParams,
+export const getApiV1Namespaces = async (
+  params?: GetApiV1NamespacesParams,
   options?: RequestInit,
-): Promise<getApiV1NamespacesListResponse> => {
-  return customFetch<getApiV1NamespacesListResponse>(
-    getGetApiV1NamespacesListUrl(params),
+): Promise<getApiV1NamespacesResponse> => {
+  return customFetch<getApiV1NamespacesResponse>(
+    getGetApiV1NamespacesUrl(params),
     {
       ...options,
       method: "GET",
@@ -1237,90 +1314,232 @@ export const getApiV1PromptsName = async (
 };
 
 /**
- * @summary Expose
+ * @summary Update
  */
-export type postApiV1ResourcesExposeResponse200 = {
-  data: WanakuResponseResourceReference;
+export type putApiV1ResourcesResponse200 = {
+  data: null;
   status: 200;
 };
 
-export type postApiV1ResourcesExposeResponse400 = {
+export type putApiV1ResourcesResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1ResourcesExposeResponse500 = {
+export type putApiV1ResourcesResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ResourcesExposeResponseComposite =
-  | postApiV1ResourcesExposeResponse200
-  | postApiV1ResourcesExposeResponse400
-  | postApiV1ResourcesExposeResponse500;
+export type putApiV1ResourcesResponseComposite =
+  | putApiV1ResourcesResponse200
+  | putApiV1ResourcesResponse400
+  | putApiV1ResourcesResponse500;
 
-export type postApiV1ResourcesExposeResponse =
-  postApiV1ResourcesExposeResponseComposite & {
+export type putApiV1ResourcesResponse = putApiV1ResourcesResponseComposite & {
+  headers: Headers;
+};
+
+export const getPutApiV1ResourcesUrl = () => {
+  return `/api/v1/resources`;
+};
+
+export const putApiV1Resources = async (
+  resourceReference: ResourceReference,
+  options?: RequestInit,
+): Promise<putApiV1ResourcesResponse> => {
+  return customFetch<putApiV1ResourcesResponse>(getPutApiV1ResourcesUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(resourceReference),
+  });
+};
+
+/**
+ * @summary Remove
+ */
+export type deleteApiV1ResourcesResponse200 = {
+  data: null;
+  status: 200;
+};
+
+export type deleteApiV1ResourcesResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type deleteApiV1ResourcesResponseComposite =
+  | deleteApiV1ResourcesResponse200
+  | deleteApiV1ResourcesResponse500;
+
+export type deleteApiV1ResourcesResponse =
+  deleteApiV1ResourcesResponseComposite & {
     headers: Headers;
   };
 
-export const getPostApiV1ResourcesExposeUrl = () => {
-  return `/api/v1/resources/expose`;
+export const getDeleteApiV1ResourcesUrl = (
+  params?: DeleteApiV1ResourcesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/resources?${stringifiedParams}`
+    : `/api/v1/resources`;
 };
 
-export const postApiV1ResourcesExpose = async (
-  resourceReference: ResourceReference,
+export const deleteApiV1Resources = async (
+  params?: DeleteApiV1ResourcesParams,
   options?: RequestInit,
-): Promise<postApiV1ResourcesExposeResponse> => {
-  return customFetch<postApiV1ResourcesExposeResponse>(
-    getPostApiV1ResourcesExposeUrl(),
+): Promise<deleteApiV1ResourcesResponse> => {
+  return customFetch<deleteApiV1ResourcesResponse>(
+    getDeleteApiV1ResourcesUrl(params),
     {
       ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(resourceReference),
+      method: "DELETE",
     },
   );
 };
 
 /**
- * @summary Expose With Payload
+ * @summary List
  */
-export type postApiV1ResourcesExposeWithPayloadResponse200 = {
-  data: WanakuResponseResourceReference;
+export type getApiV1ResourcesResponse200 = {
+  data: WanakuResponseListResourceReference;
   status: 200;
 };
 
-export type postApiV1ResourcesExposeWithPayloadResponse400 = {
-  data: null;
-  status: 400;
-};
-
-export type postApiV1ResourcesExposeWithPayloadResponse500 = {
+export type getApiV1ResourcesResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ResourcesExposeWithPayloadResponseComposite =
-  | postApiV1ResourcesExposeWithPayloadResponse200
-  | postApiV1ResourcesExposeWithPayloadResponse400
-  | postApiV1ResourcesExposeWithPayloadResponse500;
+export type getApiV1ResourcesResponseComposite =
+  | getApiV1ResourcesResponse200
+  | getApiV1ResourcesResponse500;
 
-export type postApiV1ResourcesExposeWithPayloadResponse =
-  postApiV1ResourcesExposeWithPayloadResponseComposite & {
+export type getApiV1ResourcesResponse = getApiV1ResourcesResponseComposite & {
+  headers: Headers;
+};
+
+export const getGetApiV1ResourcesUrl = (params?: GetApiV1ResourcesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/resources?${stringifiedParams}`
+    : `/api/v1/resources`;
+};
+
+export const getApiV1Resources = async (
+  params?: GetApiV1ResourcesParams,
+  options?: RequestInit,
+): Promise<getApiV1ResourcesResponse> => {
+  return customFetch<getApiV1ResourcesResponse>(
+    getGetApiV1ResourcesUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
+ * @summary Expose
+ */
+export type postApiV1ResourcesResponse200 = {
+  data: WanakuResponseResourceReference;
+  status: 200;
+};
+
+export type postApiV1ResourcesResponse400 = {
+  data: null;
+  status: 400;
+};
+
+export type postApiV1ResourcesResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type postApiV1ResourcesResponseComposite =
+  | postApiV1ResourcesResponse200
+  | postApiV1ResourcesResponse400
+  | postApiV1ResourcesResponse500;
+
+export type postApiV1ResourcesResponse = postApiV1ResourcesResponseComposite & {
+  headers: Headers;
+};
+
+export const getPostApiV1ResourcesUrl = () => {
+  return `/api/v1/resources`;
+};
+
+export const postApiV1Resources = async (
+  resourceReference: ResourceReference,
+  options?: RequestInit,
+): Promise<postApiV1ResourcesResponse> => {
+  return customFetch<postApiV1ResourcesResponse>(getPostApiV1ResourcesUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(resourceReference),
+  });
+};
+
+/**
+ * @summary Expose With Payload
+ */
+export type postApiV1ResourcesWithPayloadResponse200 = {
+  data: WanakuResponseResourceReference;
+  status: 200;
+};
+
+export type postApiV1ResourcesWithPayloadResponse400 = {
+  data: null;
+  status: 400;
+};
+
+export type postApiV1ResourcesWithPayloadResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type postApiV1ResourcesWithPayloadResponseComposite =
+  | postApiV1ResourcesWithPayloadResponse200
+  | postApiV1ResourcesWithPayloadResponse400
+  | postApiV1ResourcesWithPayloadResponse500;
+
+export type postApiV1ResourcesWithPayloadResponse =
+  postApiV1ResourcesWithPayloadResponseComposite & {
     headers: Headers;
   };
 
-export const getPostApiV1ResourcesExposeWithPayloadUrl = () => {
-  return `/api/v1/resources/exposeWithPayload`;
+export const getPostApiV1ResourcesWithPayloadUrl = () => {
+  return `/api/v1/resources/with-payload`;
 };
 
-export const postApiV1ResourcesExposeWithPayload = async (
+export const postApiV1ResourcesWithPayload = async (
   resourcePayload: ResourcePayload,
   options?: RequestInit,
-): Promise<postApiV1ResourcesExposeWithPayloadResponse> => {
-  return customFetch<postApiV1ResourcesExposeWithPayloadResponse>(
-    getPostApiV1ResourcesExposeWithPayloadUrl(),
+): Promise<postApiV1ResourcesWithPayloadResponse> => {
+  return customFetch<postApiV1ResourcesWithPayloadResponse>(
+    getPostApiV1ResourcesWithPayloadUrl(),
     {
       ...options,
       method: "POST",
@@ -1331,51 +1550,37 @@ export const postApiV1ResourcesExposeWithPayload = async (
 };
 
 /**
- * @summary List
+ * @summary Get By Name
  */
-export type getApiV1ResourcesListResponse200 = {
-  data: WanakuResponseListResourceReference;
+export type getApiV1ResourcesNameResponse200 = {
+  data: WanakuResponseResourceReference;
   status: 200;
 };
 
-export type getApiV1ResourcesListResponse500 = {
+export type getApiV1ResourcesNameResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type getApiV1ResourcesListResponseComposite =
-  | getApiV1ResourcesListResponse200
-  | getApiV1ResourcesListResponse500;
+export type getApiV1ResourcesNameResponseComposite =
+  | getApiV1ResourcesNameResponse200
+  | getApiV1ResourcesNameResponse500;
 
-export type getApiV1ResourcesListResponse =
-  getApiV1ResourcesListResponseComposite & {
+export type getApiV1ResourcesNameResponse =
+  getApiV1ResourcesNameResponseComposite & {
     headers: Headers;
   };
 
-export const getGetApiV1ResourcesListUrl = (
-  params?: GetApiV1ResourcesListParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/resources/list?${stringifiedParams}`
-    : `/api/v1/resources/list`;
+export const getGetApiV1ResourcesNameUrl = (name: string) => {
+  return `/api/v1/resources/${name}`;
 };
 
-export const getApiV1ResourcesList = async (
-  params?: GetApiV1ResourcesListParams,
+export const getApiV1ResourcesName = async (
+  name: string,
   options?: RequestInit,
-): Promise<getApiV1ResourcesListResponse> => {
-  return customFetch<getApiV1ResourcesListResponse>(
-    getGetApiV1ResourcesListUrl(params),
+): Promise<getApiV1ResourcesNameResponse> => {
+  return customFetch<getApiV1ResourcesNameResponse>(
+    getGetApiV1ResourcesNameUrl(name),
     {
       ...options,
       method: "GET",
@@ -1384,110 +1589,53 @@ export const getApiV1ResourcesList = async (
 };
 
 /**
- * @summary Remove
- */
-export type putApiV1ResourcesRemoveResponse200 = {
-  data: null;
-  status: 200;
-};
-
-export type putApiV1ResourcesRemoveResponse500 = {
-  data: WanakuResponse;
-  status: 500;
-};
-
-export type putApiV1ResourcesRemoveResponseComposite =
-  | putApiV1ResourcesRemoveResponse200
-  | putApiV1ResourcesRemoveResponse500;
-
-export type putApiV1ResourcesRemoveResponse =
-  putApiV1ResourcesRemoveResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPutApiV1ResourcesRemoveUrl = (
-  params?: PutApiV1ResourcesRemoveParams,
-) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/resources/remove?${stringifiedParams}`
-    : `/api/v1/resources/remove`;
-};
-
-export const putApiV1ResourcesRemove = async (
-  params?: PutApiV1ResourcesRemoveParams,
-  options?: RequestInit,
-): Promise<putApiV1ResourcesRemoveResponse> => {
-  return customFetch<putApiV1ResourcesRemoveResponse>(
-    getPutApiV1ResourcesRemoveUrl(params),
-    {
-      ...options,
-      method: "PUT",
-    },
-  );
-};
-
-/**
  * @summary Update
  */
-export type postApiV1ResourcesUpdateResponse200 = {
+export type putApiV1ToolsResponse200 = {
   data: null;
   status: 200;
 };
 
-export type postApiV1ResourcesUpdateResponse400 = {
+export type putApiV1ToolsResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1ResourcesUpdateResponse500 = {
+export type putApiV1ToolsResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ResourcesUpdateResponseComposite =
-  | postApiV1ResourcesUpdateResponse200
-  | postApiV1ResourcesUpdateResponse400
-  | postApiV1ResourcesUpdateResponse500;
+export type putApiV1ToolsResponseComposite =
+  | putApiV1ToolsResponse200
+  | putApiV1ToolsResponse400
+  | putApiV1ToolsResponse500;
 
-export type postApiV1ResourcesUpdateResponse =
-  postApiV1ResourcesUpdateResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPostApiV1ResourcesUpdateUrl = () => {
-  return `/api/v1/resources/update`;
+export type putApiV1ToolsResponse = putApiV1ToolsResponseComposite & {
+  headers: Headers;
 };
 
-export const postApiV1ResourcesUpdate = async (
-  resourceReference: ResourceReference,
+export const getPutApiV1ToolsUrl = () => {
+  return `/api/v1/tools`;
+};
+
+export const putApiV1Tools = async (
+  toolReference: ToolReference,
   options?: RequestInit,
-): Promise<postApiV1ResourcesUpdateResponse> => {
-  return customFetch<postApiV1ResourcesUpdateResponse>(
-    getPostApiV1ResourcesUpdateUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(resourceReference),
-    },
-  );
+): Promise<putApiV1ToolsResponse> => {
+  return customFetch<putApiV1ToolsResponse>(getPutApiV1ToolsUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(toolReference),
+  });
 };
 
 /**
- * @summary Remove If
+ * @summary Remove
  */
 export type deleteApiV1ToolsResponse200 = {
-  data: WanakuResponseInteger;
+  data: null;
   status: 200;
 };
 
@@ -1531,27 +1679,27 @@ export const deleteApiV1Tools = async (
 };
 
 /**
- * @summary Get By Name
+ * @summary List
  */
-export type postApiV1ToolsResponse200 = {
-  data: WanakuResponseToolReference;
+export type getApiV1ToolsResponse200 = {
+  data: WanakuResponseListToolReference;
   status: 200;
 };
 
-export type postApiV1ToolsResponse500 = {
+export type getApiV1ToolsResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ToolsResponseComposite =
-  | postApiV1ToolsResponse200
-  | postApiV1ToolsResponse500;
+export type getApiV1ToolsResponseComposite =
+  | getApiV1ToolsResponse200
+  | getApiV1ToolsResponse500;
 
-export type postApiV1ToolsResponse = postApiV1ToolsResponseComposite & {
+export type getApiV1ToolsResponse = getApiV1ToolsResponseComposite & {
   headers: Headers;
 };
 
-export const getPostApiV1ToolsUrl = (params?: PostApiV1ToolsParams) => {
+export const getGetApiV1ToolsUrl = (params?: GetApiV1ToolsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -1567,52 +1715,52 @@ export const getPostApiV1ToolsUrl = (params?: PostApiV1ToolsParams) => {
     : `/api/v1/tools`;
 };
 
-export const postApiV1Tools = async (
-  params?: PostApiV1ToolsParams,
+export const getApiV1Tools = async (
+  params?: GetApiV1ToolsParams,
   options?: RequestInit,
-): Promise<postApiV1ToolsResponse> => {
-  return customFetch<postApiV1ToolsResponse>(getPostApiV1ToolsUrl(params), {
+): Promise<getApiV1ToolsResponse> => {
+  return customFetch<getApiV1ToolsResponse>(getGetApiV1ToolsUrl(params), {
     ...options,
-    method: "POST",
+    method: "GET",
   });
 };
 
 /**
  * @summary Add
  */
-export type postApiV1ToolsAddResponse200 = {
+export type postApiV1ToolsResponse200 = {
   data: WanakuResponseToolReference;
   status: 200;
 };
 
-export type postApiV1ToolsAddResponse400 = {
+export type postApiV1ToolsResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1ToolsAddResponse500 = {
+export type postApiV1ToolsResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ToolsAddResponseComposite =
-  | postApiV1ToolsAddResponse200
-  | postApiV1ToolsAddResponse400
-  | postApiV1ToolsAddResponse500;
+export type postApiV1ToolsResponseComposite =
+  | postApiV1ToolsResponse200
+  | postApiV1ToolsResponse400
+  | postApiV1ToolsResponse500;
 
-export type postApiV1ToolsAddResponse = postApiV1ToolsAddResponseComposite & {
+export type postApiV1ToolsResponse = postApiV1ToolsResponseComposite & {
   headers: Headers;
 };
 
-export const getPostApiV1ToolsAddUrl = () => {
-  return `/api/v1/tools/add`;
+export const getPostApiV1ToolsUrl = () => {
+  return `/api/v1/tools`;
 };
 
-export const postApiV1ToolsAdd = async (
+export const postApiV1Tools = async (
   toolReference: ToolReference,
   options?: RequestInit,
-): Promise<postApiV1ToolsAddResponse> => {
-  return customFetch<postApiV1ToolsAddResponse>(getPostApiV1ToolsAddUrl(), {
+): Promise<postApiV1ToolsResponse> => {
+  return customFetch<postApiV1ToolsResponse>(getPostApiV1ToolsUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -1621,126 +1769,29 @@ export const postApiV1ToolsAdd = async (
 };
 
 /**
- * @summary Add With Payload
+ * @summary Remove If
  */
-export type postApiV1ToolsAddWithPayloadResponse200 = {
-  data: WanakuResponseToolReference;
+export type deleteApiV1ToolsByLabelResponse200 = {
+  data: WanakuResponseInteger;
   status: 200;
 };
 
-export type postApiV1ToolsAddWithPayloadResponse400 = {
-  data: null;
-  status: 400;
-};
-
-export type postApiV1ToolsAddWithPayloadResponse500 = {
+export type deleteApiV1ToolsByLabelResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ToolsAddWithPayloadResponseComposite =
-  | postApiV1ToolsAddWithPayloadResponse200
-  | postApiV1ToolsAddWithPayloadResponse400
-  | postApiV1ToolsAddWithPayloadResponse500;
+export type deleteApiV1ToolsByLabelResponseComposite =
+  | deleteApiV1ToolsByLabelResponse200
+  | deleteApiV1ToolsByLabelResponse500;
 
-export type postApiV1ToolsAddWithPayloadResponse =
-  postApiV1ToolsAddWithPayloadResponseComposite & {
+export type deleteApiV1ToolsByLabelResponse =
+  deleteApiV1ToolsByLabelResponseComposite & {
     headers: Headers;
   };
 
-export const getPostApiV1ToolsAddWithPayloadUrl = () => {
-  return `/api/v1/tools/addWithPayload`;
-};
-
-export const postApiV1ToolsAddWithPayload = async (
-  toolPayload: ToolPayload,
-  options?: RequestInit,
-): Promise<postApiV1ToolsAddWithPayloadResponse> => {
-  return customFetch<postApiV1ToolsAddWithPayloadResponse>(
-    getPostApiV1ToolsAddWithPayloadUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(toolPayload),
-    },
-  );
-};
-
-/**
- * @summary List
- */
-export type getApiV1ToolsListResponse200 = {
-  data: WanakuResponseListToolReference;
-  status: 200;
-};
-
-export type getApiV1ToolsListResponse500 = {
-  data: WanakuResponse;
-  status: 500;
-};
-
-export type getApiV1ToolsListResponseComposite =
-  | getApiV1ToolsListResponse200
-  | getApiV1ToolsListResponse500;
-
-export type getApiV1ToolsListResponse = getApiV1ToolsListResponseComposite & {
-  headers: Headers;
-};
-
-export const getGetApiV1ToolsListUrl = (params?: GetApiV1ToolsListParams) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : value.toString());
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0
-    ? `/api/v1/tools/list?${stringifiedParams}`
-    : `/api/v1/tools/list`;
-};
-
-export const getApiV1ToolsList = async (
-  params?: GetApiV1ToolsListParams,
-  options?: RequestInit,
-): Promise<getApiV1ToolsListResponse> => {
-  return customFetch<getApiV1ToolsListResponse>(
-    getGetApiV1ToolsListUrl(params),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-/**
- * @summary Remove
- */
-export type putApiV1ToolsRemoveResponse200 = {
-  data: null;
-  status: 200;
-};
-
-export type putApiV1ToolsRemoveResponse500 = {
-  data: WanakuResponse;
-  status: 500;
-};
-
-export type putApiV1ToolsRemoveResponseComposite =
-  | putApiV1ToolsRemoveResponse200
-  | putApiV1ToolsRemoveResponse500;
-
-export type putApiV1ToolsRemoveResponse =
-  putApiV1ToolsRemoveResponseComposite & {
-    headers: Headers;
-  };
-
-export const getPutApiV1ToolsRemoveUrl = (
-  params?: PutApiV1ToolsRemoveParams,
+export const getDeleteApiV1ToolsByLabelUrl = (
+  params?: DeleteApiV1ToolsByLabelParams,
 ) => {
   const normalizedParams = new URLSearchParams();
 
@@ -1753,66 +1804,101 @@ export const getPutApiV1ToolsRemoveUrl = (
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/api/v1/tools/remove?${stringifiedParams}`
-    : `/api/v1/tools/remove`;
+    ? `/api/v1/tools/by-label?${stringifiedParams}`
+    : `/api/v1/tools/by-label`;
 };
 
-export const putApiV1ToolsRemove = async (
-  params?: PutApiV1ToolsRemoveParams,
+export const deleteApiV1ToolsByLabel = async (
+  params?: DeleteApiV1ToolsByLabelParams,
   options?: RequestInit,
-): Promise<putApiV1ToolsRemoveResponse> => {
-  return customFetch<putApiV1ToolsRemoveResponse>(
-    getPutApiV1ToolsRemoveUrl(params),
+): Promise<deleteApiV1ToolsByLabelResponse> => {
+  return customFetch<deleteApiV1ToolsByLabelResponse>(
+    getDeleteApiV1ToolsByLabelUrl(params),
     {
       ...options,
-      method: "PUT",
+      method: "DELETE",
     },
   );
 };
 
 /**
- * @summary Update
+ * @summary Add With Payload
  */
-export type postApiV1ToolsUpdateResponse200 = {
-  data: null;
+export type postApiV1ToolsWithPayloadResponse200 = {
+  data: WanakuResponseToolReference;
   status: 200;
 };
 
-export type postApiV1ToolsUpdateResponse400 = {
+export type postApiV1ToolsWithPayloadResponse400 = {
   data: null;
   status: 400;
 };
 
-export type postApiV1ToolsUpdateResponse500 = {
+export type postApiV1ToolsWithPayloadResponse500 = {
   data: WanakuResponse;
   status: 500;
 };
 
-export type postApiV1ToolsUpdateResponseComposite =
-  | postApiV1ToolsUpdateResponse200
-  | postApiV1ToolsUpdateResponse400
-  | postApiV1ToolsUpdateResponse500;
+export type postApiV1ToolsWithPayloadResponseComposite =
+  | postApiV1ToolsWithPayloadResponse200
+  | postApiV1ToolsWithPayloadResponse400
+  | postApiV1ToolsWithPayloadResponse500;
 
-export type postApiV1ToolsUpdateResponse =
-  postApiV1ToolsUpdateResponseComposite & {
+export type postApiV1ToolsWithPayloadResponse =
+  postApiV1ToolsWithPayloadResponseComposite & {
     headers: Headers;
   };
 
-export const getPostApiV1ToolsUpdateUrl = () => {
-  return `/api/v1/tools/update`;
+export const getPostApiV1ToolsWithPayloadUrl = () => {
+  return `/api/v1/tools/with-payload`;
 };
 
-export const postApiV1ToolsUpdate = async (
-  toolReference: ToolReference,
+export const postApiV1ToolsWithPayload = async (
+  toolPayload: ToolPayload,
   options?: RequestInit,
-): Promise<postApiV1ToolsUpdateResponse> => {
-  return customFetch<postApiV1ToolsUpdateResponse>(
-    getPostApiV1ToolsUpdateUrl(),
+): Promise<postApiV1ToolsWithPayloadResponse> => {
+  return customFetch<postApiV1ToolsWithPayloadResponse>(
+    getPostApiV1ToolsWithPayloadUrl(),
     {
       ...options,
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(toolReference),
+      body: JSON.stringify(toolPayload),
     },
   );
+};
+
+/**
+ * @summary Get By Name
+ */
+export type getApiV1ToolsNameResponse200 = {
+  data: WanakuResponseToolReference;
+  status: 200;
+};
+
+export type getApiV1ToolsNameResponse500 = {
+  data: WanakuResponse;
+  status: 500;
+};
+
+export type getApiV1ToolsNameResponseComposite =
+  | getApiV1ToolsNameResponse200
+  | getApiV1ToolsNameResponse500;
+
+export type getApiV1ToolsNameResponse = getApiV1ToolsNameResponseComposite & {
+  headers: Headers;
+};
+
+export const getGetApiV1ToolsNameUrl = (name: string) => {
+  return `/api/v1/tools/${name}`;
+};
+
+export const getApiV1ToolsName = async (
+  name: string,
+  options?: RequestInit,
+): Promise<getApiV1ToolsNameResponse> => {
+  return customFetch<getApiV1ToolsNameResponse>(getGetApiV1ToolsNameUrl(name), {
+    ...options,
+    method: "GET",
+  });
 };

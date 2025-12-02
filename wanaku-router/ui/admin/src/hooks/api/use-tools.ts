@@ -1,18 +1,18 @@
 import { useCallback } from "react";
 import {
   getApiV1Capabilities,
-  postApiV1ToolsAdd,
-  getApiV1ToolsList,
-  putApiV1ToolsRemove,
+  postApiV1Tools,
+  getApiV1Tools,
+  deleteApiV1Tools,
   getApiV1CapabilitiesResponse,
-  postApiV1ToolsAddResponse,
-  getApiV1ToolsListResponse,
-  putApiV1ToolsRemoveResponse
+  postApiV1ToolsResponse,
+  getApiV1ToolsResponse,
+  deleteApiV1ToolsResponse,
 } from "../../api/wanaku-router-api";
 import {
-  PutApiV1ToolsRemoveParams,
+  DeleteApiV1ToolsParams,
   ToolReference,
-  GetApiV1ToolsListParams,
+  GetApiV1ToolsParams,
 } from "../../models";
 
 export const useTools = () => {
@@ -20,9 +20,7 @@ export const useTools = () => {
    * List management tools.
    */
   const listManagementTools = useCallback(
-    (
-      options?: RequestInit
-    ): Promise<getApiV1CapabilitiesResponse> => {
+    (options?: RequestInit): Promise<getApiV1CapabilitiesResponse> => {
       return getApiV1Capabilities(options);
     },
     []
@@ -35,8 +33,8 @@ export const useTools = () => {
     (
       toolReference: ToolReference,
       options?: RequestInit
-    ): Promise<postApiV1ToolsAddResponse> => {
-      return postApiV1ToolsAdd(toolReference, options);
+    ): Promise<postApiV1ToolsResponse> => {
+      return postApiV1Tools(toolReference, options);
     },
     []
   );
@@ -45,8 +43,11 @@ export const useTools = () => {
    * List tools.
    */
   const listTools = useCallback(
-    (params?: GetApiV1ToolsListParams, options?: RequestInit): Promise<getApiV1ToolsListResponse> => {
-      return getApiV1ToolsList(params, options);
+    (
+      params?: GetApiV1ToolsParams,
+      options?: RequestInit
+    ): Promise<getApiV1ToolsResponse> => {
+      return getApiV1Tools(params, options);
     },
     []
   );
@@ -56,10 +57,10 @@ export const useTools = () => {
    */
   const removeTool = useCallback(
     (
-      params?: PutApiV1ToolsRemoveParams,
+      params?: DeleteApiV1ToolsParams,
       options?: RequestInit
-    ): Promise<putApiV1ToolsRemoveResponse> => {
-      return putApiV1ToolsRemove(params, options);
+    ): Promise<deleteApiV1ToolsResponse> => {
+      return deleteApiV1Tools(params, options);
     },
     []
   );

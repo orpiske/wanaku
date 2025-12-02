@@ -1,36 +1,32 @@
 import { useCallback } from "react";
 import {
-  getApiV1DataStoreList,
-  postApiV1DataStoreAdd,
-  deleteApiV1DataStoreRemove,
+  getApiV1DataStore,
+  postApiV1DataStore,
+  deleteApiV1DataStoreId,
 } from "../../api/wanaku-router-api";
-import type {
-  DataStore,
-  DeleteApiV1DataStoreRemoveParams,
-  GetApiV1DataStoreListParams,
-} from "../../models";
+import type { DataStore, GetApiV1DataStoreParams } from "../../models";
 
 /**
  * Custom hook for DataStore API operations
  */
 export const useDataStores = () => {
   const listDataStores = useCallback(
-    (params?: GetApiV1DataStoreListParams, options?: RequestInit) => {
-      return getApiV1DataStoreList(params, options);
+    (params?: GetApiV1DataStoreParams, options?: RequestInit) => {
+      return getApiV1DataStore(params, options);
     },
     []
   );
 
   const addDataStore = useCallback(
     (dataStore: DataStore, options?: RequestInit) => {
-      return postApiV1DataStoreAdd(dataStore, options);
+      return postApiV1DataStore(dataStore, options);
     },
     []
   );
 
   const deleteDataStore = useCallback(
-    (params?: DeleteApiV1DataStoreRemoveParams, options?: RequestInit) => {
-      return deleteApiV1DataStoreRemove(params, options);
+    (id: string, options?: RequestInit) => {
+      return deleteApiV1DataStoreId(id, options);
     },
     []
   );
