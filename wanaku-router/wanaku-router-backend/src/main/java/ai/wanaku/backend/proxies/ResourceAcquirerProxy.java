@@ -78,11 +78,6 @@ public class ResourceAcquirerProxy implements ResourceProxy {
         }
     }
 
-    @Override
-    public String name() {
-        return "resource-acquirer";
-    }
-
     private ResourceReply acquireRemotely(
             ResourceReference mcpResource, ResourceManager.ResourceArguments arguments, ServiceTarget service) {
         ManagedChannel channel = ManagedChannelBuilder.forTarget(service.toAddress())

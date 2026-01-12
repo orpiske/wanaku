@@ -69,9 +69,4 @@ public class InvokerProxy implements ToolsProxy {
 
         return ProxyHelper.provision(cfg, secret, channel, service);
     }
-
-    @Override
-    public String name() {
-        return "invoker";
-    }
 }
