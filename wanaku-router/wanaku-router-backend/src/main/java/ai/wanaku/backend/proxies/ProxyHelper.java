@@ -13,6 +13,19 @@ import io.grpc.ManagedChannel;
 import java.net.URI;
 import java.util.Map;
 
+/**
+ * Helper class for proxy provisioning operations.
+ * <p>
+ * <strong>Deprecated:</strong> This class has been superseded by {@link ProvisioningService}
+ * which provides the same functionality with better encapsulation and testability.
+ * New code should use {@link ProvisioningService} directly or extend {@link GrpcProxy}
+ * which uses {@link ProvisioningService} internally.
+ *
+ * @deprecated Use {@link ProvisioningService} instead. This class will be removed in a future version.
+ * @see ProvisioningService
+ * @see GrpcProxy
+ */
+@Deprecated(since = "1.0", forRemoval = true)
 final class ProxyHelper {
 
     static ProvisioningReference provision(

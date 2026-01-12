@@ -9,5 +9,15 @@ package ai.wanaku.backend.proxies;
  * mechanisms, protocols, or service types.
  */
 public interface Proxy {
-
+    /**
+     * Returns the name of this proxy implementation.
+     * <p>
+     * This is primarily used for logging and debugging purposes to identify
+     * which proxy is handling a particular request.
+     *
+     * @return the name of this proxy
+     */
+    default String name() {
+        return this.getClass().getSimpleName();
+    }
 }
