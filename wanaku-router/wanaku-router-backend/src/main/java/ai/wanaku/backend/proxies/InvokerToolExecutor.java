@@ -35,7 +35,6 @@ import ai.wanaku.core.mcp.common.ToolExecutor;
 import ai.wanaku.core.util.CollectionsHelper;
 import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.quarkiverse.mcp.server.TextContent;
 import io.quarkiverse.mcp.server.ToolManager;
 import io.quarkiverse.mcp.server.ToolResponse;
@@ -67,6 +66,7 @@ public class InvokerToolExecutor implements ToolExecutor {
     private static final String EMPTY_ARGUMENT = "";
 
     private final ServiceResolver serviceResolver;
+    private final GrpcChannelManager channelManager;
 
     /**
      * Creates a new InvokerToolExecutor.
@@ -75,6 +75,21 @@ public class InvokerToolExecutor implements ToolExecutor {
      */
     public InvokerToolExecutor(ServiceResolver serviceResolver) {
         this.serviceResolver = serviceResolver;
+        this.channelManager = new GrpcChannelManager();
+    }
+
+    /**
+     * Creates a new InvokerToolExecutor with a custom channel manager.
+     * <p>
+     * This constructor is primarily intended for testing purposes, allowing
+     * injection of a mock or custom channel manager.
+     *
+     * @param serviceResolver the service resolver for locating tool services
+     * @param channelManager the channel manager for creating gRPC channels
+     */
+    InvokerToolExecutor(ServiceResolver serviceResolver, GrpcChannelManager channelManager) {
+        this.serviceResolver = serviceResolver;
+        this.channelManager = channelManager;
     }
 
     @Override
@@ -135,11 +150,9 @@ public class InvokerToolExecutor implements ToolExecutor {
                 e.getClass().getName());
     }
 
-    private static ToolInvokeReply invokeRemotely(
+    private ToolInvokeReply invokeRemotely(
             ToolReference toolReference, ToolManager.ToolArguments toolArguments, ServiceTarget service) {
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(service.toAddress())
-                .usePlaintext()
-                .build();
+        ManagedChannel channel = channelManager.createChannel(service);
 
         Map<String, String> argumentsMap = CollectionsHelper.toStringStringMap(toolArguments.args());
 
