@@ -17,18 +17,17 @@
 
 package ai.wanaku.backend.proxies;
 
+import ai.wanaku.backend.proxies.transport.ProxyTransport;
+import ai.wanaku.backend.proxies.transport.TransportException;
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.backend.support.ProvisioningReference;
-import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
-import ai.wanaku.core.exchange.ResourceAcquirerGrpc;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
 import com.google.protobuf.ProtocolStringList;
-import io.grpc.ManagedChannel;
 import io.quarkiverse.mcp.server.ResourceContents;
 import io.quarkiverse.mcp.server.ResourceManager;
 import io.quarkiverse.mcp.server.TextResourceContents;
@@ -38,27 +37,33 @@ import java.util.Objects;
 import org.jboss.logging.Logger;
 
 /**
- * A proxy class for acquiring resources via gRPC.
+ * A proxy class for acquiring resources using a pluggable transport mechanism.
  * <p>
  * This proxy is responsible for provisioning resource configurations and
  * evaluating resource requests by delegating to remote resource providers.
  * <p>
- * This class extends {@link GrpcProxy} to inherit common gRPC functionality
- * such as service resolution, channel management, and provisioning operations.
- * It focuses solely on resource-specific concerns while delegating infrastructure
- * concerns to the base class.
+ * This class extends {@link AbstractProxy} to inherit common transport-agnostic
+ * functionality such as service resolution and provisioning operations. The
+ * transport mechanism (gRPC, HTTP, STDIO, etc.) is injected via the constructor,
+ * enabling flexible deployment scenarios.
  */
-public class ResourceAcquirerProxy extends GrpcProxy implements ResourceProxy {
+public class ResourceAcquirerProxy extends AbstractProxy<ResourceRequest, ResourceReply> implements ResourceProxy {
     private static final Logger LOG = Logger.getLogger(ResourceAcquirerProxy.class);
     private static final String EMPTY_ARGUMENT = "";
 
     /**
-     * Creates a new ResourceAcquirerProxy with the specified service resolver.
+     * Creates a new ResourceAcquirerProxy with the specified service resolver and transport.
+     * <p>
+     * This constructor enables dependency injection of both service resolution
+     * and transport mechanisms, making the proxy fully decoupled from specific
+     * transport implementations.
      *
      * @param serviceResolver the resolver for locating resource services
+     * @param transport the transport for communicating with resource services
      */
-    public ResourceAcquirerProxy(ServiceResolver serviceResolver) {
-        super(serviceResolver);
+    public ResourceAcquirerProxy(
+            ServiceResolver serviceResolver, ProxyTransport<ResourceRequest, ResourceReply> transport) {
+        super(serviceResolver, transport);
     }
 
     @Override
@@ -77,18 +82,16 @@ public class ResourceAcquirerProxy extends GrpcProxy implements ResourceProxy {
     }
 
     /**
-     * Acquires a resource from a remote service via gRPC.
+     * Acquires a resource from a remote service via the transport.
      *
      * @param mcpResource the resource reference
      * @param arguments the resource request arguments
      * @param service the target service
      * @return the resource reply from the remote service
-     * @throws ServiceUnavailableException if the service cannot be reached
+     * @throws RuntimeException if the service cannot be reached
      */
     private ResourceReply acquireRemotely(
             ResourceReference mcpResource, ResourceManager.ResourceArguments arguments, ServiceTarget service) {
-
-        ManagedChannel channel = createChannel(service);
 
         ResourceRequest request = ResourceRequest.newBuilder()
                 .setLocation(mcpResource.getLocation())
@@ -99,11 +102,9 @@ public class ResourceAcquirerProxy extends GrpcProxy implements ResourceProxy {
                 .build();
 
         try {
-            ResourceAcquirerGrpc.ResourceAcquirerBlockingStub blockingStub =
-                    ResourceAcquirerGrpc.newBlockingStub(channel);
-            return blockingStub.resourceAcquire(request);
-        } catch (Exception e) {
-            throw ServiceUnavailableException.forAddress(service.toAddress());
+            return transport.send(request, service);
+        } catch (TransportException e) {
+            throw new RuntimeException("Failed to acquire resource from service: " + service.toAddress(), e);
         }
     }
 
@@ -149,7 +150,7 @@ public class ResourceAcquirerProxy extends GrpcProxy implements ResourceProxy {
 
         ServiceTarget service = resolveService(resourceReference.getType(), ServiceType.RESOURCE_PROVIDER);
 
-        return provision(
+        return provisionResource(
                 resourceReference.getName(), payload.getConfigurationData(), payload.getSecretsData(), service);
     }
 }

@@ -1,9 +1,13 @@
 package ai.wanaku.backend.providers;
 
 import ai.wanaku.backend.proxies.InvokerProxy;
+import ai.wanaku.backend.proxies.transport.ProxyTransport;
+import ai.wanaku.backend.proxies.transport.grpc.GrpcToolInvokerTransport;
 import ai.wanaku.backend.resolvers.WanakuToolsResolver;
 import ai.wanaku.backend.service.support.FirstAvailable;
 import ai.wanaku.backend.service.support.ServiceResolver;
+import ai.wanaku.core.exchange.ToolInvokeReply;
+import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.mcp.common.resolvers.ToolsResolver;
 import ai.wanaku.core.mcp.common.resolvers.util.NoopToolsResolver;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
@@ -47,6 +51,7 @@ public class ToolsProvider extends AbstractProvider<ToolsResolver> {
 
         LOG.infof("Wanaku version %s is starting", VersionHelper.VERSION);
         ServiceResolver resolver = new FirstAvailable(serviceRegistry);
-        return new WanakuToolsResolver(new InvokerProxy(resolver));
+        ProxyTransport<ToolInvokeRequest, ToolInvokeReply> transport = new GrpcToolInvokerTransport();
+        return new WanakuToolsResolver(new InvokerProxy(resolver, transport));
     }
 }

@@ -21,8 +21,9 @@ import static ai.wanaku.core.util.ReservedArgumentNames.BODY;
 import static ai.wanaku.core.util.ReservedPropertyNames.SCOPE_SERVICE;
 import static ai.wanaku.core.util.ReservedPropertyNames.TARGET_HEADER;
 
+import ai.wanaku.backend.proxies.transport.ProxyTransport;
+import ai.wanaku.backend.proxies.transport.TransportException;
 import ai.wanaku.backend.service.support.ServiceResolver;
-import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.types.CallableReference;
 import ai.wanaku.capabilities.sdk.api.types.Property;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
@@ -30,11 +31,9 @@ import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
-import ai.wanaku.core.exchange.ToolInvokerGrpc;
 import ai.wanaku.core.mcp.common.ToolExecutor;
 import ai.wanaku.core.util.CollectionsHelper;
 import com.google.protobuf.ProtocolStringList;
-import io.grpc.ManagedChannel;
 import io.quarkiverse.mcp.server.TextContent;
 import io.quarkiverse.mcp.server.ToolManager;
 import io.quarkiverse.mcp.server.ToolResponse;
@@ -49,16 +48,17 @@ import org.jboss.logging.Logger;
  * Tool executor implementation for the InvokerProxy.
  * <p>
  * This class handles the actual execution of tool invocations by delegating
- * to remote tool services via gRPC. It is responsible for:
+ * to remote tool services via a pluggable transport mechanism. It is responsible for:
  * <ul>
  *   <li>Resolving the target service for a tool</li>
  *   <li>Extracting headers and body from tool arguments</li>
- *   <li>Invoking the remote tool service</li>
+ *   <li>Invoking the remote tool service via transport</li>
  *   <li>Processing and returning the response</li>
  * </ul>
  * <p>
  * This executor is used in composition with InvokerProxy to separate
- * tool execution concerns from proxy management concerns.
+ * tool execution concerns from proxy management concerns. The transport
+ * mechanism is injected, allowing for different protocols (gRPC, HTTP, etc.).
  */
 public class InvokerToolExecutor implements ToolExecutor {
     private static final Logger LOG = Logger.getLogger(InvokerToolExecutor.class);
@@ -66,30 +66,22 @@ public class InvokerToolExecutor implements ToolExecutor {
     private static final String EMPTY_ARGUMENT = "";
 
     private final ServiceResolver serviceResolver;
-    private final GrpcChannelManager channelManager;
+    private final ProxyTransport<ToolInvokeRequest, ToolInvokeReply> transport;
 
     /**
-     * Creates a new InvokerToolExecutor.
-     *
-     * @param serviceResolver the service resolver for locating tool services
-     */
-    public InvokerToolExecutor(ServiceResolver serviceResolver) {
-        this.serviceResolver = serviceResolver;
-        this.channelManager = new GrpcChannelManager();
-    }
-
-    /**
-     * Creates a new InvokerToolExecutor with a custom channel manager.
+     * Creates a new InvokerToolExecutor with the specified transport.
      * <p>
-     * This constructor is primarily intended for testing purposes, allowing
-     * injection of a mock or custom channel manager.
+     * This constructor enables dependency injection of both service resolution
+     * and transport mechanisms, decoupling the executor from specific
+     * transport implementations.
      *
      * @param serviceResolver the service resolver for locating tool services
-     * @param channelManager the channel manager for creating gRPC channels
+     * @param transport the transport for communicating with tool services
      */
-    InvokerToolExecutor(ServiceResolver serviceResolver, GrpcChannelManager channelManager) {
+    public InvokerToolExecutor(
+            ServiceResolver serviceResolver, ProxyTransport<ToolInvokeRequest, ToolInvokeReply> transport) {
         this.serviceResolver = serviceResolver;
-        this.channelManager = channelManager;
+        this.transport = transport;
     }
 
     @Override
@@ -160,15 +152,12 @@ public class InvokerToolExecutor implements ToolExecutor {
 
     private ToolInvokeReply invokeRemotely(
             ToolReference toolReference, ToolManager.ToolArguments toolArguments, ServiceTarget service) {
-        ManagedChannel channel = channelManager.createChannel(service);
-
         ToolInvokeRequest request = buildToolInvokeRequest(toolReference, toolArguments);
 
         try {
-            ToolInvokerGrpc.ToolInvokerBlockingStub blockingStub = ToolInvokerGrpc.newBlockingStub(channel);
-            return blockingStub.invokeTool(request);
-        } catch (Exception e) {
-            throw ServiceUnavailableException.forAddress(service.toAddress());
+            return transport.send(request, service);
+        } catch (TransportException e) {
+            throw new RuntimeException("Failed to invoke tool on service: " + service.toAddress(), e);
         }
     }
 

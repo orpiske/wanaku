@@ -17,60 +17,66 @@
 
 package ai.wanaku.backend.proxies;
 
+import ai.wanaku.backend.proxies.transport.ProxyTransport;
+import ai.wanaku.backend.proxies.transport.TransportException;
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceNotFoundException;
+import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 import ai.wanaku.core.exchange.Configuration;
 import ai.wanaku.core.exchange.PayloadType;
 import ai.wanaku.core.exchange.Secret;
-import io.grpc.ManagedChannel;
 import java.util.Objects;
 import org.jboss.logging.Logger;
 
 /**
- * Abstract base class for gRPC-based proxy implementations.
+ * Abstract base class for transport-agnostic proxy implementations.
  * <p>
- * This class encapsulates common functionality required by all gRPC proxies,
- * including service resolution, channel management, and provisioning operations.
- * It follows the Template Method pattern, providing concrete implementations
- * of common operations while allowing subclasses to implement service-specific
- * behavior.
+ * This class decouples proxy business logic from transport mechanisms by
+ * accepting a {@link ProxyTransport} implementation via dependency injection.
+ * This allows proxies to work with any transport (gRPC, HTTP, STDIO, etc.)
+ * without modification to the proxy logic.
  * <p>
- * The class manages three key responsibilities:
+ * This class follows the Template Method pattern, providing concrete
+ * implementations of common operations while allowing subclasses to
+ * implement service-specific behavior.
+ * <p>
+ * The class manages two key responsibilities:
  * <ul>
  *   <li>Service resolution via {@link ServiceResolver}</li>
- *   <li>gRPC channel lifecycle via {@link GrpcChannelManager}</li>
- *   <li>Configuration provisioning via {@link ProvisioningService}</li>
+ *   <li>Transport operations via {@link ProxyTransport}</li>
  * </ul>
  * <p>
  * Subclasses should focus on implementing their specific proxy interface
  * methods and delegate common operations to the protected methods provided
  * by this base class.
  *
+ * @param <REQ> the request type for the transport
+ * @param <RESP> the response type for the transport
  * @see InvokerProxy
  * @see ResourceAcquirerProxy
  */
-public abstract class GrpcProxy implements Proxy {
-    private static final Logger LOG = Logger.getLogger(GrpcProxy.class);
+public abstract class AbstractProxy<REQ, RESP> implements Proxy {
+    private static final Logger LOG = Logger.getLogger(AbstractProxy.class);
 
     protected final ServiceResolver serviceResolver;
-    protected final GrpcChannelManager channelManager;
-    protected final ProvisioningService provisioningService;
+    protected final ProxyTransport<REQ, RESP> transport;
 
     /**
-     * Creates a new GrpcProxy with the specified service resolver.
+     * Creates a new AbstractProxy with the specified service resolver and transport.
      * <p>
-     * This constructor initializes the channel manager and provisioning
-     * service that will be used by all proxy operations.
+     * This constructor enables dependency injection of both service resolution
+     * and transport mechanisms, making the proxy fully decoupled from specific
+     * implementations.
      *
      * @param serviceResolver the resolver for locating services
+     * @param transport the transport for communicating with services
      */
-    protected GrpcProxy(ServiceResolver serviceResolver) {
+    protected AbstractProxy(ServiceResolver serviceResolver, ProxyTransport<REQ, RESP> transport) {
         this.serviceResolver = serviceResolver;
-        this.channelManager = new GrpcChannelManager();
-        this.provisioningService = new ProvisioningService();
+        this.transport = transport;
     }
 
     /**
@@ -95,41 +101,43 @@ public abstract class GrpcProxy implements Proxy {
     }
 
     /**
-     * Creates a new gRPC channel for the specified service.
+     * Sends a request to the target service using the configured transport.
      * <p>
-     * This method delegates to the channel manager to create a channel
-     * with consistent configuration.
+     * This method delegates to the transport and converts any transport
+     * exceptions to service exceptions for consistent error handling.
      *
-     * @param service the service target to connect to
-     * @return a new managed channel
+     * @param request the request to send
+     * @param service the target service
+     * @return the response from the service
+     * @throws ServiceUnavailableException if the service cannot be reached
      */
-    protected ManagedChannel createChannel(ServiceTarget service) {
-        return channelManager.createChannel(service);
+    protected RESP sendRequest(REQ request, ServiceTarget service) {
+        try {
+            return transport.send(request, service);
+        } catch (TransportException e) {
+            LOG.errorf(e, "Transport failed for service: %s", service.toAddress());
+            throw ServiceUnavailableException.forAddress(service.toAddress());
+        }
     }
 
     /**
      * Provisions configuration and secrets to a remote service.
      * <p>
-     * This method handles the complete provisioning workflow:
-     * <ol>
-     *   <li>Creates a gRPC channel to the service</li>
-     *   <li>Builds configuration and secret objects</li>
-     *   <li>Sends the provisioning request</li>
-     *   <li>Returns a reference to the provisioned resources</li>
-     * </ol>
+     * This method builds configuration and secret objects and delegates
+     * to the transport for provisioning. It returns a reference containing
+     * URIs for accessing the provisioned resources.
      *
      * @param name the name of the configuration/secret
      * @param configData the configuration data (may be null)
      * @param secretsData the secrets data (may be null)
      * @param service the target service
      * @return a provisioning reference with URIs and properties
+     * @throws ServiceUnavailableException if provisioning fails
      */
-    protected ProvisioningReference provision(
+    protected ProvisioningReference provisionResource(
             String name, String configData, String secretsData, ServiceTarget service) {
 
         LOG.debugf("Provisioning '%s' to service: %s", name, service.toAddress());
-
-        ManagedChannel channel = createChannel(service);
 
         Configuration cfg = Configuration.newBuilder()
                 .setType(PayloadType.BUILTIN)
@@ -143,6 +151,11 @@ public abstract class GrpcProxy implements Proxy {
                 .setPayload(Objects.requireNonNullElse(secretsData, ""))
                 .build();
 
-        return provisioningService.provision(cfg, secret, channel, service);
+        try {
+            return transport.provision(cfg, secret, service);
+        } catch (TransportException e) {
+            LOG.errorf(e, "Provisioning failed for service: %s", service.toAddress());
+            throw ServiceUnavailableException.forAddress(service.toAddress());
+        }
     }
 }

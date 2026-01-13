@@ -1,9 +1,13 @@
 package ai.wanaku.backend.providers;
 
 import ai.wanaku.backend.proxies.ResourceAcquirerProxy;
+import ai.wanaku.backend.proxies.transport.ProxyTransport;
+import ai.wanaku.backend.proxies.transport.grpc.GrpcResourceAcquirerTransport;
 import ai.wanaku.backend.resolvers.WanakuResourceResolver;
 import ai.wanaku.backend.service.support.FirstAvailable;
 import ai.wanaku.backend.service.support.ServiceResolver;
+import ai.wanaku.core.exchange.ResourceReply;
+import ai.wanaku.core.exchange.ResourceRequest;
 import ai.wanaku.core.mcp.common.resolvers.ResourceResolver;
 import ai.wanaku.core.mcp.common.resolvers.util.NoopResourceResolver;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
@@ -40,6 +44,7 @@ public class ResourcesProvider extends AbstractProvider<ResourceResolver> {
         }
 
         ServiceResolver resolver = new FirstAvailable(serviceRegistry);
-        return new WanakuResourceResolver(new ResourceAcquirerProxy(resolver));
+        ProxyTransport<ResourceRequest, ResourceReply> transport = new GrpcResourceAcquirerTransport();
+        return new WanakuResourceResolver(new ResourceAcquirerProxy(resolver, transport));
     }
 }
