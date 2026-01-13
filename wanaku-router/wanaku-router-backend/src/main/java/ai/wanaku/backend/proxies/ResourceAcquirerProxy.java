@@ -2,18 +2,14 @@ package ai.wanaku.backend.proxies;
 
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.backend.support.ProvisioningReference;
-import ai.wanaku.capabilities.sdk.api.exceptions.ServiceNotFoundException;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
-import ai.wanaku.core.exchange.Configuration;
-import ai.wanaku.core.exchange.PayloadType;
 import ai.wanaku.core.exchange.ResourceAcquirerGrpc;
 import ai.wanaku.core.exchange.ResourceReply;
 import ai.wanaku.core.exchange.ResourceRequest;
-import ai.wanaku.core.exchange.Secret;
 import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -28,13 +24,12 @@ import org.jboss.logging.Logger;
 /**
  * A proxy class for acquiring resources
  */
-public class ResourceAcquirerProxy implements ResourceProxy {
+public class ResourceAcquirerProxy extends AbstractGrpcProxy implements ResourceProxy {
     private static final Logger LOG = Logger.getLogger(ResourceAcquirerProxy.class);
     private static final String EMPTY_ARGUMENT = "";
-    private final ServiceResolver serviceResolver;
 
     public ResourceAcquirerProxy(ServiceResolver serviceResolver) {
-        this.serviceResolver = serviceResolver;
+        super(serviceResolver);
     }
 
     @Override
@@ -110,30 +105,11 @@ public class ResourceAcquirerProxy implements ResourceProxy {
     public ProvisioningReference provision(ResourcePayload payload) {
         ResourceReference resourceReference = payload.getPayload();
 
-        ServiceTarget service = serviceResolver.resolve(resourceReference.getType(), ServiceType.RESOURCE_PROVIDER);
-        if (service == null) {
-            throw new ServiceNotFoundException(
-                    "There is no host registered for service " + resourceReference.getType());
-        }
-
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(service.toAddress())
-                .usePlaintext()
-                .build();
-
-        final String configData = Objects.requireNonNullElse(payload.getConfigurationData(), "");
-        final Configuration cfg = Configuration.newBuilder()
-                .setType(PayloadType.BUILTIN)
-                .setName(resourceReference.getName())
-                .setPayload(configData)
-                .build();
-
-        final String secretsData = Objects.requireNonNullElse(payload.getSecretsData(), "");
-        final Secret secret = Secret.newBuilder()
-                .setType(PayloadType.BUILTIN)
-                .setName(resourceReference.getName())
-                .setPayload(secretsData)
-                .build();
-
-        return ProxyHelper.provision(cfg, secret, channel, service);
+        return performProvisioning(
+                resourceReference.getName(),
+                resourceReference.getType(),
+                payload.getConfigurationData(),
+                payload.getSecretsData(),
+                ServiceType.RESOURCE_PROVIDER);
     }
 }

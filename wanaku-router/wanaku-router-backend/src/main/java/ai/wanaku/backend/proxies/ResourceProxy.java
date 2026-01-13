@@ -1,6 +1,5 @@
 package ai.wanaku.backend.proxies;
 
-import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import io.quarkiverse.mcp.server.ResourceContents;
@@ -10,15 +9,7 @@ import java.util.List;
 /**
  * Proxies between MCP URIs and Camel components capable of handling them
  */
-public interface ResourceProxy extends Proxy {
-
-    /**
-     * Provision a configuration in the service
-     *
-     * @param payload the payload to provision in the service
-     * @return A provisioning reference instance
-     */
-    ProvisioningReference provision(ResourcePayload payload);
+public interface ResourceProxy extends Proxy, Provisionable<ResourcePayload> {
 
     /**
      * Eval an MCP URI handling it as appropriate by the component (i.e.: read a file, GET a static web page, etc.)

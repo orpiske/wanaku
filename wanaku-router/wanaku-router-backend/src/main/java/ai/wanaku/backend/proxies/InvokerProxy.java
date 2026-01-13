@@ -6,7 +6,6 @@ import static ai.wanaku.core.util.ReservedPropertyNames.TARGET_HEADER;
 
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.backend.support.ProvisioningReference;
-import ai.wanaku.capabilities.sdk.api.exceptions.ServiceNotFoundException;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.types.CallableReference;
 import ai.wanaku.capabilities.sdk.api.types.Property;
@@ -14,12 +13,10 @@ import ai.wanaku.capabilities.sdk.api.types.ToolReference;
 import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
-import ai.wanaku.core.exchange.Configuration;
-import ai.wanaku.core.exchange.PayloadType;
-import ai.wanaku.core.exchange.Secret;
 import ai.wanaku.core.exchange.ToolInvokeReply;
 import ai.wanaku.core.exchange.ToolInvokeRequest;
 import ai.wanaku.core.exchange.ToolInvokerGrpc;
+import ai.wanaku.core.mcp.common.Tool;
 import ai.wanaku.core.util.CollectionsHelper;
 import com.google.protobuf.ProtocolStringList;
 import io.grpc.ManagedChannel;
@@ -35,17 +32,17 @@ import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 
 /**
- * A proxy class for invoking tools
+ * A proxy class for invoking tools.
+ * Implements both ToolsProxy (for proxy behavior) and Tool (for MCP tool execution) separately,
+ * demonstrating clean separation of concerns.
  */
-public class InvokerProxy implements ToolsProxy {
+public class InvokerProxy extends AbstractGrpcProxy implements ToolsProxy, Tool {
     private static final Logger LOG = Logger.getLogger(InvokerProxy.class);
     private static final String EMPTY_BODY = "";
     private static final String EMPTY_ARGUMENT = "";
 
-    private final ServiceResolver serviceResolver;
-
     public InvokerProxy(ServiceResolver serviceResolver) {
-        this.serviceResolver = serviceResolver;
+        super(serviceResolver);
     }
 
     @Override
@@ -210,30 +207,12 @@ public class InvokerProxy implements ToolsProxy {
     public ProvisioningReference provision(ToolPayload toolPayload) {
         ToolReference toolReference = toolPayload.getPayload();
 
-        ServiceTarget service = serviceResolver.resolve(toolReference.getType(), ServiceType.TOOL_INVOKER);
-        if (service == null) {
-            throw new ServiceNotFoundException("There is no host registered for service " + toolReference.getType());
-        }
-
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(service.toAddress())
-                .usePlaintext()
-                .build();
-
-        final String configData = Objects.requireNonNullElse(toolPayload.getConfigurationData(), "");
-        final Configuration cfg = Configuration.newBuilder()
-                .setType(PayloadType.BUILTIN)
-                .setName(toolReference.getName())
-                .setPayload(configData)
-                .build();
-
-        final String secretsData = Objects.requireNonNullElse(toolPayload.getSecretsData(), "");
-        final Secret secret = Secret.newBuilder()
-                .setType(PayloadType.BUILTIN)
-                .setName(toolReference.getName())
-                .setPayload(secretsData)
-                .build();
-
-        return ProxyHelper.provision(cfg, secret, channel, service);
+        return performProvisioning(
+                toolReference.getName(),
+                toolReference.getType(),
+                toolPayload.getConfigurationData(),
+                toolPayload.getSecretsData(),
+                ServiceType.TOOL_INVOKER);
     }
 
     @Override

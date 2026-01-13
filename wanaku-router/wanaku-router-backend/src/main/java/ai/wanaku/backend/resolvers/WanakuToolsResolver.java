@@ -11,10 +11,17 @@ import ai.wanaku.core.mcp.common.Tool;
 import ai.wanaku.core.mcp.common.resolvers.ToolsResolver;
 import java.util.Map;
 
-public class WanakuToolsResolver implements ToolsResolver {
-    private final ToolsProxy proxy;
+/**
+ * Resolver for Wanaku tools. Requires a proxy that implements both ToolsProxy and Tool.
+ * This demonstrates clean separation: ToolsProxy handles provisioning concerns,
+ * while Tool handles execution concerns.
+ *
+ * @param <T> the proxy type that must implement both ToolsProxy and Tool
+ */
+public class WanakuToolsResolver<T extends ToolsProxy & Tool> implements ToolsResolver {
+    private final T proxy;
 
-    public WanakuToolsResolver(ToolsProxy proxy) {
+    public WanakuToolsResolver(T proxy) {
         this.proxy = proxy;
     }
 
