@@ -117,17 +117,7 @@ public class InvokerToolExecutor implements ToolExecutor {
         LOG.infof("Invoking %s on %s", toolReference.getType(), service);
         try {
             final ToolInvokeReply invokeReply = invokeRemotely(toolReference, toolArguments, service);
-
-            if (invokeReply.getIsError()) {
-                return ToolResponse.error(invokeReply.getContentList().get(0));
-            } else {
-                ProtocolStringList contentList = invokeReply.getContentList();
-                List<TextContent> contents =
-                        new ArrayList<>(invokeReply.getContentList().size());
-                contentList.stream().map(TextContent::new).forEach(contents::add);
-
-                return ToolResponse.success(contents);
-            }
+            return processToolInvokeReply(invokeReply);
         } catch (Exception e) {
             String errorMessage = composeErrorMessage(e);
 
@@ -138,6 +128,24 @@ public class InvokerToolExecutor implements ToolExecutor {
                     toolArguments.connection().id());
             return ToolResponse.error(errorMessage);
         }
+    }
+
+    /**
+     * Processes a ToolInvokeReply and converts it to a ToolResponse.
+     *
+     * @param invokeReply the reply from the remote tool invocation
+     * @return a ToolResponse containing either success or error information
+     */
+    private ToolResponse processToolInvokeReply(ToolInvokeReply invokeReply) {
+        if (invokeReply.getIsError()) {
+            return ToolResponse.error(invokeReply.getContentList().get(0));
+        }
+
+        ProtocolStringList contentList = invokeReply.getContentList();
+        List<TextContent> contents = new ArrayList<>(contentList.size());
+        contentList.stream().map(TextContent::new).forEach(contents::add);
+
+        return ToolResponse.success(contents);
     }
 
     private static String composeErrorMessage(Exception e) {
@@ -154,13 +162,31 @@ public class InvokerToolExecutor implements ToolExecutor {
             ToolReference toolReference, ToolManager.ToolArguments toolArguments, ServiceTarget service) {
         ManagedChannel channel = channelManager.createChannel(service);
 
+        ToolInvokeRequest request = buildToolInvokeRequest(toolReference, toolArguments);
+
+        try {
+            ToolInvokerGrpc.ToolInvokerBlockingStub blockingStub = ToolInvokerGrpc.newBlockingStub(channel);
+            return blockingStub.invokeTool(request);
+        } catch (Exception e) {
+            throw ServiceUnavailableException.forAddress(service.toAddress());
+        }
+    }
+
+    /**
+     * Builds a ToolInvokeRequest from the tool reference and arguments.
+     *
+     * @param toolReference the tool reference containing tool metadata
+     * @param toolArguments the arguments provided for the tool invocation
+     * @return a fully constructed ToolInvokeRequest
+     */
+    private ToolInvokeRequest buildToolInvokeRequest(
+            ToolReference toolReference, ToolManager.ToolArguments toolArguments) {
+
         Map<String, String> argumentsMap = CollectionsHelper.toStringStringMap(toolArguments.args());
-
         Map<String, String> headers = extractHeaders(toolReference, toolArguments);
-
         String body = extractBody(toolReference, toolArguments);
 
-        ToolInvokeRequest toolInvokeRequest = ToolInvokeRequest.newBuilder()
+        return ToolInvokeRequest.newBuilder()
                 .setBody(body)
                 .setUri(toolReference.getUri())
                 .setConfigurationURI(Objects.requireNonNullElse(toolReference.getConfigurationURI(), EMPTY_ARGUMENT))
@@ -168,13 +194,6 @@ public class InvokerToolExecutor implements ToolExecutor {
                 .putAllHeaders(headers)
                 .putAllArguments(argumentsMap)
                 .build();
-
-        try {
-            ToolInvokerGrpc.ToolInvokerBlockingStub blockingStub = ToolInvokerGrpc.newBlockingStub(channel);
-            return blockingStub.invokeTool(toolInvokeRequest);
-        } catch (Exception e) {
-            throw ServiceUnavailableException.forAddress(service.toAddress());
-        }
     }
 
     static Map<String, String> extractHeaders(ToolReference toolReference, ToolManager.ToolArguments toolArguments) {
