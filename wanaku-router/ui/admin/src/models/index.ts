@@ -7,6 +7,9 @@
 
 export * from "./activityRecord";
 export * from "./callableReference";
+export * from "./codeExecutionRequest";
+export * from "./codeExecutionRequestEnvironment";
+export * from "./codeExecutionRequestMetadata";
 export * from "./configuration";
 export * from "./configurations";
 export * from "./configurationsConfigurations";

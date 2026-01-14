@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0-SNAPSHOT
  */
 import type {
+  CodeExecutionRequest,
   DataStore,
   DeleteApiV1DataStoreRemoveByLabelParams,
   DeleteApiV1DataStoreRemoveParams,
@@ -1813,6 +1814,95 @@ export const postApiV1ToolsUpdate = async (
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
       body: JSON.stringify(toolReference),
+    },
+  );
+};
+
+/**
+ * @summary Submit Code
+ */
+export type postApiV2CodeExecutionEngineEngineTypeLanguageResponse200 = {
+  data: null;
+  status: 200;
+};
+
+export type postApiV2CodeExecutionEngineEngineTypeLanguageResponse400 = {
+  data: null;
+  status: 400;
+};
+
+export type postApiV2CodeExecutionEngineEngineTypeLanguageResponseComposite =
+  | postApiV2CodeExecutionEngineEngineTypeLanguageResponse200
+  | postApiV2CodeExecutionEngineEngineTypeLanguageResponse400;
+
+export type postApiV2CodeExecutionEngineEngineTypeLanguageResponse =
+  postApiV2CodeExecutionEngineEngineTypeLanguageResponseComposite & {
+    headers: Headers;
+  };
+
+export const getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl = (
+  engineType: string,
+  language: string,
+) => {
+  return `/api/v2/code-execution-engine/${engineType}/${language}`;
+};
+
+export const postApiV2CodeExecutionEngineEngineTypeLanguage = async (
+  engineType: string,
+  language: string,
+  codeExecutionRequest: CodeExecutionRequest,
+  options?: RequestInit,
+): Promise<postApiV2CodeExecutionEngineEngineTypeLanguageResponse> => {
+  return customFetch<postApiV2CodeExecutionEngineEngineTypeLanguageResponse>(
+    getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl(engineType, language),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(codeExecutionRequest),
+    },
+  );
+};
+
+/**
+ * @summary Stream Results
+ */
+export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse204 = {
+  data: null;
+  status: 204;
+};
+
+export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponseComposite =
+  getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse204;
+
+export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse =
+  getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponseComposite & {
+    headers: Headers;
+  };
+
+export const getGetApiV2CodeExecutionEngineEngineTypeLanguageTaskIdUrl = (
+  engineType: string,
+  language: string,
+  taskId: string,
+) => {
+  return `/api/v2/code-execution-engine/${engineType}/${language}/${taskId}`;
+};
+
+export const getApiV2CodeExecutionEngineEngineTypeLanguageTaskId = async (
+  engineType: string,
+  language: string,
+  taskId: string,
+  options?: RequestInit,
+): Promise<getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse> => {
+  return customFetch<getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse>(
+    getGetApiV2CodeExecutionEngineEngineTypeLanguageTaskIdUrl(
+      engineType,
+      language,
+      taskId,
+    ),
+    {
+      ...options,
+      method: "GET",
     },
   );
 };

@@ -1,7 +1,6 @@
 package ai.wanaku.backend.service.support;
 
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
-import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
 import ai.wanaku.core.mcp.providers.ServiceRegistry;
 import java.util.List;
 
@@ -25,12 +24,32 @@ public class FirstAvailable implements ServiceResolver {
      * Resolves a service by returning the first available service from the registry that matches the given name and type.
      *
      * @param serviceName the name of the service to resolve.
-     * @param serviceType the type of the service to resolve.
+     * @param serviceType the type of the service to resolve (e.g., "resource-provider", "tool-invoker", "code-execution-engine").
      * @return the first available service target, or null if no service could be resolved.
      */
     @Override
-    public ServiceTarget resolve(String serviceName, ServiceType serviceType) {
+    public ServiceTarget resolve(String serviceName, String serviceType) {
         List<ServiceTarget> services = serviceRegistry.getServiceByName(serviceName, serviceType);
+        if (services != null && !services.isEmpty()) {
+            return services.getFirst();
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolves a code execution service by returning the first available service from the registry
+     * that matches the given service type, sub-type, and name.
+     *
+     * @param serviceType the type of the service (e.g., "code-execution-engine").
+     * @param serviceSubType the sub-type of the service, typically the engine type (e.g., "jvm", "interpreted").
+     * @param serviceName the name of the service, typically the programming language (e.g., "java", "python").
+     * @return the first available service target, or null if no service could be resolved.
+     */
+    @Override
+    public ServiceTarget resolveCodeExecution(String serviceType, String serviceSubType, String serviceName) {
+        List<ServiceTarget> services =
+                serviceRegistry.getCodeExecutionService(serviceType, serviceSubType, serviceName);
         if (services != null && !services.isEmpty()) {
             return services.getFirst();
         }

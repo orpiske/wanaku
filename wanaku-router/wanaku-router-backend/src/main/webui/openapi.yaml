@@ -15,6 +15,25 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ServiceState"
+    CodeExecutionRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        timeout:
+          type: integer
+          format: int64
+        environment:
+          type: object
+          additionalProperties:
+            type: string
+        arguments:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: {}
     DataStore:
       type: object
       properties:
@@ -245,7 +264,7 @@ components:
       properties:
         id:
           type: string
-        service:
+        serviceName:
           type: string
         host:
           type: string
@@ -253,13 +272,9 @@ components:
           type: integer
           format: int32
         serviceType:
-          $ref: "#/components/schemas/ServiceType"
-    ServiceType:
-      type: string
-      enum:
-      - RESOURCE_PROVIDER
-      - TOOL_INVOKER
-      - MULTI_CAPABILITY
+          type: string
+        serviceSubType:
+          type: string
     ToolPayload:
       type: object
       properties:
@@ -1270,6 +1285,57 @@ paths:
       summary: Update
       tags:
       - Tools Resource
+  /api/v2/code-execution-engine/{engineType}/{language}:
+    post:
+      parameters:
+      - name: engineType
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CodeExecutionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Submit Code
+      tags:
+      - Code Execution Resource
+  /api/v2/code-execution-engine/{engineType}/{language}/{taskId}:
+    get:
+      parameters:
+      - name: engineType
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: language
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: taskId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Stream Results
+      tags:
+      - Code Execution Resource
 info:
   title: wanaku-router-backend API
   version: 0.1.0-SNAPSHOT
