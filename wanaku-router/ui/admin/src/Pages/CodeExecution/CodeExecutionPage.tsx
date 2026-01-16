@@ -246,16 +246,29 @@ const CodeExecutionPage: React.FC = () => {
         request
       );
 
-      if (!response.data) {
-        throw new Error("No response data received");
+      // The response has status 201 (Created) and contains the task info
+      if (response.status !== 201) {
+        throw new Error(`Unexpected response status: ${response.status}`);
       }
 
+      // Extract the response body from the data field
+      // The actual response is in the body, not wrapped in a data field
       const result = response.data as any;
-      const sseUrl = result.sseUrl;
-      setTaskId(result.taskId);
+
+      console.log("Code execution response:", result);
+
+      if (!result || !result.streamUrl) {
+        throw new Error("Response missing streamUrl field");
+      }
+
+      const streamUrl = result.streamUrl;
+      const taskId = result.taskId;
+
+      setTaskId(taskId);
+      console.log("Connecting to SSE stream:", streamUrl);
 
       // Connect to SSE stream
-      const eventSource = new EventSource(sseUrl);
+      const eventSource = new EventSource(streamUrl);
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
