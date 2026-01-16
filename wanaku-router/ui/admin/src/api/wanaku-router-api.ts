@@ -1867,13 +1867,13 @@ export const postApiV2CodeExecutionEngineEngineTypeLanguage = async (
 /**
  * @summary Stream Results
  */
-export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse204 = {
-  data: null;
-  status: 204;
+export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse200 = {
+  data: OutboundSseEvent[];
+  status: 200;
 };
 
 export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponseComposite =
-  getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse204;
+  getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse200;
 
 export type getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponse =
   getApiV2CodeExecutionEngineEngineTypeLanguageTaskIdResponseComposite & {

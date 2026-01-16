@@ -16,16 +16,15 @@
 package ai.wanaku.backend.api.v2.codeexecution;
 
 import ai.wanaku.backend.bridge.CodeExecutorBridge;
-import ai.wanaku.capabilities.sdk.api.exceptions.ServiceNotFoundException;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionEvent;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionRequest;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionResponse;
-import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionStatus;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionTask;
 import ai.wanaku.core.exchange.CodeExecutionReply;
 import ai.wanaku.core.exchange.ExecutionStatus;
 import ai.wanaku.core.exchange.OutputType;
 import ai.wanaku.core.persistence.infinispan.codeexecution.InfinispanCodeTaskRepository;
+import io.smallrye.reactive.messaging.MutinyEmitter;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -33,9 +32,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
+import java.time.Instant;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.UUID;
+import org.eclipse.microprofile.context.ManagedExecutor;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.OnOverflow;
 import org.jboss.logging.Logger;
 
 /**
@@ -58,6 +60,14 @@ public class CodeExecutionBean {
 
     @Inject
     Instance<CodeExecutorBridge> codeExecutorBridgeInstance;
+
+    @Inject
+    ManagedExecutor managedExecutor;
+
+    @Inject
+    @Channel("code-execution-event")
+    @OnOverflow(OnOverflow.Strategy.DROP)
+    MutinyEmitter<CodeExecutionEvent> codeEventEmitter;
 
     private InfinispanCodeTaskRepository taskRepository;
 
@@ -100,12 +110,32 @@ public class CodeExecutionBean {
                 String.format("%s/api/v2/code-execution-engine/%s/%s/%s", baseUrl, engineType, language, taskId);
 
         // Dispatch the task for execution
-        codeExecutionBridge.executeCode(engineType, language, request);
+        final Iterator<CodeExecutionReply> codeExecutionReplyIterator =
+                codeExecutionBridge.executeCode(engineType, language, request);
+
+        managedExecutor.runAsync(() -> consumeEvents(codeExecutionReplyIterator, taskId));
 
         LOG.debugf("Task %s created with SSE URL: %s", taskId, sseUrl);
 
         // Return response using SDK record factory method
         return CodeExecutionResponse.createPending(taskId, sseUrl);
+    }
+
+    public void consumeEvents(Iterator<CodeExecutionReply> events, String taskId) {
+        while (events.hasNext()) {
+            //            emitEvent(events.next());
+            streamExecution(events.next(), taskId);
+        }
+    }
+
+    private void emitEvent(CodeExecutionEvent event) {
+        boolean hasRequests = codeEventEmitter.hasRequests();
+        if (hasRequests) {
+            LOG.infof("Emitting event for task %s: %d", event.getTaskId(), event.getOutput());
+            codeEventEmitter.sendAndForget(event);
+        } else {
+            LOG.trace("No pending consumers to send the request");
+        }
     }
 
     /**
@@ -119,56 +149,69 @@ public class CodeExecutionBean {
      * @param eventSink the SSE event sink for sending events
      * @param sse the SSE context for creating events
      */
-    public void streamExecution(String taskId, SseEventSink eventSink, Sse sse) {
-        LOG.infof("Starting SSE stream for task: %s", taskId);
+    private void streamExecution(CodeExecutionReply event, String taskId) {
+        final ExecutionStatus status = event.getStatus();
+        final int exitCode1 = event.getExitCode();
+        final String content = event.getContent(0);
+        final long timestamp = event.getTimestamp();
 
-        try {
-            // Retrieve task
-            Optional<CodeExecutionTask> taskOpt = taskRepository.findById(taskId);
-            if (taskOpt.isEmpty()) {
-                LOG.warnf("Task not found: %s", taskId);
-                sendErrorEvent(eventSink, sse, "Task not found: " + taskId);
-                return;
-            }
+        CodeExecutionEvent codeExecutionEvent = new CodeExecutionEvent();
+        codeExecutionEvent.setTaskId(taskId);
+        codeExecutionEvent.setExitCode(exitCode1);
+        codeExecutionEvent.setOutput(content);
+        codeExecutionEvent.setTimestamp(Instant.ofEpochMilli(timestamp));
+        //        codeEecutionEvent.setMessage(status.);
 
-            CodeExecutionTask task = taskOpt.get();
-            task.markStarted();
-            taskRepository.update(task);
+        emitEvent(codeExecutionEvent);
 
-            // Send STARTED event
-            sendEvent(eventSink, sse, CodeExecutionEvent.started(taskId));
-
-            // Execute code via the bridge
-            try {
-                Iterator<CodeExecutionReply> replyIterator =
-                        codeExecutionBridge.executeCode(task.getEngineType(), task.getLanguage(), task.getRequest());
-
-                int exitCode = 0;
-                while (replyIterator.hasNext()) {
-                    CodeExecutionReply reply = replyIterator.next();
-                    exitCode = processReply(taskId, reply, eventSink, sse);
-                }
-
-                // Mark task as completed
-                task.markCompleted(exitCode);
-                taskRepository.update(task);
-
-                LOG.infof("SSE stream completed for task: %s", taskId);
-
-            } catch (ServiceNotFoundException e) {
-                LOG.warnf("No code execution service found for task: %s", taskId);
-                task.markCompleted(CodeExecutionStatus.FAILED.ordinal());
-                taskRepository.update(task);
-                sendErrorEvent(eventSink, sse, e.getMessage());
-            }
-
-        } catch (Exception e) {
-            LOG.errorf(e, "Error streaming execution for task: %s", taskId);
-            sendErrorEvent(eventSink, sse, "Internal error: " + e.getMessage());
-        } finally {
-            // Always close the event sink
-            eventSink.close();
-        }
+        //        try {
+        //            // Retrieve task
+        //            Optional<CodeExecutionTask> taskOpt = taskRepository.findById(taskId);
+        //            if (taskOpt.isEmpty()) {
+        //                LOG.warnf("Task not found: %s", taskId);
+        //                sendErrorEvent(eventSink, sse, "Task not found: " + taskId);
+        //                return;
+        //            }
+        //
+        //            CodeExecutionTask task = taskOpt.get();
+        //            task.markStarted();
+        //            taskRepository.update(task);
+        //
+        //            // Send STARTED event
+        //            sendEvent(eventSink, sse, CodeExecutionEvent.started(taskId));
+        //
+        //            // Execute code via the bridge
+        //            try {
+        //                Iterator<CodeExecutionReply> replyIterator =
+        //                        codeExecutionBridge.executeCode(task.getEngineType(), task.getLanguage(),
+        // task.getRequest());
+        //
+        //                int exitCode = 0;
+        //                while (replyIterator.hasNext()) {
+        //                    CodeExecutionReply reply = replyIterator.next();
+        //                    exitCode = processReply(taskId, reply, eventSink, sse);
+        //                }
+        //
+        //                // Mark task as completed
+        //                task.markCompleted(exitCode);
+        //                taskRepository.update(task);
+        //
+        //                LOG.infof("SSE stream completed for task: %s", taskId);
+        //
+        //            } catch (ServiceNotFoundException e) {
+        //                LOG.warnf("No code execution service found for task: %s", taskId);
+        //                task.markCompleted(CodeExecutionStatus.FAILED.ordinal());
+        //                taskRepository.update(task);
+        //                sendErrorEvent(eventSink, sse, e.getMessage());
+        //            }
+        //
+        //        } catch (Exception e) {
+        //            LOG.errorf(e, "Error streaming execution for task: %s", taskId);
+        //            sendErrorEvent(eventSink, sse, "Internal error: " + e.getMessage());
+        //        } finally {
+        //            // Always close the event sink
+        //            eventSink.close();
+        //        }
     }
 
     /**

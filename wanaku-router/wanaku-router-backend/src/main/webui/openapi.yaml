@@ -1337,8 +1337,14 @@ paths:
         schema:
           type: string
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OutboundSseEvent"
       summary: Stream Results
       tags:
       - Code Execution Resource

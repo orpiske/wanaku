@@ -19,10 +19,12 @@ import "./CodeExecutionPage.scss";
 interface ExecutionEvent {
   eventType: string;
   taskId: string;
-  content?: string;
-  exitCode?: number;
-  errorMessage?: string;
-  timestamp: string;
+  output?: string;       // Standard output content (for OUTPUT events)
+  error?: string;        // Error output content (for ERROR events)
+  message?: string;      // Human-readable message (for FAILED/ERROR events)
+  exitCode?: number;     // Exit code (for COMPLETED/FAILED events)
+  status?: string;       // Execution status
+  timestamp: string;     // Local timestamp when event was received
 }
 
 // Default fallback data (used if API fails)
@@ -99,6 +101,11 @@ const CodeExecutionPage: React.FC = () => {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
   }, []);
+
+  // Auto-scroll when output changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [output, scrollToBottom]);
 
   // Fetch available code execution engines from the API
   useEffect(() => {
@@ -276,18 +283,21 @@ const CodeExecutionPage: React.FC = () => {
       };
 
       eventSource.addEventListener("started", (event) => {
+        console.log("SSE event received: started", event.data);
         const data = JSON.parse(event.data) as ExecutionEvent;
         setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
         scrollToBottom();
       });
 
       eventSource.addEventListener("output", (event) => {
+        console.log("SSE event received: output", event.data);
         const data = JSON.parse(event.data) as ExecutionEvent;
         setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
         scrollToBottom();
       });
 
       eventSource.addEventListener("completed", (event) => {
+        console.log("SSE event received: completed", event.data);
         const data = JSON.parse(event.data) as ExecutionEvent;
         setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
         scrollToBottom();
@@ -295,6 +305,7 @@ const CodeExecutionPage: React.FC = () => {
       });
 
       eventSource.addEventListener("failed", (event) => {
+        console.log("SSE event received: failed", event.data);
         const data = JSON.parse(event.data) as ExecutionEvent;
         setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
         scrollToBottom();
@@ -302,9 +313,10 @@ const CodeExecutionPage: React.FC = () => {
       });
 
       eventSource.addEventListener("error", (event) => {
-        console.error("SSE error:", event);
+        console.log("SSE event received: error", event);
         const messageEvent = event as MessageEvent;
         if (messageEvent.data) {
+          console.log("Error event data:", messageEvent.data);
           const data = JSON.parse(messageEvent.data) as ExecutionEvent;
           setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
         }
@@ -340,15 +352,17 @@ const CodeExecutionPage: React.FC = () => {
   const formatOutput = (event: ExecutionEvent): string => {
     switch (event.eventType?.toLowerCase()) {
       case "started":
-        return `[STARTED] Execution started (Task: ${event.taskId})`;
+        return `[STARTED] ${event.message || "Execution started"} (Task: ${event.taskId})`;
       case "completed":
-        return `[COMPLETED] Execution finished with exit code: ${event.exitCode}`;
+        return `[COMPLETED] ${event.message || "Execution finished"} (Exit code: ${event.exitCode ?? "N/A"})`;
       case "failed":
-        return `[FAILED] ${event.errorMessage || "Execution failed"} (Exit code: ${event.exitCode})`;
+        return `[FAILED] ${event.message || "Execution failed"} (Exit code: ${event.exitCode ?? "N/A"})`;
+      case "error":
+        return `[ERROR] ${event.error || event.message || "Unknown error"}`;
       case "output":
-        return event.content || "";
+        return event.output || "";
       default:
-        return event.content || JSON.stringify(event);
+        return event.output || event.error || event.message || JSON.stringify(event);
     }
   };
 

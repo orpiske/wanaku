@@ -16,10 +16,14 @@
 package ai.wanaku.backend.api.v2.codeexecution;
 
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionError;
+import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionEvent;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionRequest;
 import ai.wanaku.capabilities.sdk.api.types.execution.CodeExecutionResponse;
+import io.smallrye.mutiny.Multi;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -30,9 +34,11 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
-import jakarta.ws.rs.sse.SseEventSink;
+import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.RestStreamElementType;
 
 /**
  * JAX-RS REST resource for code execution endpoints.
@@ -60,6 +66,17 @@ public class CodeExecutionResource {
 
     @Inject
     CodeExecutionBean codeExecutionBean;
+
+    @Inject
+    @Channel("code-execution-event")
+    Multi<CodeExecutionEvent> codeExecutionEvents;
+
+    @PostConstruct
+    void initialize() {
+        // Without this, the first http request fails. This seems to force
+        // it to subscribe
+        codeExecutionEvents.subscribe().with(events -> {});
+    }
 
     /**
      * Submits code for execution.
@@ -147,28 +164,29 @@ public class CodeExecutionResource {
      * @param engineType the execution engine type
      * @param language the programming language
      * @param taskId the UUID of the execution task
-     * @param eventSink the SSE event sink for sending events
      * @param sse the SSE context for creating events
      */
     @GET
     @Path("/{engineType}/{language}/{taskId}")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    public void streamResults(
+    @Transactional
+    @RestStreamElementType(MediaType.APPLICATION_JSON)
+    public Multi<OutboundSseEvent> streamResults(
             @PathParam("engineType") String engineType,
             @PathParam("language") String language,
             @PathParam("taskId") String taskId,
-            @Context SseEventSink eventSink,
             @Context Sse sse) {
 
         LOG.infof("SSE connection established: engine=%s, language=%s, taskId=%s", engineType, language, taskId);
 
-        try {
-            // Stream execution results
-            codeExecutionBean.streamExecution(taskId, eventSink, sse);
-
-        } catch (Exception e) {
-            LOG.errorf(e, "Error streaming execution results: taskId=%s", taskId);
-            // The bean will handle sending error events and closing the sink
-        }
+        return codeExecutionEvents.map(event -> sse.newEventBuilder()
+                //                .name(event.get)
+                .id(event.getTaskId())
+                //                .id(
+                //                        event.getId() != null
+                //                                ? event.getId()
+                //                                : event.getServiceTarget().getId())
+                .data(event)
+                .build());
     }
 }
