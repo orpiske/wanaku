@@ -41,15 +41,15 @@ public class FirstAvailable implements ServiceResolver {
      * Resolves a code execution service by returning the first available service from the registry
      * that matches the given service type, sub-type, and name.
      *
-     * @param serviceType the type of the service (e.g., "code-execution-engine").
-     * @param serviceSubType the sub-type of the service, typically the engine type (e.g., "jvm", "interpreted").
-     * @param serviceName the name of the service, typically the programming language (e.g., "java", "python").
+     * @param serviceType the service type (e.g., "code-execution-engine")
+     * @param serviceSubType the engine type (e.g., "camel")
+     * @param languageName the programming language (e.g., "yaml", "xml")
      * @return the first available service target, or null if no service could be resolved.
      */
     @Override
-    public ServiceTarget resolveCodeExecution(String serviceType, String serviceSubType, String serviceName) {
+    public ServiceTarget resolveCodeExecution(String serviceType, String serviceSubType, String languageName) {
         List<ServiceTarget> services =
-                serviceRegistry.getCodeExecutionService(serviceType, serviceSubType, serviceName);
+                serviceRegistry.getCodeExecutionService(serviceType, serviceSubType, languageName);
         if (services != null && !services.isEmpty()) {
             return services.getFirst();
         }

@@ -103,9 +103,7 @@ public class CodeExecutionBridge implements CodeExecutorBridge {
                 "Resolving code execution service (serviceType=%s, serviceSubType=%s, serviceName=%s)",
                 SERVICE_TYPE_CODE_EXECUTION, engineType, language);
 
-        //        ServiceTarget service = serviceResolver.resolveCodeExecution(SERVICE_TYPE_CODE_EXECUTION, engineType,
-        // language);
-        ServiceTarget service = serviceResolver.resolve(SERVICE_TYPE_CODE_EXECUTION, engineType);
+        ServiceTarget service = serviceResolver.resolveCodeExecution(SERVICE_TYPE_CODE_EXECUTION, engineType, language);
 
         if (service == null) {
             throw new ServiceNotFoundException(String.format(

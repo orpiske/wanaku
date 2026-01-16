@@ -12,7 +12,7 @@ import {
   Column,
 } from "@carbon/react";
 import { Play, Stop } from "@carbon/icons-react";
-import { getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl, getApiV1Capabilities } from "../../api/wanaku-router-api";
+import { postApiV2CodeExecutionEngineEngineTypeLanguage, getApiV1Capabilities } from "../../api/wanaku-router-api";
 import { CodeExecutionRequest, ServiceTarget } from "../../models";
 import "./CodeExecutionPage.scss";
 
@@ -240,22 +240,17 @@ const CodeExecutionPage: React.FC = () => {
         environment: {},
       };
 
-      const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
-      const url = baseUrl + getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl(engineType, language);
+      const response = await postApiV2CodeExecutionEngineEngineTypeLanguage(
+        engineType,
+        language,
+        request
+      );
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.data) {
+        throw new Error("No response data received");
       }
 
-      const result = await response.json();
+      const result = response.data as any;
       const sseUrl = result.sseUrl;
       setTaskId(result.taskId);
 

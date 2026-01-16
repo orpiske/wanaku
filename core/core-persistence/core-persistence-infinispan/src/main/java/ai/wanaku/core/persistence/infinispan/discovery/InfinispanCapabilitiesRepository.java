@@ -81,19 +81,19 @@ public class InfinispanCapabilitiesRepository extends AbstractInfinispanReposito
      * Find a code execution service by matching serviceType, serviceSubType (engine-type), and serviceName (language).
      *
      * @param serviceType the service type (e.g., "code-execution-engine")
-     * @param serviceSubType the engine type (e.g., "jvm", "interpreted")
-     * @param serviceName the programming language (e.g., "java", "python")
+     * @param serviceSubType the engine type (e.g., "camel")
+     * @param languageName the programming language (e.g., "yaml", "xml")
      * @return a list of matching service targets
      */
-    public List<ServiceTarget> findCodeExecutionService(String serviceType, String serviceSubType, String serviceName) {
+    public List<ServiceTarget> findCodeExecutionService(String serviceType, String serviceSubType, String languageName) {
         final Cache<Object, ServiceTarget> cache = cacheManager.getCache(entityName());
 
         Query<ServiceTarget> query = cache.query(
-                "from ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget t where t.serviceType = :serviceType and t.serviceSubType = :serviceSubType and t.serviceName = :serviceName");
+                "from ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget t where t.serviceType = :serviceType and t.serviceSubType = :serviceSubType and t.languageName = :languageName");
 
         query.setParameter("serviceType", serviceType);
         query.setParameter("serviceSubType", serviceSubType);
-        query.setParameter("serviceName", serviceName);
+        query.setParameter("languageName", languageName);
 
         return query.maxResults(1).execute().list();
     }
