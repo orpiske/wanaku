@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   Button,
   Select,
@@ -12,8 +12,8 @@ import {
   Column,
 } from "@carbon/react";
 import { Play, Stop } from "@carbon/icons-react";
-import { getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl } from "../../api/wanaku-router-api";
-import { CodeExecutionRequest } from "../../models";
+import { getPostApiV2CodeExecutionEngineEngineTypeLanguageUrl, getApiV1Capabilities } from "../../api/wanaku-router-api";
+import { CodeExecutionRequest, ServiceTarget } from "../../models";
 import "./CodeExecutionPage.scss";
 
 interface ExecutionEvent {
@@ -25,13 +25,14 @@ interface ExecutionEvent {
   timestamp: string;
 }
 
-const ENGINE_TYPES = [
-  { value: "jvm", label: "JVM (Java, Kotlin, Scala)" },
-  { value: "interpreted", label: "Interpreted (Python, JavaScript)" },
-  { value: "native", label: "Native (Go, Rust)" },
+// Default fallback data (used if API fails)
+const FALLBACK_ENGINE_TYPES = [
+  { value: "jvm", label: "JVM" },
+  { value: "interpreted", label: "Interpreted" },
+  { value: "native", label: "Native" },
 ];
 
-const LANGUAGES: Record<string, { value: string; label: string }[]> = {
+const FALLBACK_LANGUAGES: Record<string, { value: string; label: string }[]> = {
   jvm: [
     { value: "java", label: "Java" },
     { value: "kotlin", label: "Kotlin" },
@@ -76,14 +77,19 @@ func main() {
 };
 
 const CodeExecutionPage: React.FC = () => {
-  const [engineType, setEngineType] = useState<string>("interpreted");
-  const [language, setLanguage] = useState<string>("python");
-  const [code, setCode] = useState<string>(DEFAULT_CODE["python"] || "");
+  const [engineType, setEngineType] = useState<string>("");
+  const [language, setLanguage] = useState<string>("");
+  const [code, setCode] = useState<string>("");
   const [timeout, setTimeout] = useState<number>(30);
   const [output, setOutput] = useState<ExecutionEvent[]>([]);
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Dynamic data from API
+  const [engineTypes, setEngineTypes] = useState<{ value: string; label: string }[]>([]);
+  const [languagesByEngine, setLanguagesByEngine] = useState<Record<string, { value: string; label: string }[]>>({});
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -94,12 +100,108 @@ const CodeExecutionPage: React.FC = () => {
     }
   }, []);
 
+  // Fetch available code execution engines from the API
+  useEffect(() => {
+    const fetchEngines = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getApiV1Capabilities();
+
+        if (response.data && 'data' in response.data) {
+          const services = response.data.data as ServiceTarget[];
+
+          // Filter for code-execution-engine services with valid languageName
+          const codeExecutionEngines = services.filter(
+            (service) =>
+              service.serviceType === "code-execution-engine" &&
+              service.languageName &&
+              service.languageName.trim() !== ""
+          );
+
+          if (codeExecutionEngines.length > 0) {
+            // Group by engine type (serviceSubType)
+            const engineTypesMap = new Map<string, { value: string; label: string }>();
+            const languagesMap: Record<string, { value: string; label: string }[]> = {};
+
+            codeExecutionEngines.forEach((engine) => {
+              const engineTypeValue = engine.serviceSubType || "unknown";
+              const languageValue = engine.languageName?.toLowerCase() || "";
+
+              // Add engine type if not already present
+              if (!engineTypesMap.has(engineTypeValue)) {
+                engineTypesMap.set(engineTypeValue, {
+                  value: engineTypeValue,
+                  label: engineTypeValue.charAt(0).toUpperCase() + engineTypeValue.slice(1),
+                });
+              }
+
+              // Add language to the engine type group
+              if (!languagesMap[engineTypeValue]) {
+                languagesMap[engineTypeValue] = [];
+              }
+
+              // Avoid duplicates
+              const languageExists = languagesMap[engineTypeValue].some(
+                (lang) => lang.value === languageValue
+              );
+
+              if (!languageExists && languageValue) {
+                languagesMap[engineTypeValue].push({
+                  value: languageValue,
+                  label: engine.languageName || languageValue,
+                });
+              }
+            });
+
+            const engineTypesArray = Array.from(engineTypesMap.values());
+            setEngineTypes(engineTypesArray);
+            setLanguagesByEngine(languagesMap);
+
+            // Set default values
+            if (engineTypesArray.length > 0) {
+              const defaultEngine = engineTypesArray[0].value;
+              setEngineType(defaultEngine);
+
+              if (languagesMap[defaultEngine] && languagesMap[defaultEngine].length > 0) {
+                const defaultLanguage = languagesMap[defaultEngine][0].value;
+                setLanguage(defaultLanguage);
+                setCode(DEFAULT_CODE[defaultLanguage] || "");
+              }
+            }
+          } else {
+            // No code execution engines available, use fallback
+            console.warn("No code execution engines found, using fallback data");
+            setEngineTypes(FALLBACK_ENGINE_TYPES);
+            setLanguagesByEngine(FALLBACK_LANGUAGES);
+            setEngineType("interpreted");
+            setLanguage("python");
+            setCode(DEFAULT_CODE["python"]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch code execution engines:", error);
+        setErrorMessage("Failed to load available engines. Using default configuration.");
+
+        // Use fallback data on error
+        setEngineTypes(FALLBACK_ENGINE_TYPES);
+        setLanguagesByEngine(FALLBACK_LANGUAGES);
+        setEngineType("interpreted");
+        setLanguage("python");
+        setCode(DEFAULT_CODE["python"]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEngines();
+  }, []);
+
   const handleEngineTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newEngineType = e.target.value;
     setEngineType(newEngineType);
 
     // Reset language to first available for the new engine type
-    const availableLanguages = LANGUAGES[newEngineType] || [];
+    const availableLanguages = languagesByEngine[newEngineType] || [];
     if (availableLanguages.length > 0) {
       const newLanguage = availableLanguages[0].value;
       setLanguage(newLanguage);
@@ -258,6 +360,11 @@ const CodeExecutionPage: React.FC = () => {
       <h1 className="title">Code Execution</h1>
       <p className="description">
         Execute code remotely using the Wanaku code execution engine.
+        {!isLoading && engineTypes.length === 0 && (
+          <span style={{ color: "orange", marginLeft: "10px" }}>
+            ⚠ No code execution engines available. Using fallback configuration.
+          </span>
+        )}
       </p>
 
       <Grid className="execution-grid">
@@ -269,9 +376,9 @@ const CodeExecutionPage: React.FC = () => {
                 labelText="Engine Type"
                 value={engineType}
                 onChange={handleEngineTypeChange}
-                disabled={isExecuting}
+                disabled={isExecuting || isLoading}
               >
-                {ENGINE_TYPES.map((engine) => (
+                {engineTypes.map((engine) => (
                   <SelectItem key={engine.value} value={engine.value} text={engine.label} />
                 ))}
               </Select>
@@ -281,9 +388,9 @@ const CodeExecutionPage: React.FC = () => {
                 labelText="Language"
                 value={language}
                 onChange={handleLanguageChange}
-                disabled={isExecuting}
+                disabled={isExecuting || isLoading}
               >
-                {(LANGUAGES[engineType] || []).map((lang) => (
+                {(languagesByEngine[engineType] || []).map((lang) => (
                   <SelectItem key={lang.value} value={lang.value} text={lang.label} />
                 ))}
               </Select>
@@ -310,12 +417,14 @@ const CodeExecutionPage: React.FC = () => {
             />
 
             <div className="action-buttons">
-              {!isExecuting ? (
+              {isLoading ? (
+                <InlineLoading description="Loading engines..." />
+              ) : !isExecuting ? (
                 <Button
                   kind="primary"
                   renderIcon={Play}
                   onClick={executeCode}
-                  disabled={!code.trim()}
+                  disabled={!code.trim() || !engineType || !language}
                 >
                   Execute
                 </Button>
