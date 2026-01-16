@@ -33,10 +33,10 @@ public class FirstAvailableTest extends WanakuRouterTest {
 
     @Test
     public void testResolveService() {
-        ServiceTarget service1 =
-                new ServiceTarget("id1", "service-a", "localhost", 8080, SERVICE_TYPE_TOOL_INVOKER, "mcp");
-        ServiceTarget service2 =
-                new ServiceTarget("id2", "service-a", "localhost", 8081, SERVICE_TYPE_TOOL_INVOKER, "mcp");
+        ServiceTarget service1 = new ServiceTarget(
+                "id1", "service-a", "localhost", 8080, SERVICE_TYPE_TOOL_INVOKER, "mcp", null, null, null);
+        ServiceTarget service2 = new ServiceTarget(
+                "id2", "service-a", "localhost", 8081, SERVICE_TYPE_TOOL_INVOKER, "mcp", null, null, null);
         List<ServiceTarget> targets = List.of(service1, service2);
 
         Mockito.when(mockRegistry.getServiceByName("service-a", SERVICE_TYPE_TOOL_INVOKER))

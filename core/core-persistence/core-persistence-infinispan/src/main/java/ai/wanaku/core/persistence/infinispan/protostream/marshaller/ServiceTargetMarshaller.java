@@ -24,8 +24,12 @@ public class ServiceTargetMarshaller implements MessageMarshaller<ServiceTarget>
         int port = reader.readInt("port");
         String serviceType = reader.readString("serviceType");
         String serviceSubType = reader.readString("serviceSubType");
+        String languageName = reader.readString("languageName");
+        String languageType = reader.readString("languageType");
+        String languageSubType = reader.readString("languageSubType");
 
-        ServiceTarget serviceTarget = new ServiceTarget(id, serviceName, host, port, serviceType, serviceSubType);
+        ServiceTarget serviceTarget = new ServiceTarget(
+                id, serviceName, host, port, serviceType, serviceSubType, languageName, languageType, languageSubType);
         return serviceTarget;
     }
 
@@ -37,5 +41,8 @@ public class ServiceTargetMarshaller implements MessageMarshaller<ServiceTarget>
         writer.writeInt("port", serviceTarget.getPort());
         writer.writeString("serviceType", serviceTarget.getServiceType());
         writer.writeString("serviceSubType", serviceTarget.getServiceSubType());
+        writer.writeString("languageName", serviceTarget.getLanguageName());
+        writer.writeString("languageType", serviceTarget.getLanguageType());
+        writer.writeString("languageSubType", serviceTarget.getLanguageSubType());
     }
 }

@@ -413,6 +413,15 @@
           },
           "serviceSubType" : {
             "type" : "string"
+          },
+          "languageName" : {
+            "type" : "string"
+          },
+          "languageType" : {
+            "type" : "string"
+          },
+          "languageSubType" : {
+            "type" : "string"
           }
         }
       },

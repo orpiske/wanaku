@@ -275,6 +275,12 @@ components:
           type: string
         serviceSubType:
           type: string
+        languageName:
+          type: string
+        languageType:
+          type: string
+        languageSubType:
+          type: string
     ToolPayload:
       type: object
       properties:

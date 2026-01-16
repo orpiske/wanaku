@@ -17,4 +17,7 @@ message ServiceTarget {
   string serviceType = 5;
   optional string serviceSubType = 6;
   map<string, string> configurations = 7;
+  optional string languageName = 8;
+  optional string languageType = 9;
+  optional string languageSubType = 10;
 }

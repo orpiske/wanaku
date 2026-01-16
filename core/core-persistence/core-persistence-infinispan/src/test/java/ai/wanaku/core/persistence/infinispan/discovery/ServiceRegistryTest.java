@@ -43,7 +43,15 @@ public class ServiceRegistryTest {
     @Order(1)
     public void register() {
         ServiceTarget serviceTarget = new ServiceTarget(
-                TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 8081, SERVICE_TYPE_TOOL_INVOKER, "mcp");
+                TEST_SERVICE_ID,
+                TEST_SERVICE_NAME,
+                "localhost",
+                8081,
+                SERVICE_TYPE_TOOL_INVOKER,
+                "mcp",
+                null,
+                null,
+                null);
 
         Assertions.assertDoesNotThrow(() -> serviceRegistry.register(serviceTarget));
     }
@@ -73,7 +81,15 @@ public class ServiceRegistryTest {
     @Order(4)
     public void updateProperty() {
         ServiceTarget serviceTarget = new ServiceTarget(
-                TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 8081, SERVICE_TYPE_TOOL_INVOKER, "mcp");
+                TEST_SERVICE_ID,
+                TEST_SERVICE_NAME,
+                "localhost",
+                8081,
+                SERVICE_TYPE_TOOL_INVOKER,
+                "mcp",
+                null,
+                null,
+                null);
 
         serviceRegistry.update(serviceTarget);
 
@@ -88,8 +104,8 @@ public class ServiceRegistryTest {
     @Test
     @Order(5)
     public void deregister() {
-        ServiceTarget serviceTarget =
-                new ServiceTarget(TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 0, SERVICE_TYPE_TOOL_INVOKER, "mcp");
+        ServiceTarget serviceTarget = new ServiceTarget(
+                TEST_SERVICE_ID, TEST_SERVICE_NAME, "localhost", 0, SERVICE_TYPE_TOOL_INVOKER, "mcp", null, null, null);
 
         serviceRegistry.deregister(serviceTarget);
 

@@ -55,7 +55,8 @@ public class DiscoveryResourceTest extends WanakuRouterTest {
         final String accessToken = getAccessToken();
         Assertions.assertNotNull(accessToken);
 
-        ServiceTarget serviceTarget = new ServiceTarget(null, "test-service", "localhost", 8080, "tool-invoker", "mcp");
+        ServiceTarget serviceTarget =
+                new ServiceTarget(null, "test-service", "localhost", 8080, "tool-invoker", "mcp", null, null, null);
 
         final var response = given().header("Content-Type", MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken)
@@ -131,7 +132,15 @@ public class DiscoveryResourceTest extends WanakuRouterTest {
         Assertions.assertNotNull(accessToken);
 
         ServiceTarget serviceTarget = new ServiceTarget(
-                serviceId, "test-service", "localhost", 8080, ServiceType.TOOL_INVOKER.asValue(), "mcp");
+                serviceId,
+                "test-service",
+                "localhost",
+                8080,
+                ServiceType.TOOL_INVOKER.asValue(),
+                "mcp",
+                null,
+                null,
+                null);
 
         given().header("Content-Type", MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken)

@@ -12,4 +12,7 @@ export interface ServiceTarget {
   port?: number;
   serviceType?: string;
   serviceSubType?: string;
+  languageName?: string;
+  languageType?: string;
+  languageSubType?: string;
 }
