@@ -104,6 +104,7 @@ const CodeExecutionPage: React.FC = () => {
 
   // Auto-scroll when output changes
   useEffect(() => {
+    console.log("🔄 Output state changed, length:", output.length, "items:", output);
     scrollToBottom();
   }, [output, scrollToBottom]);
 
@@ -231,8 +232,11 @@ const CodeExecutionPage: React.FC = () => {
   }, []);
 
   const executeCode = async () => {
+    console.log("🎬 Starting code execution...");
+
     // Clear previous output
     setOutput([]);
+    console.log("🧹 Cleared previous output");
     setErrorMessage(null);
     setIsExecuting(true);
 
@@ -279,52 +283,97 @@ const CodeExecutionPage: React.FC = () => {
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
-        console.log("SSE connection opened");
+        console.log("✅ SSE connection opened successfully");
       };
 
+      // Generic message handler - catches ALL messages including those without specific event names
+      eventSource.onmessage = (event) => {
+        console.log("📨 SSE message received (generic handler):", event);
+        console.log("  - Event type:", event.type);
+        console.log("  - Data:", event.data);
+
+        try {
+          const data = JSON.parse(event.data) as ExecutionEvent;
+          console.log("  - Parsed data:", data);
+          setOutput((prev) => {
+            const newOutput = [...prev, { ...data, timestamp: new Date().toISOString() }];
+            console.log("  - Updated output array, length:", newOutput.length);
+            return newOutput;
+          });
+          scrollToBottom();
+        } catch (error) {
+          console.error("  - Failed to parse message data:", error);
+        }
+      };
+
+      // Specific event handlers
       eventSource.addEventListener("started", (event) => {
-        console.log("SSE event received: started", event.data);
-        const data = JSON.parse(event.data) as ExecutionEvent;
-        setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
-        scrollToBottom();
+        console.log("🚀 SSE event: STARTED", event.data);
+        try {
+          const data = JSON.parse(event.data) as ExecutionEvent;
+          setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+          scrollToBottom();
+        } catch (error) {
+          console.error("Error parsing 'started' event:", error);
+        }
       });
 
       eventSource.addEventListener("output", (event) => {
-        console.log("SSE event received: output", event.data);
-        const data = JSON.parse(event.data) as ExecutionEvent;
-        setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
-        scrollToBottom();
+        console.log("📝 SSE event: OUTPUT", event.data);
+        try {
+          const data = JSON.parse(event.data) as ExecutionEvent;
+          setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+          scrollToBottom();
+        } catch (error) {
+          console.error("Error parsing 'output' event:", error);
+        }
       });
 
       eventSource.addEventListener("completed", (event) => {
-        console.log("SSE event received: completed", event.data);
-        const data = JSON.parse(event.data) as ExecutionEvent;
-        setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
-        scrollToBottom();
-        stopExecution();
+        console.log("✅ SSE event: COMPLETED", event.data);
+        try {
+          const data = JSON.parse(event.data) as ExecutionEvent;
+          setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+          scrollToBottom();
+          stopExecution();
+        } catch (error) {
+          console.error("Error parsing 'completed' event:", error);
+        }
       });
 
       eventSource.addEventListener("failed", (event) => {
-        console.log("SSE event received: failed", event.data);
-        const data = JSON.parse(event.data) as ExecutionEvent;
-        setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
-        scrollToBottom();
-        stopExecution();
+        console.log("❌ SSE event: FAILED", event.data);
+        try {
+          const data = JSON.parse(event.data) as ExecutionEvent;
+          setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+          scrollToBottom();
+          stopExecution();
+        } catch (error) {
+          console.error("Error parsing 'failed' event:", error);
+        }
       });
 
       eventSource.addEventListener("error", (event) => {
-        console.log("SSE event received: error", event);
+        console.log("⚠️ SSE event: ERROR", event);
         const messageEvent = event as MessageEvent;
         if (messageEvent.data) {
-          console.log("Error event data:", messageEvent.data);
-          const data = JSON.parse(messageEvent.data) as ExecutionEvent;
-          setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+          console.log("  - Error event data:", messageEvent.data);
+          try {
+            const data = JSON.parse(messageEvent.data) as ExecutionEvent;
+            setOutput((prev) => [...prev, { ...data, timestamp: new Date().toISOString() }]);
+            stopExecution();
+          } catch (error) {
+            console.error("Error parsing 'error' event:", error);
+          }
         }
-        stopExecution();
       });
 
       eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error);
+        console.error("💥 SSE connection error:", error);
+        console.log("  - ReadyState:", eventSource.readyState);
+        console.log("  - CONNECTING:", EventSource.CONNECTING);
+        console.log("  - OPEN:", EventSource.OPEN);
+        console.log("  - CLOSED:", EventSource.CLOSED);
         stopExecution();
       };
 
@@ -464,18 +513,27 @@ const CodeExecutionPage: React.FC = () => {
 
         <Column lg={8} md={8} sm={4}>
           <Tile className="output-tile">
-            <h4>Output {taskId && <span className="task-id">(Task: {taskId})</span>}</h4>
+            <h4>
+              Output {taskId && <span className="task-id">(Task: {taskId})</span>}
+              {output.length > 0 && <span className="output-count"> - {output.length} events</span>}
+            </h4>
             <div className="output-console" ref={outputRef}>
               {output.length === 0 ? (
                 <div className="output-placeholder">
                   Output will appear here after execution...
+                  {isExecuting && <div style={{ marginTop: "10px", fontSize: "0.9em", color: "#888" }}>
+                    Waiting for events... Check console for debug info.
+                  </div>}
                 </div>
               ) : (
-                output.map((event, index) => (
-                  <div key={index} className={`output-line ${getOutputClass(event.eventType)}`}>
-                    {formatOutput(event)}
-                  </div>
-                ))
+                output.map((event, index) => {
+                  console.log(`Rendering event ${index}:`, event);
+                  return (
+                    <div key={index} className={`output-line ${getOutputClass(event.eventType)}`}>
+                      {formatOutput(event)}
+                    </div>
+                  );
+                })
               )}
             </div>
           </Tile>
