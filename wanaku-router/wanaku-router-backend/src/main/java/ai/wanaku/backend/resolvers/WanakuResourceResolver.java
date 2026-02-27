@@ -40,6 +40,6 @@ public class WanakuResourceResolver implements ResourceResolver {
                 "Using the resource proxy %s to evaluate MCP uri %s for request %s",
                 proxy.name(), mcpResource, arguments.requestId());
 
-        return proxy.eval(arguments, mcpResource);
+        return proxy.read(arguments, mcpResource);
     }
 }
