@@ -1,12 +1,22 @@
 package ai.wanaku.backend.bridge;
 
+import jakarta.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jboss.logging.Logger;
 import io.quarkiverse.mcp.server.ResourceContents;
 import io.quarkiverse.mcp.server.ResourceManager;
 import io.quarkiverse.mcp.server.TextResourceContents;
+import io.smallrye.mutiny.Uni;
 import ai.wanaku.backend.bridge.transports.grpc.GrpcTransport;
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.backend.support.ProvisioningReference;
@@ -35,8 +45,76 @@ public class ResourceAcquirerBridge implements ResourceBridge {
     private static final String EMPTY_ARGUMENT = "";
     private static final String SERVICE_TYPE_RESOURCE_PROVIDER = ServiceType.RESOURCE_PROVIDER.asValue();
 
-    private final ServiceResolver serviceResolver;
-    private final WanakuBridgeTransport transport;
+    @Inject
+    ServiceResolver serviceResolver;
+
+    @Inject
+    WanakuBridgeTransport transport;
+
+    // TODO: make configurable
+    ExecutorService executor = Executors.newFixedThreadPool(15);
+
+    static class AsyncTransformer {
+        CountDownLatch latch = new CountDownLatch(1);
+        List<ResourceContents> resourceContentsList;
+        SyncTransformer syncTransformer = new SyncTransformer();
+
+        /**
+         * Processes the resource reply and converts it to resource contents.
+         *
+         * @param reply the reply from the remote service
+         * @param arguments the original request arguments
+         * @param mcpResource the resource reference
+         * @return a list of resource contents
+         */
+        private void processReplyAsync(
+                ResourceReply reply, ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+
+            try {
+                resourceContentsList = syncTransformer.processReply(reply, arguments, mcpResource);
+            } finally {
+                latch.countDown();
+            }
+        }
+
+        public List<ResourceContents> getReply() {
+            try {
+                if (!latch.await(10, TimeUnit.SECONDS)) {
+                    LOG.warn("Timeout waiting for reply");
+                }
+                return resourceContentsList;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            return null;
+        }
+    }
+
+    static class SyncTransformer {
+
+        /**
+         * Processes the resource reply and converts it to resource contents.
+         *
+         * @param reply the reply from the remote service
+         * @param arguments the original request arguments
+         * @param mcpResource the resource reference
+         * @return a list of resource contents
+         */
+        public List<ResourceContents> processReply(
+                ResourceReply reply, ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+            ProtocolStringList contentList = reply.getContentList();
+            List<ResourceContents> textResourceContentsList = new ArrayList<>();
+            for (String content : contentList) {
+                TextResourceContents textResourceContents =
+                        new TextResourceContents(arguments.requestUri().value(), content, mcpResource.getMimeType());
+                textResourceContentsList.add(textResourceContents);
+            }
+            return textResourceContentsList;
+        }
+    }
+
+    private SyncTransformer responseTransformer = new SyncTransformer();
 
     /**
      * Creates a new ResourceAcquirerBridge with the specified service resolver and transport.
@@ -53,7 +131,7 @@ public class ResourceAcquirerBridge implements ResourceBridge {
     }
 
     @Override
-    public List<ResourceContents> eval(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+    public List<ResourceContents> read(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
         LOG.infof(
                 "Requesting resource on behalf of connection %s",
                 arguments.connection().id());
@@ -65,7 +143,60 @@ public class ResourceAcquirerBridge implements ResourceBridge {
         ResourceRequest request = buildResourceRequest(mcpResource);
         ResourceReply reply = transport.acquireResource(request, service);
 
-        return processReply(reply, arguments, mcpResource);
+        return responseTransformer.processReply(reply, arguments, mcpResource);
+    }
+
+    // TODO: still blocking
+    @Override
+    public List<ResourceContents> readAsync(
+            ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+
+        // This is not performing well ... needs to check
+        /*
+        return Uni.createFrom()
+                .item(() -> doReadAsync(arguments, mcpResource))
+                .await()
+                .indefinitely();
+         */
+
+        final CompletableFuture<List<ResourceContents>> completionStage = Uni.createFrom()
+                .item(() -> doReadAsync(arguments, mcpResource))
+                //                .runSubscriptionOn(executor)
+                .subscribe()
+                .asCompletionStage();
+
+        try {
+            return completionStage.get(20, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<ResourceContents> doReadAsync(
+            ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+        LOG.infof(
+                "Asynchronously requesting resource on behalf of connection %s",
+                arguments.connection().id());
+
+        ServiceTarget service = resolveService(mcpResource.getType(), SERVICE_TYPE_RESOURCE_PROVIDER);
+
+        LOG.infof("Requesting %s from %s", mcpResource.getName(), service.toAddress());
+
+        ResourceRequest request = buildResourceRequest(mcpResource);
+
+        AsyncTransformer responseTransformer = new AsyncTransformer();
+
+        transport.acquireResourceAsync(
+                request,
+                service,
+                executor,
+                reply -> responseTransformer.processReplyAsync(reply, arguments, mcpResource));
+
+        return responseTransformer.getReply();
     }
 
     /**
@@ -82,26 +213,6 @@ public class ResourceAcquirerBridge implements ResourceBridge {
                 .setConfigurationUri(Objects.requireNonNullElse(mcpResource.getConfigurationURI(), EMPTY_ARGUMENT))
                 .setSecretsUri(Objects.requireNonNullElse(mcpResource.getSecretsURI(), EMPTY_ARGUMENT))
                 .build();
-    }
-
-    /**
-     * Processes the resource reply and converts it to resource contents.
-     *
-     * @param reply the reply from the remote service
-     * @param arguments the original request arguments
-     * @param mcpResource the resource reference
-     * @return a list of resource contents
-     */
-    private List<ResourceContents> processReply(
-            ResourceReply reply, ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
-        ProtocolStringList contentList = reply.getContentList();
-        List<ResourceContents> textResourceContentsList = new ArrayList<>();
-        for (String content : contentList) {
-            TextResourceContents textResourceContents =
-                    new TextResourceContents(arguments.requestUri().value(), content, mcpResource.getMimeType());
-            textResourceContentsList.add(textResourceContents);
-        }
-        return textResourceContentsList;
     }
 
     @Override

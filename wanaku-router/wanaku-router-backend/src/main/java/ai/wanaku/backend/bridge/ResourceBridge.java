@@ -26,5 +26,13 @@ public interface ResourceBridge extends Bridge {
      * @param mcpResource the resource to eval
      * @return Returns the data read by the proxy.
      */
-    List<ResourceContents> eval(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource);
+    List<ResourceContents> read(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource);
+
+    /**
+     * Eval an MCP URI handling it as appropriate by the component (i.e.: read a file, GET a static web page, etc.)
+     * @param arguments the resource request arguments
+     * @param mcpResource the resource to eval
+     * @return Returns the data read by the proxy.
+     */
+    List<ResourceContents> readAsync(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource);
 }

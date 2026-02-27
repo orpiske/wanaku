@@ -24,6 +24,7 @@ import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
  *
  * @see Resolver
  */
+@Deprecated
 public interface ResourceResolver extends Resolver {
 
     /**

@@ -1,6 +1,8 @@
 package ai.wanaku.backend.bridge;
 
 import java.util.Iterator;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
@@ -91,6 +93,26 @@ public interface WanakuBridgeTransport {
      * @throws WanakuException if the remote service returns an error
      */
     ResourceReply acquireResource(ResourceRequest request, ServiceTarget service);
+
+    /**
+     * Acquires a resource from a remote service.
+     * <p>
+     * This method sends a resource acquisition request to the specified service
+     * and returns the resource content. The request specifies which resource to
+     * acquire and may include references to provisioned configuration and secrets
+     * needed to access the resource.
+     *
+     * @param request the resource acquisition request containing resource details
+     * @param service the target service that provides the resource
+     * @throws ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException
+     *         if the service cannot be reached
+     * @throws WanakuException if the remote service returns an error
+     */
+    void acquireResourceAsync(
+            ResourceRequest request,
+            ServiceTarget service,
+            Executor executor,
+            Consumer<ResourceReply> resourceReplyConsumer);
 
     /**
      * Executes code on a remote code execution service via streaming.

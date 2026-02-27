@@ -3,7 +3,10 @@ package ai.wanaku.backend.bridge.transports.grpc;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.logging.Logger;
 import io.grpc.Deadline;
@@ -218,6 +221,7 @@ public class GrpcTransport implements WanakuBridgeTransport {
         try {
             ResourceAcquirerGrpc.ResourceAcquirerBlockingStub blockingStub =
                     ResourceAcquirerGrpc.newBlockingStub(channel);
+
             return blockingStub
                     .withDeadline(Deadline.after(deadlineSeconds, TimeUnit.SECONDS))
                     .resourceAcquire(request);
@@ -228,6 +232,58 @@ public class GrpcTransport implements WanakuBridgeTransport {
             throw new ServiceUnavailableException("Service is not available at the address " + service.toAddress(), e);
         } finally {
             channelManager.closeChannel(channel);
+        }
+    }
+
+    /**
+     * Acquires a resource from a remote service via gRPC.
+     * <p>
+     * This method creates a channel, builds a gRPC stub, and acquires the resource
+     * with the provided request. It handles connection errors and converts them
+     * to appropriate exceptions.
+     *
+     * @param request the resource acquisition request
+     * @param service the target service
+     * @return the resource reply from the remote service
+     * @throws ServiceUnavailableException if the service cannot be reached
+     * @throws WanakuException if the remote service returns an error
+     */
+    @Override
+    public void acquireResourceAsync(
+            ResourceRequest request,
+            ServiceTarget service,
+            Executor executor,
+            Consumer<ResourceReply> resourceReplyConsumer) {
+        LOG.debugf("Acquiring resource from service: %s", service.toAddress());
+
+        ManagedChannel channel = createChannel(service);
+        try {
+            ResourceAcquirerGrpc.ResourceAcquirerFutureStub blockingStub = ResourceAcquirerGrpc.newFutureStub(channel);
+
+            var future = blockingStub
+                    .withDeadline(Deadline.after(deadlineSeconds, TimeUnit.SECONDS))
+                    .resourceAcquire(request);
+            future.addListener(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            final ResourceReply resourceReply;
+                            try {
+                                resourceReply = future.get();
+                                resourceReplyConsumer.accept(resourceReply);
+                            } catch (InterruptedException | ExecutionException e) {
+                                throw new RuntimeException(e);
+                            } finally {
+                                channelManager.closeChannel(channel);
+                            }
+                        }
+                    },
+                    executor);
+        } catch (StatusRuntimeException e) {
+            throw mapStatusRuntimeException(e, service);
+        } catch (RuntimeException e) {
+            LOG.errorf(e, "Failed to acquire resource from service: %s", service.toAddress());
+            throw new ServiceUnavailableException("Service is not available at the address " + service.toAddress(), e);
         }
     }
 
