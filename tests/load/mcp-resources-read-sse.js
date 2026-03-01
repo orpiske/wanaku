@@ -1,11 +1,5 @@
 import mcp from 'k6/x/mcp';
 
-export const options = {
-    // iterations: 2000,
-    vus: 500,
-    duration: '30s',
-};
-
 export default function () {
     // Initialize MCP Client with stdio transport
     const client = new mcp.SSEClient({
