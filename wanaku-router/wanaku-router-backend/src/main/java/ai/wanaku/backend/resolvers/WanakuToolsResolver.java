@@ -9,15 +9,14 @@ import ai.wanaku.capabilities.sdk.api.types.ToolReference;
 import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
 import ai.wanaku.core.exchange.v1.PropertySchema;
 import ai.wanaku.core.mcp.common.Tool;
-import ai.wanaku.core.mcp.common.ToolAdapter;
 import ai.wanaku.core.mcp.common.resolvers.ToolsResolver;
 
 /**
- * Resolver for tools that uses a ToolsProxy to provide tool execution capabilities.
- * <p>
- * This resolver adapts the proxy's tool executor to the Tool interface using
- * the adapter pattern, maintaining separation between proxy and execution concerns.
+ * Resolver for tools that uses a ToolsBridge to provide tool execution capabilities.
+ *
+ * @deprecated Use {@link ToolsBridge} directly instead
  */
+@Deprecated
 public class WanakuToolsResolver implements ToolsResolver {
     private final ToolsBridge proxy;
 
@@ -27,7 +26,7 @@ public class WanakuToolsResolver implements ToolsResolver {
 
     @Override
     public Tool resolve(ToolReference toolReference) {
-        return new ToolAdapter(proxy.getExecutor());
+        return (toolArguments, ref) -> proxy.execute(toolArguments, ref);
     }
 
     @Override
