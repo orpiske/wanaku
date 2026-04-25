@@ -4,29 +4,32 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.concurrent.CompletionStage;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
+import io.quarkus.vertx.web.Body;
 import io.quarkus.vertx.web.Param;
 import io.quarkus.vertx.web.Route;
+import io.quarkus.vertx.web.RouteBase;
 import io.quarkus.vertx.web.RoutingExchange;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.ext.web.client.WebClient;
 
 @ApplicationScoped
+@RouteBase(path = "/api/v1/mcp")
 public class McpResource {
     private static final Logger LOG = Logger.getLogger(McpResource.class);
 
-    private final Vertx vertx;
-    private final WebClient client;
-
     @Inject
-    McpResource(Vertx vertx) {
-        this.vertx = vertx;
-        this.client = WebClient.create(vertx);
-    }
+    ManagedExecutor managedExecutor;
+
+    //    @Inject
+    //    McpResource(Vertx vertx) {
+    //        this.vertx = vertx;
+    //        this.client = WebClient.create(vertx);
+    //    }
 
     private JsonObject handleBody(JsonObject body) {
         LOG.infof("Calling %s", body);
@@ -50,7 +53,7 @@ public class McpResource {
         return ret.toString();
     }
 
-    @Route(path = "/api/v1/mcp/route/:name", methods = Route.HttpMethod.GET)
+    @Route(path = "/route/:name", methods = Route.HttpMethod.GET)
     public void get(@Param String name, RoutingExchange ex) {
         LOG.infof("Looking for route %s", name);
         HttpServerRequest request = ex.request();
@@ -64,5 +67,20 @@ public class McpResource {
                 .thenAccept(b -> response.setStatusCode(200)
                         .putHeader("Content-Type", "text/event-stream")
                         .end((b)));
+    }
+
+    @Route(path = "/route/:name", methods = Route.HttpMethod.POST)
+    public Uni<JsonObject> initialize(@Body String body, @Param String name, RoutingExchange ex) {
+        LOG.infof("Looking for route %s with data %s", name, body);
+
+        //        HttpServerResponse response = ex.response();
+
+        return Uni.createFrom()
+                .item(new JsonObject(body))
+                //                .emitOn(Infrastructure.getDefaultExecutor())
+                .invoke(this::handleBody)
+                .invoke(this::toBody)
+                .invoke(res ->
+                        ex.ok().putHeader("Content-Type", "text/event-stream").end(res.toString()));
     }
 }
