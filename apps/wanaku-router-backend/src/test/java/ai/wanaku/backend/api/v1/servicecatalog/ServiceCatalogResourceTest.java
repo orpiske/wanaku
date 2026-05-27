@@ -166,6 +166,47 @@ class ServiceCatalogResourceTest {
         assertThrows(DataStoreResourceNotFoundException.class, () -> resource.remove(null));
     }
 
+    @Test
+    void testGetRouteFound() {
+        when(serviceCatalogBean.getRouteContent("testservice", "sys1")).thenReturn("# Routes for sys1");
+
+        String content = resource.getRoute("testservice", "sys1");
+        assertEquals("# Routes for sys1", content);
+        verify(serviceCatalogBean).getRouteContent("testservice", "sys1");
+    }
+
+    @Test
+    void testGetRouteNotFoundCatalog() {
+        when(serviceCatalogBean.getRouteContent("nonexistent", "sys1"))
+                .thenThrow(new WanakuException("Service catalog not found: nonexistent"));
+        assertThrows(WanakuException.class, () -> resource.getRoute("nonexistent", "sys1"));
+    }
+
+    @Test
+    void testGetRouteNotFoundSystem() {
+        when(serviceCatalogBean.getRouteContent("testservice", "nosys"))
+                .thenThrow(new WanakuException("System not found in catalog: nosys"));
+        assertThrows(WanakuException.class, () -> resource.getRoute("testservice", "nosys"));
+    }
+
+    @Test
+    void testUpdateRouteSuccess() {
+        String newContent = "- route:\n    from: timer:tick";
+        WanakuResponse<Void> response = resource.updateRoute("testservice", "sys1", newContent);
+        assertNotNull(response);
+        assertNull(response.data());
+        verify(serviceCatalogBean).updateRouteContent("testservice", "sys1", newContent);
+    }
+
+    @Test
+    void testUpdateRouteNotFoundCatalog() {
+        String newContent = "- route:\n    from: timer:tick";
+        org.mockito.Mockito.doThrow(new WanakuException("Service catalog not found: nonexistent"))
+                .when(serviceCatalogBean)
+                .updateRouteContent("nonexistent", "sys1", newContent);
+        assertThrows(WanakuException.class, () -> resource.updateRoute("nonexistent", "sys1", newContent));
+    }
+
     // Helper
 
     private String createTestZipBase64(String name, String description, String... systems) {

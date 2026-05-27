@@ -92,6 +92,34 @@ export const useServiceCatalog = () => {
     []
   );
 
+  const getRouteYaml = useCallback(
+    (name: string, system: string, options?: RequestInit) => {
+      return customFetch<{ data: unknown; status: number; headers: Headers }>(
+        `${BASE_PATH}/${encodeURIComponent(name)}/route/${encodeURIComponent(system)}`,
+        {
+          ...options,
+          method: "GET",
+        }
+      );
+    },
+    []
+  );
+
+  const updateRouteYaml = useCallback(
+    (name: string, system: string, yaml: string, options?: RequestInit) => {
+      return customFetch<{ data: unknown; status: number; headers: Headers }>(
+        `${BASE_PATH}/${encodeURIComponent(name)}/route/${encodeURIComponent(system)}`,
+        {
+          ...options,
+          method: "PUT",
+          headers: { "Content-Type": "text/plain", ...options?.headers },
+          body: yaml,
+        }
+      );
+    },
+    []
+  );
+
   return {
     listServiceCatalogs,
     getServiceCatalog,
@@ -99,5 +127,7 @@ export const useServiceCatalog = () => {
     deployServiceCatalog,
     removeServiceCatalog,
     getDeploymentInstructions,
+    getRouteYaml,
+    updateRouteYaml,
   };
 };

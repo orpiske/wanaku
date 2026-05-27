@@ -2042,6 +2042,81 @@ export const getApiV1ServiceCatalogName = async (
 };
 
 /**
+ * @summary Update Route
+ */
+export type putApiV1ServiceCatalogNameRouteSystemResponse200 = {
+  data: WanakuResponseVoid;
+  status: 200;
+};
+
+export type putApiV1ServiceCatalogNameRouteSystemResponseSuccess =
+  putApiV1ServiceCatalogNameRouteSystemResponse200 & {
+    headers: Headers;
+  };
+export type putApiV1ServiceCatalogNameRouteSystemResponse =
+  putApiV1ServiceCatalogNameRouteSystemResponseSuccess;
+
+export const getPutApiV1ServiceCatalogNameRouteSystemUrl = (
+  name: string,
+  system: string,
+) => {
+  return `/api/v1/service-catalog/${name}/route/${system}`;
+};
+
+export const putApiV1ServiceCatalogNameRouteSystem = async (
+  name: string,
+  system: string,
+  putApiV1ServiceCatalogNameRouteSystemBody: string,
+  options?: RequestInit,
+): Promise<putApiV1ServiceCatalogNameRouteSystemResponse> => {
+  return customFetch<putApiV1ServiceCatalogNameRouteSystemResponse>(
+    getPutApiV1ServiceCatalogNameRouteSystemUrl(name, system),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "text/yaml", ...options?.headers },
+      body: JSON.stringify(putApiV1ServiceCatalogNameRouteSystemBody),
+    },
+  );
+};
+
+/**
+ * @summary Get Route
+ */
+export type getApiV1ServiceCatalogNameRouteSystemResponse200 = {
+  data: string;
+  status: 200;
+};
+
+export type getApiV1ServiceCatalogNameRouteSystemResponseSuccess =
+  getApiV1ServiceCatalogNameRouteSystemResponse200 & {
+    headers: Headers;
+  };
+export type getApiV1ServiceCatalogNameRouteSystemResponse =
+  getApiV1ServiceCatalogNameRouteSystemResponseSuccess;
+
+export const getGetApiV1ServiceCatalogNameRouteSystemUrl = (
+  name: string,
+  system: string,
+) => {
+  return `/api/v1/service-catalog/${name}/route/${system}`;
+};
+
+export const getApiV1ServiceCatalogNameRouteSystem = async (
+  name: string,
+  system: string,
+  options?: RequestInit,
+): Promise<getApiV1ServiceCatalogNameRouteSystemResponse> => {
+  return customFetch<getApiV1ServiceCatalogNameRouteSystemResponse>(
+    getGetApiV1ServiceCatalogNameRouteSystemUrl(name, system),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+/**
  * @summary Deploy
  */
 export type postApiV1ServiceTemplateDeployResponse200 = {

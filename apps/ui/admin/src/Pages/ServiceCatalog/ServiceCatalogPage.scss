@@ -1,12 +1,19 @@
 .service-catalog-page {
   padding: 1rem;
 
+  .service-catalog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
   .title {
     margin-bottom: 0.5rem;
   }
 
   .description {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     color: var(--cds-text-secondary, #525252);
   }
 }
@@ -136,6 +143,13 @@
     &:last-child {
       margin-bottom: 0;
     }
+  }
+
+  .catalog-system-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
   }
 
   .catalog-system-name {
@@ -270,4 +284,15 @@
 
 .deployment-wizard-snippet {
   max-width: 100%;
+}
+
+.kaoto-editor-modal {
+  .cds--modal-container {
+    max-width: 95vw;
+    width: 95vw;
+  }
+
+  .cds--modal-content {
+    padding: 0;
+  }
 }

@@ -2,9 +2,11 @@ package ai.wanaku.backend.api.v1.servicecatalog;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -195,5 +197,40 @@ public class ServiceCatalogResource {
 
         DeploymentInstructions instructions = deploymentInstructionsBean.generateInstructions(name, model);
         return new WanakuResponse<>(instructions);
+    }
+
+    /**
+     * Get the raw Camel YAML route content for a specific system within a catalog.
+     * GET /api/v1/service-catalog/{name}/route/{system}
+     *
+     * @param name the catalog name
+     * @param system the system identifier within the catalog
+     * @return the route file content as plain text
+     */
+    @Path("/{name}/route/{system}")
+    @GET
+    @Produces({"text/yaml", MediaType.TEXT_PLAIN})
+    public String getRoute(@PathParam("name") String name, @PathParam("system") String system) {
+        LOG.debugf("REST: Getting route for system '%s' in catalog '%s'", system, name);
+        return serviceCatalogBean.getRouteContent(name, system);
+    }
+
+    /**
+     * Update the route file content for a specific system within a catalog.
+     * PUT /api/v1/service-catalog/{name}/route/{system}
+     *
+     * @param name the catalog name
+     * @param system the system identifier within the catalog
+     * @param content the new Camel YAML route content
+     * @return empty response on success
+     */
+    @Path("/{name}/route/{system}")
+    @PUT
+    @Consumes({"text/yaml", MediaType.TEXT_PLAIN})
+    public WanakuResponse<Void> updateRoute(
+            @PathParam("name") String name, @PathParam("system") String system, String content) {
+        LOG.debugf("REST: Updating route for system '%s' in catalog '%s'", system, name);
+        serviceCatalogBean.updateRouteContent(name, system, content);
+        return new WanakuResponse<>();
     }
 }

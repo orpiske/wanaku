@@ -1662,6 +1662,63 @@ paths:
       summary: Get
       tags:
       - Service Catalog Resource
+  /api/v1/service-catalog/{name}/route/{system}:
+    put:
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: system
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          text/yaml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WanakuResponseVoid"
+      summary: Update Route
+      tags:
+      - Service Catalog Resource
+    get:
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: system
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/yaml:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+      summary: Get Route
+      tags:
+      - Service Catalog Resource
   /api/v1/service-template/deploy:
     post:
       requestBody:

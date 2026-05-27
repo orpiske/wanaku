@@ -1,8 +1,10 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Tab, TabList, TabPanel, TabPanels, Tabs, ToastNotification} from "@carbon/react";
+import {Button, Tab, TabList, TabPanel, TabPanels, Tabs, ToastNotification} from "@carbon/react";
+import {Add} from "@carbon/icons-react";
 import {ServiceCatalogCards} from "./ServiceCatalogCards";
 import {ServiceTemplateCards} from "./ServiceTemplateCards";
 import {ToolsetReposTab} from "./ToolsetReposTab";
+import {KaotoEditorModal} from "../../components/KaotoEditorModal";
 import {useServiceCatalog} from "../../hooks/api/use-service-catalog";
 import {useServiceTemplate} from "../../hooks/api/use-service-template";
 import "./ServiceCatalogPage.scss";
@@ -46,7 +48,8 @@ export const ServiceCatalogPage: React.FC = () => {
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const { listServiceCatalogs, getServiceCatalog, removeServiceCatalog } = useServiceCatalog();
+  const [createEditorOpen, setCreateEditorOpen] = useState(false);
+  const { listServiceCatalogs, getServiceCatalog, removeServiceCatalog, getRouteYaml, updateRouteYaml } = useServiceCatalog();
   const { listServiceTemplates } = useServiceTemplate();
 
   const fetchCatalogs = useCallback(
@@ -135,6 +138,33 @@ export const ServiceCatalogPage: React.FC = () => {
     fetchCatalogs();
   };
 
+  const handleGetRouteYaml = async (name: string, system: string): Promise<string> => {
+    try {
+      const result = await getRouteYaml(name, system);
+      const body = result.data as { data: string };
+      return body.data;
+    } catch (error) {
+      console.error("Error fetching route YAML:", error);
+      throw error;
+    }
+  };
+
+  const handleUpdateRouteYaml = async (name: string, system: string, yaml: string): Promise<void> => {
+    try {
+      await updateRouteYaml(name, system, yaml);
+      setSuccessMessage(`Route updated successfully for ${system}`);
+    } catch (error) {
+      console.error("Error updating route YAML:", error);
+      setErrorMessage(`Failed to update route for ${system}`);
+      throw error;
+    }
+  };
+
+  const handleCreateCatalog = (_yaml: string) => {
+    setSuccessMessage("Route designed successfully. Use the CLI to package and deploy it as a catalog.");
+    setCreateEditorOpen(false);
+  };
+
   return (
     <div className="service-catalog-page">
       {errorMessage && (
@@ -157,10 +187,21 @@ export const ServiceCatalogPage: React.FC = () => {
           style={{ float: "right" }}
         />
       )}
-      <h1 className="title">Service Catalog</h1>
-      <p className="description">
-        View and manage deployed service catalogs, service templates, and remote toolset repositories.
-      </p>
+      <div className="service-catalog-header">
+        <div>
+          <h1 className="title">Service Catalog</h1>
+          <p className="description">
+            View and manage deployed service catalogs, service templates, and remote toolset repositories.
+          </p>
+        </div>
+        <Button
+          kind="primary"
+          renderIcon={Add}
+          onClick={() => setCreateEditorOpen(true)}
+        >
+          Create Catalog
+        </Button>
+      </div>
       <Tabs>
         <TabList aria-label="Service catalog tabs">
           <Tab>Service Catalogs</Tab>
@@ -177,6 +218,8 @@ export const ServiceCatalogPage: React.FC = () => {
                 onDelete={handleDelete}
                 onSearch={handleSearch}
                 getDetail={handleGetDetail}
+                getRouteYaml={handleGetRouteYaml}
+                updateRouteYaml={handleUpdateRouteYaml}
               />
             )}
           </TabPanel>
@@ -199,6 +242,15 @@ export const ServiceCatalogPage: React.FC = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
+
+      {createEditorOpen && (
+        <KaotoEditorModal
+          open={createEditorOpen}
+          yaml=""
+          onSave={handleCreateCatalog}
+          onClose={() => setCreateEditorOpen(false)}
+        />
+      )}
     </div>
   );
 };

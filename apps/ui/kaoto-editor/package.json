@@ -1,0 +1,38 @@
+{
+  "name": "kaoto-editor",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node copy-catalog.mjs",
+    "build": "node copy-catalog.mjs && tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@kaoto/camel-catalog": "^0.4.4",
+    "@kaoto/kaoto": "2.11.0-RC2",
+    "@patternfly/patternfly": "^6.4.0",
+    "@patternfly/react-code-editor": "^6.4.0",
+    "@patternfly/react-core": "^6.4.0",
+    "@patternfly/react-drag-drop": "^6.4.3",
+    "@patternfly/react-icons": "^6.4.0",
+    "@patternfly/react-table": "^6.4.0",
+    "@patternfly/react-topology": "^6.4.0",
+    "monaco-editor": "^0.55.1",
+    "monaco-yaml": "^5.1.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-monaco-editor": "^0.56.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "sass-embedded": "^1.100.0",
+    "typescript": "~5.7.3",
+    "vite": "^6.4.1"
+  },
+  "packageManager": "yarn@1.22.22"
+}

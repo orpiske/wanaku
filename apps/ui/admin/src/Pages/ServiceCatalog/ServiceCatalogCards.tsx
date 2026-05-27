@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import {Button, Column, Grid, Modal, Search, Tag, Tile} from "@carbon/react";
-import {ChevronDown, ChevronUp, Rocket, TrashCan} from "@carbon/icons-react";
+import {ChevronDown, ChevronUp, Edit, Rocket, TrashCan} from "@carbon/icons-react";
 import {DeploymentWizard} from "./DeploymentWizard";
+import {KaotoEditorModal} from "../../components/KaotoEditorModal";
 import "./ServiceCatalogPage.scss";
 
 interface ServiceCatalogSystem {
@@ -32,6 +33,8 @@ interface ServiceCatalogCardsProps {
   onDelete: (name: string) => void;
   onSearch: (search: string) => void;
   getDetail: (name: string) => Promise<ServiceCatalogDetail | null>;
+  getRouteYaml: (name: string, system: string) => Promise<string>;
+  updateRouteYaml: (name: string, system: string, yaml: string) => Promise<void>;
 }
 
 export const ServiceCatalogCards: React.FC<ServiceCatalogCardsProps> = ({
@@ -39,11 +42,16 @@ export const ServiceCatalogCards: React.FC<ServiceCatalogCardsProps> = ({
   onDelete,
   onSearch,
   getDetail,
+  getRouteYaml,
+  updateRouteYaml,
 }) => {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deployTarget, setDeployTarget] = useState<string | null>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, ServiceCatalogDetail>>({});
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorYaml, setEditorYaml] = useState<string>("");
+  const [editorContext, setEditorContext] = useState<{ name: string; system: string } | null>(null);
 
   const handleToggleExpand = async (name: string) => {
     if (expandedCard === name) {
@@ -56,6 +64,20 @@ export const ServiceCatalogCards: React.FC<ServiceCatalogCardsProps> = ({
       if (detail) {
         setExpandedDetails((prev) => ({ ...prev, [name]: detail }));
       }
+    }
+  };
+
+  const handleEditRoute = async (catalogName: string, systemName: string) => {
+    const yaml = await getRouteYaml(catalogName, systemName);
+    setEditorYaml(yaml);
+    setEditorContext({ name: catalogName, system: systemName });
+    setEditorOpen(true);
+  };
+
+  const handleSaveRoute = async (yaml: string) => {
+    if (editorContext) {
+      await updateRouteYaml(editorContext.name, editorContext.system, yaml);
+      setEditorContext(null);
     }
   };
 
@@ -144,7 +166,21 @@ export const ServiceCatalogCards: React.FC<ServiceCatalogCardsProps> = ({
                       {detail ? (
                         detail.services.map((system) => (
                           <div key={system.name} className="catalog-system">
-                            <strong className="catalog-system-name">{system.name}</strong>
+                            <div className="catalog-system-header">
+                              <strong className="catalog-system-name">{system.name}</strong>
+                              <Button
+                                kind="ghost"
+                                size="sm"
+                                renderIcon={Edit}
+                                iconDescription="Edit Route"
+                                onClick={(e: React.MouseEvent) => {
+                                  e.stopPropagation();
+                                  handleEditRoute(catalog.name, system.name);
+                                }}
+                              >
+                                Edit Route
+                              </Button>
+                            </div>
                             <ul className="catalog-system-files">
                               <li>Routes: <code>{system.routesFile}</code></li>
                               <li>Rules: <code>{system.rulesFile}</code></li>
@@ -187,6 +223,18 @@ export const ServiceCatalogCards: React.FC<ServiceCatalogCardsProps> = ({
         <DeploymentWizard
           catalogName={deployTarget}
           onClose={() => setDeployTarget(null)}
+        />
+      )}
+
+      {editorOpen && (
+        <KaotoEditorModal
+          open={editorOpen}
+          yaml={editorYaml}
+          onSave={handleSaveRoute}
+          onClose={() => {
+            setEditorOpen(false);
+            setEditorContext(null);
+          }}
         />
       )}
     </>

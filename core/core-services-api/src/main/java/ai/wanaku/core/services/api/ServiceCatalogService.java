@@ -4,6 +4,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -95,4 +96,30 @@ public interface ServiceCatalogService {
     @Produces(MediaType.APPLICATION_JSON)
     WanakuResponse<DeploymentInstructions> getDeploymentInstructions(
             @QueryParam("name") String name, @QueryParam("model") String model);
+
+    /**
+     * Get the raw Camel YAML route content for a specific system within a catalog.
+     *
+     * @param name the catalog name
+     * @param system the system identifier within the catalog
+     * @return the route file content as plain text
+     */
+    @Path("/{name}/route/{system}")
+    @GET
+    @Produces({"text/yaml", MediaType.TEXT_PLAIN})
+    String getRoute(@PathParam("name") String name, @PathParam("system") String system);
+
+    /**
+     * Update the route file content for a specific system within a catalog.
+     *
+     * @param name the catalog name
+     * @param system the system identifier within the catalog
+     * @param content the new Camel YAML route content
+     * @return empty response on success
+     */
+    @Path("/{name}/route/{system}")
+    @PUT
+    @Consumes({"text/yaml", MediaType.TEXT_PLAIN})
+    WanakuResponse<Void> updateRoute(
+            @PathParam("name") String name, @PathParam("system") String system, String content);
 }

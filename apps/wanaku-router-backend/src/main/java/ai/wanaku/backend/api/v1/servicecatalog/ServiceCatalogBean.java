@@ -5,10 +5,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.jboss.logging.Logger;
 import ai.wanaku.backend.core.persistence.api.DataStoreRepository;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
@@ -152,6 +160,98 @@ public class ServiceCatalogBean {
      */
     public ServiceCatalogIndex parseIndex(DataStore dataStore) throws WanakuException {
         return ServiceCatalogIndex.fromBase64(dataStore.getData());
+    }
+
+    /**
+     * Extract the raw Camel YAML route content for a specific system from a catalog ZIP.
+     *
+     * @param name the catalog name
+     * @param system the system identifier
+     * @return the route file content as a string
+     * @throws WanakuException if the catalog, system, or route file is not found
+     */
+    public String getRouteContent(String name, String system) throws WanakuException {
+        DataStore catalog = get(name);
+        if (catalog == null) {
+            throw new WanakuException("Service catalog not found: " + name);
+        }
+
+        ServiceCatalogIndex index = ServiceCatalogIndex.fromBase64(catalog.getData());
+        String routePath = index.getRoutesFile(system);
+        if (routePath == null) {
+            throw new WanakuException("System not found in catalog: " + system);
+        }
+
+        byte[] zipBytes = Base64.getDecoder().decode(catalog.getData());
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (routePath.equals(entry.getName())) {
+                    return new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+                }
+                zis.closeEntry();
+            }
+        } catch (IOException e) {
+            throw new WanakuException("Failed to read ZIP archive: " + e.getMessage());
+        }
+
+        throw new WanakuException("Route file not found in archive: " + routePath);
+    }
+
+    /**
+     * Replace the route file content for a specific system in a catalog ZIP and persist the update.
+     *
+     * @param name the catalog name
+     * @param system the system identifier
+     * @param content the new route file content
+     * @throws WanakuException if the catalog, system, or route file is not found
+     */
+    public void updateRouteContent(String name, String system, String content) throws WanakuException {
+        DataStore catalog = get(name);
+        if (catalog == null) {
+            throw new WanakuException("Service catalog not found: " + name);
+        }
+
+        ServiceCatalogIndex index = ServiceCatalogIndex.fromBase64(catalog.getData());
+        String routePath = index.getRoutesFile(system);
+        if (routePath == null) {
+            throw new WanakuException("System not found in catalog: " + system);
+        }
+
+        byte[] zipBytes = Base64.getDecoder().decode(catalog.getData());
+        byte[] updatedZip = replaceZipEntry(zipBytes, routePath, content.getBytes(StandardCharsets.UTF_8));
+
+        catalog.setData(Base64.getEncoder().encodeToString(updatedZip));
+        dataStoreRepository.update(catalog.getId(), catalog);
+    }
+
+    private byte[] replaceZipEntry(byte[] zipBytes, String targetEntry, byte[] newContent) throws WanakuException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        boolean replaced = false;
+
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes));
+                ZipOutputStream zos = new ZipOutputStream(baos)) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                zos.putNextEntry(new ZipEntry(entry.getName()));
+                if (targetEntry.equals(entry.getName())) {
+                    zos.write(newContent);
+                    replaced = true;
+                } else {
+                    zis.transferTo(zos);
+                }
+                zos.closeEntry();
+                zis.closeEntry();
+            }
+        } catch (IOException e) {
+            throw new WanakuException("Failed to repackage ZIP archive: " + e.getMessage());
+        }
+
+        if (!replaced) {
+            throw new WanakuException("Route file not found in archive: " + targetEntry);
+        }
+
+        return baos.toByteArray();
     }
 
     private boolean matchesSearch(DataStore ds, String lowerSearch) {
