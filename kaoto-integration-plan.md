@@ -144,7 +144,19 @@ Still uninvestigated. When editing templates (not catalogs), route YAML contains
 - Escape: use a different syntax during editing
 - Ignore: let the editor show them as-is (may trigger validation warnings)
 
-### Hurdle 6: Static file serving — Quinoa only supports one UI
+### Hurdle 6: Infinite loop in RouteVisualization (React error #185)
+
+Kaoto's `RouteVisualization` component (the official external embedding API) has an infinite render loop bug present in both v2.10.0 and v2.11.0-RC2. The internal `VisibleFlowsVisualization` component calls `visualFlowsApi.showFlows()` inside a `useEffect` that depends on `visibleFlows`. The `showFlows` reducer always creates a new object reference via `Object.keys(state).reduce(...)`, so `visibleFlows` reference changes on every call, re-triggering the effect → infinite loop → React error #185 ("Maximum update depth exceeded"). Kaoto's `ErrorBoundary` catches this and shows the `CanvasFallback` message: "The provided source code cannot be shown."
+
+**Resolution:** Replaced `RouteVisualization` with a custom provider stack that reproduces the same component hierarchy (`EntitiesProvider` → `ReloadProvider` → `RuntimeProvider` → `SchemasLoaderProvider` → `CatalogLoaderProvider` → `VisualizationProvider` → `VisibleFlowsProvider`) but uses a fixed `StableFlowsVisualization` component that calls `showFlows()` only once via a ref guard. Required importing internal (non-public-API) modules via Vite `resolve.alias` to bypass the `exports` map, with ambient type declarations in `vite-env.d.ts`.
+
+### Hurdle 7: Kaoto canvas not filling available space
+
+The Kaoto canvas rendered at a very small size inside the iframe. The PatternFly topology components (`.canvas-surface`, `.canvas-page`, `.pf-topology-container`) need explicit height from their parent chain. Additionally, the Carbon `ComposedModal` has a `max-height` constraint that limited the iframe.
+
+**Resolution:** Added `kaoto-fullscreen.css` to set `height: 100%` on `html, body, #root, .canvas-surface, .canvas-page, .pf-topology-container`. Set `body { margin: 0; overflow: hidden; }` in `index.html`. Overrode Carbon modal CSS (`.cds--modal-container { height: 95vh; max-height: 95vh }`, `.cds--modal-content { flex: 1; max-height: none }`) to make the modal near-fullscreen.
+
+### Hurdle 8: Static file serving — Quinoa only supports one UI
 
 The admin UI is served via **Quarkus Quinoa** (`quarkus.quinoa.ui-dir=../ui/admin`), which only supports a single UI directory per application. The Kaoto wrapper cannot be served the same way.
 
