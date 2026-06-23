@@ -72,6 +72,8 @@ spec:
               value: "__ADMIN_PASS__"
           args:
             - "start-dev"
+            - "--hostname-backchannel-dynamic"
+            - "true"
           volumeMounts:
             - name: keycloak-data
               mountPath: /opt/keycloak/data
