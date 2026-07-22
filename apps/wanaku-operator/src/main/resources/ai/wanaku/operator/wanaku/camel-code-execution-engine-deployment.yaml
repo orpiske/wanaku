@@ -30,6 +30,12 @@ spec:
             periodSeconds: 10
             tcpSocket:
               port: 9190
+          startupProbe:
+            tcpSocket:
+              port: 9190
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 5
