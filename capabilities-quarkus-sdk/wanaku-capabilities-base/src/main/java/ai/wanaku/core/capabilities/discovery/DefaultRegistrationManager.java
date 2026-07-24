@@ -47,6 +47,7 @@ public class DefaultRegistrationManager implements RegistrationManager {
     private final DiscoveryService service;
     private ServiceTarget target;
     private int retries;
+    private final int maxRetries;
     private final int waitSeconds;
     private final InstanceDataManager instanceDataManager;
     private volatile boolean registered;
@@ -68,7 +69,8 @@ public class DefaultRegistrationManager implements RegistrationManager {
         this.target = Objects.requireNonNull(target);
 
         // the number of registration retry attempts before giving up
-        this.retries = config.registration().retries();
+        this.maxRetries = config.registration().retries();
+        this.retries = this.maxRetries;
 
         // the number of seconds to wait between retry attempts
         this.waitSeconds = config.registration().retryWaitSeconds();
@@ -157,21 +159,51 @@ public class DefaultRegistrationManager implements RegistrationManager {
 
     @Override
     public void register() {
-        if (!isRegistered()) {
-            LOG.debugf(
-                    "Registering %s service %s with address %s",
-                    target.getServiceType(), target.getServiceName(), target.toAddress());
-            try {
-                if (!lock.tryLock(1, TimeUnit.SECONDS)) {
-                    LOG.warnf("Could not obtain a registration lock in 1 second. Giving up ...");
-                    return;
-                }
-                tryRegistering();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                lock.unlock();
+        if (isRegistered()) {
+            sendHeartbeat();
+            return;
+        }
+        LOG.debugf(
+                "Registering %s service %s with address %s",
+                target.getServiceType(), target.getServiceName(), target.toAddress());
+        try {
+            if (!lock.tryLock(1, TimeUnit.SECONDS)) {
+                LOG.warnf("Could not obtain a registration lock in 1 second. Giving up ...");
+                return;
             }
+            tryRegistering();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Sends a heartbeat to the router by re-registering the service target.
+     * <p>
+     * Since the router's register operation is idempotent (upsert), calling it
+     * periodically ensures the capability stays registered even after a router
+     * restart. If the call fails (e.g., the router is down), the {@code registered}
+     * flag is reset so the next periodic {@link #register()} call will perform
+     * a full registration with retry logic.
+     */
+    private void sendHeartbeat() {
+        if (target == null || target.getId() == null) {
+            return;
+        }
+        try {
+            final WanakuResponse<ServiceTarget> response = service.register(target);
+            if (response != null && response.data() != null) {
+                target = response.data();
+                instanceDataManager.writeEntry(target);
+            }
+        } catch (Exception e) {
+            LOG.warnf(
+                    "Heartbeat failed for service %s: %s. Will re-register on next attempt.",
+                    target.getServiceName(), e.getMessage());
+            registered = false;
+            retries = maxRetries;
         }
     }
 
