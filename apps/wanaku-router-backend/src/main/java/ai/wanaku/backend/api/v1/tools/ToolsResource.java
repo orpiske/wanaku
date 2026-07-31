@@ -14,13 +14,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
-import ai.wanaku.backend.api.v1.common.PayloadValidator;
 import ai.wanaku.backend.api.v1.forwards.ForwardsBean;
 import ai.wanaku.capabilities.sdk.api.exceptions.ToolNotFoundException;
-import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
-import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
 import ai.wanaku.core.util.CollectionsHelper;
 import ai.wanaku.core.util.StringHelper;
 
@@ -54,27 +51,6 @@ public class ToolsResource {
      */
     @POST
     public WanakuResponse<ToolReference> add(ToolReference resource) {
-        var ret = toolsBean.add(resource);
-        return new WanakuResponse<>(ret);
-    }
-
-    /**
-     * Registers a new tool capability with provisioning payload.
-     * <p>
-     * This endpoint accepts a tool reference along with configuration and secrets
-     * data, enabling complete provisioning of the tool capability.
-     *
-     * @param resource the tool payload containing the tool reference and provisioning data
-     * @return a response containing the registered tool reference
-     */
-    @Path("/payloads")
-    @POST
-    public WanakuResponse<ToolReference> addWithPayload(ToolPayload resource) {
-        PayloadValidator.validate(resource);
-        if (resource.getPayload() instanceof ToolReference toolReference
-                && StringHelper.isEmpty(toolReference.getName())) {
-            throw new WanakuException("The 'payload.name' is required for this request");
-        }
         var ret = toolsBean.add(resource);
         return new WanakuResponse<>(ret);
     }

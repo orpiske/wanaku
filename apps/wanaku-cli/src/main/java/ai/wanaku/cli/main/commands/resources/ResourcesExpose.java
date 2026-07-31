@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.jline.terminal.Terminal;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
-import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import ai.wanaku.cli.main.commands.BaseCommand;
-import ai.wanaku.cli.main.support.FileHelper;
 import ai.wanaku.cli.main.support.NamespaceOptions;
 import ai.wanaku.cli.main.support.WanakuPrinter;
 import ai.wanaku.core.services.api.NamespacesService;
@@ -28,8 +26,6 @@ import static ai.wanaku.cli.main.support.ResponseHelper.commonResponseErrorHandl
  * <li>Resource metadata (name, namespace, description, location, type)</li>
  * <li>MIME type for content identification</li>
  * <li>Parameters for resource-specific configuration</li>
- * <li>Configuration data from external files</li>
- * <li>Secrets data for secure credential storage</li>
  * <li>Labels for organization and filtering</li>
  * </ul>
  * <p>
@@ -93,18 +89,6 @@ public class ResourcesExpose extends BaseCommand {
     private List<String> params;
 
     @CommandLine.Option(
-            names = {"--configuration-from-file"},
-            description = "Configure the capability provider using the given file",
-            arity = "0..1")
-    private String configurationFromFile;
-
-    @CommandLine.Option(
-            names = {"--secrets-from-file"},
-            description = "Add the given secrets to the capability provider using the given file",
-            arity = "0..1")
-    private String secretsFromFile;
-
-    @CommandLine.Option(
             names = {"-l", "--label"},
             description = "Label key-value pair (e.g., '--label env=production --label tier=backend')",
             arity = "0..*")
@@ -127,12 +111,6 @@ public class ResourcesExpose extends BaseCommand {
         resource.setNamespace(namespaceName);
         resource.setLabels(labels);
 
-        ResourcePayload resourcePayload = new ResourcePayload();
-        resourcePayload.setPayload(resource);
-
-        FileHelper.loadConfigurationSources(configurationFromFile, resourcePayload::setConfigurationData);
-        FileHelper.loadConfigurationSources(secretsFromFile, resourcePayload::setSecretsData);
-
         if (params != null) {
             List<ResourceReference.Param> paramsList = new ArrayList<>();
             for (String paramStr : params) {
@@ -150,7 +128,7 @@ public class ResourcesExpose extends BaseCommand {
         }
 
         try {
-            resourcesService.exposeWithPayload(resourcePayload);
+            resourcesService.expose(resource);
         } catch (WebApplicationException ex) {
             Response response = ex.getResponse();
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

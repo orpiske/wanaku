@@ -7,27 +7,19 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.util.List;
-import java.util.Map;
 import org.jboss.logging.Logger;
 import io.quarkiverse.mcp.server.ToolManager;
 import io.quarkus.runtime.StartupEvent;
-import ai.wanaku.backend.api.v1.common.ProvisioningHelper;
 import ai.wanaku.backend.api.v1.namespaces.NamespacesBean;
-import ai.wanaku.backend.bridge.ProvisionerBridge;
 import ai.wanaku.backend.bridge.ToolsBridge;
 import ai.wanaku.backend.common.LabelsAwareWanakuEntityBean;
 import ai.wanaku.backend.common.ToolsHelper;
 import ai.wanaku.backend.core.persistence.api.ToolReferenceRepository;
 import ai.wanaku.backend.core.persistence.api.WanakuRepository;
-import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.exceptions.EntityAlreadyExistsException;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.Namespace;
-import ai.wanaku.capabilities.sdk.api.types.Property;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
-import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
-import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
-import ai.wanaku.core.exchange.v1.PropertySchema;
 import ai.wanaku.core.util.StringHelper;
 
 @ApplicationScoped
@@ -39,9 +31,6 @@ public class ToolsBean extends LabelsAwareWanakuEntityBean<ToolReference> {
 
     @Inject
     ToolsBridge toolsBridge;
-
-    @Inject
-    ProvisionerBridge provisionerBridge;
 
     @Inject
     NamespacesBean namespacesBean;
@@ -62,52 +51,6 @@ public class ToolsBean extends LabelsAwareWanakuEntityBean<ToolReference> {
 
         // if all goes well, persist the tool, so it can be loaded back when restarting
         return toolReferenceRepository.persist(toolReference);
-    }
-
-    public ToolReference add(ToolPayload toolPayload) {
-        // First, provision the tool (i.e.: configuration, secrets, etc) in the target defined by the remote
-        provision(toolPayload);
-
-        return add(toolPayload.getPayload());
-    }
-
-    private void provision(ToolPayload toolPayload) {
-        ToolReference toolReference = toolPayload.getPayload();
-
-        final ProvisioningReference provisioningReference = ProvisioningHelper.provision(
-                provisionerBridge,
-                toolPayload,
-                toolReference.getName(),
-                toolReference.getType(),
-                ServiceType.TOOL_INVOKER.asValue(),
-                (configURI, secretsURI) -> {
-                    toolReference.setConfigurationURI(configURI);
-                    toolReference.setSecretsURI(secretsURI);
-                });
-
-        final Map<String, PropertySchema> serviceProperties = provisioningReference.properties();
-        if (serviceProperties != null
-                && !serviceProperties.isEmpty()
-                && toolReference.getInputSchema() != null
-                && toolReference.getInputSchema().getProperties() != null) {
-            final Map<String, Property> clientProperties =
-                    toolReference.getInputSchema().getProperties();
-            for (var serviceProperty : serviceProperties.entrySet()) {
-                clientProperties.computeIfAbsent(
-                        serviceProperty.getKey(), v -> toProperty(serviceProperty, serviceProperties));
-            }
-        }
-    }
-
-    private static Property toProperty(
-            Map.Entry<String, PropertySchema> serviceProperty, Map<String, PropertySchema> serviceProperties) {
-        PropertySchema schema = serviceProperties.get(serviceProperty.getKey());
-        Property property = new Property();
-
-        property.setDescription(schema.getDescription());
-        property.setType(schema.getType());
-
-        return property;
     }
 
     private void registerTool(ToolReference toolReference) {

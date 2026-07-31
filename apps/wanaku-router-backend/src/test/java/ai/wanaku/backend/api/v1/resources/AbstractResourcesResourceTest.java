@@ -11,7 +11,6 @@ import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import static ai.wanaku.core.util.support.ResourcesHelper.createResource;
 import static ai.wanaku.test.assertions.WanakuAssertions.assertHttpStatus;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -97,27 +96,5 @@ public abstract class AbstractResourcesResourceTest extends WanakuRouterTest {
                         is("image/jpeg"),
                         "data[0].location",
                         is("/tmp/resource1.jpg"));
-    }
-
-    @Order(5)
-    @Test
-    void testExposeWithPayloadRejectsMissingPayload() {
-        Response response = given().headers(getHeaders())
-                .body("{\"configurationData\":\"token=123\"}")
-                .when()
-                .post("/api/v1/resources/payloads");
-        assertHttpStatus(response, Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        response.then().body("error.message", containsString("The 'payload' is required for this request"));
-    }
-
-    @Order(6)
-    @Test
-    void testExposeWithPayloadRejectsMissingPayloadName() {
-        Response response = given().headers(getHeaders())
-                .body("{\"payload\":{\"location\":\"/tmp/nameless.txt\",\"type\":\"text/plain\"}}")
-                .when()
-                .post("/api/v1/resources/payloads");
-        assertHttpStatus(response, Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        response.then().body("error.message", containsString("The 'payload.name' is required for this request"));
     }
 }

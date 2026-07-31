@@ -154,7 +154,7 @@ public interface ResourceBridge extends Bridge {
 
 ### ProvisionBridge
 
-Contract for provisioning configuration and secrets.
+Contract for internal service resolution. The bridge infrastructure remains for resolving which capability service handles a given request. CLI-based provisioning (loading configuration and secret files when adding tools or resources) has been removed.
 
 ```java
 public interface ProvisionBridge {
@@ -971,28 +971,6 @@ enum ExecutionStatus {
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │ 8. Return Iterator<CodeExecutionReply>                          │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Provisioning Flow
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ 1. ProvisionerBridge.provision(name, configData, secretsData,   │
-│                                service)                         │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 2. GrpcTransport.provision(name, configData, secretsData, svc)  │
-│    ├─ Build Configuration protobuf                              │
-│    ├─ Build Secret protobuf                                     │
-│    ├─ Build ProvisionRequest                                    │
-│    ├─ ProvisionerGrpc.ProvisionerBlockingStub                   │
-│    └─ stub.provision(request) → ProvisionReply                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│ 3. Return ProvisioningReference(configUri, secretUri, props)    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

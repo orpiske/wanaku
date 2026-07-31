@@ -34,14 +34,11 @@ import type {
   Namespace,
   OutboundSseEvent,
   PostApiV1ToolsetReposBody,
-  PromptPayload,
   PromptReference,
   PutApiV1ToolsetReposNameBody,
-  ResourcePayload,
   ResourceReference,
   ServiceTarget,
   TemplateInstantiationRequest,
-  ToolPayload,
   ToolReference,
   WanakuResponseDataStore,
   WanakuResponseDeploymentInstructions,
@@ -1444,51 +1441,6 @@ export const postApiV1Prompts = async (
 };
 
 /**
- * @summary Add With Payload
- */
-export type postApiV1PromptsPayloadsResponse200 = {
-  data: WanakuResponsePromptReference;
-  status: 200;
-};
-
-export type postApiV1PromptsPayloadsResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1PromptsPayloadsResponseSuccess =
-  postApiV1PromptsPayloadsResponse200 & {
-    headers: Headers;
-  };
-export type postApiV1PromptsPayloadsResponseError =
-  postApiV1PromptsPayloadsResponse400 & {
-    headers: Headers;
-  };
-
-export type postApiV1PromptsPayloadsResponse =
-  | postApiV1PromptsPayloadsResponseSuccess
-  | postApiV1PromptsPayloadsResponseError;
-
-export const getPostApiV1PromptsPayloadsUrl = () => {
-  return `/api/v1/prompts/payloads`;
-};
-
-export const postApiV1PromptsPayloads = async (
-  promptPayload: PromptPayload,
-  options?: RequestInit,
-): Promise<postApiV1PromptsPayloadsResponse> => {
-  return customFetch<postApiV1PromptsPayloadsResponse>(
-    getPostApiV1PromptsPayloadsUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(promptPayload),
-    },
-  );
-};
-
-/**
  * @summary Remove
  */
 export type deleteApiV1PromptsNameResponse200 = {
@@ -1632,51 +1584,6 @@ export const postApiV1Resources = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(resourceReference),
   });
-};
-
-/**
- * @summary Expose With Payload
- */
-export type postApiV1ResourcesPayloadsResponse200 = {
-  data: WanakuResponseResourceReference;
-  status: 200;
-};
-
-export type postApiV1ResourcesPayloadsResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1ResourcesPayloadsResponseSuccess =
-  postApiV1ResourcesPayloadsResponse200 & {
-    headers: Headers;
-  };
-export type postApiV1ResourcesPayloadsResponseError =
-  postApiV1ResourcesPayloadsResponse400 & {
-    headers: Headers;
-  };
-
-export type postApiV1ResourcesPayloadsResponse =
-  | postApiV1ResourcesPayloadsResponseSuccess
-  | postApiV1ResourcesPayloadsResponseError;
-
-export const getPostApiV1ResourcesPayloadsUrl = () => {
-  return `/api/v1/resources/payloads`;
-};
-
-export const postApiV1ResourcesPayloads = async (
-  resourcePayload: ResourcePayload,
-  options?: RequestInit,
-): Promise<postApiV1ResourcesPayloadsResponse> => {
-  return customFetch<postApiV1ResourcesPayloadsResponse>(
-    getPostApiV1ResourcesPayloadsUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(resourcePayload),
-    },
-  );
 };
 
 /**
@@ -2472,51 +2379,6 @@ export const postApiV1Tools = async (
     headers: { "Content-Type": "application/json", ...options?.headers },
     body: JSON.stringify(toolReference),
   });
-};
-
-/**
- * @summary Add With Payload
- */
-export type postApiV1ToolsPayloadsResponse200 = {
-  data: WanakuResponseToolReference;
-  status: 200;
-};
-
-export type postApiV1ToolsPayloadsResponse400 = {
-  data: void;
-  status: 400;
-};
-
-export type postApiV1ToolsPayloadsResponseSuccess =
-  postApiV1ToolsPayloadsResponse200 & {
-    headers: Headers;
-  };
-export type postApiV1ToolsPayloadsResponseError =
-  postApiV1ToolsPayloadsResponse400 & {
-    headers: Headers;
-  };
-
-export type postApiV1ToolsPayloadsResponse =
-  | postApiV1ToolsPayloadsResponseSuccess
-  | postApiV1ToolsPayloadsResponseError;
-
-export const getPostApiV1ToolsPayloadsUrl = () => {
-  return `/api/v1/tools/payloads`;
-};
-
-export const postApiV1ToolsPayloads = async (
-  toolPayload: ToolPayload,
-  options?: RequestInit,
-): Promise<postApiV1ToolsPayloadsResponse> => {
-  return customFetch<postApiV1ToolsPayloadsResponse>(
-    getPostApiV1ToolsPayloadsUrl(),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...options?.headers },
-      body: JSON.stringify(toolPayload),
-    },
-  );
 };
 
 /**

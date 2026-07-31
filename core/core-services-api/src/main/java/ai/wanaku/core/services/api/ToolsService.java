@@ -14,7 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
-import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
 
 /**
  * JAX-RS service interface for managing tool capabilities in the Wanaku system.
@@ -38,21 +37,6 @@ public interface ToolsService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     WanakuResponse<ToolReference> add(ToolReference toolReference);
-
-    /**
-     * Registers a new tool capability with configuration and secrets payload.
-     * <p>
-     * This endpoint allows registering a tool along with its provisioning data,
-     * including configuration settings and secrets required for tool operation.
-     *
-     * @param resource the tool payload containing the tool reference and provisioning data
-     * @return a {@link WanakuResponse} containing the registered tool reference
-     */
-    @Path("/payloads")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    WanakuResponse<ToolReference> addWithPayload(ToolPayload resource);
 
     /**
      * Lists all registered tool capabilities.

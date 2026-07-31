@@ -19,7 +19,6 @@ import ai.wanaku.backend.core.persistence.api.WanakuRepository;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.Namespace;
 import ai.wanaku.capabilities.sdk.api.types.PromptReference;
-import ai.wanaku.capabilities.sdk.api.types.io.PromptPayload;
 import ai.wanaku.core.util.StringHelper;
 
 @ApplicationScoped
@@ -51,10 +50,6 @@ public class PromptsBean extends AbstractBean<PromptReference> {
 
         // if all goes well, persist the prompt, so it can be loaded back when restarting
         return promptReferenceRepository.persist(promptReference);
-    }
-
-    public PromptReference add(PromptPayload promptPayload) {
-        return add(promptPayload.getPayload());
     }
 
     private void registerPrompt(PromptReference promptReference) {

@@ -28,8 +28,6 @@ import static ai.wanaku.cli.main.support.ResponseHelper.commonResponseErrorHandl
  * <ul>
  *   <li>Tool metadata (name, namespace, description, URI, type)</li>
  *   <li>Input schema definition with properties and required fields</li>
- *   <li>Configuration data from external files</li>
- *   <li>Secrets data for secure credential storage</li>
  *   <li>Labels for organization and filtering</li>
  * </ul>
  * <p>

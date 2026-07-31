@@ -1330,43 +1330,6 @@ wanaku tools label remove -e 'status=deprecated' --label legacy
 > exactly the meaning of the URI, so make sure to check the capability service for details. Additionally, this is covered in more
 > details in the Creating URIs section below.
 
-#### Configuring the Capabilities
-
-Sometimes, specific configurations are required for the downstream services (capabilities) that a tool uses.
-This might include setting timeouts for operations or providing credentials to access a particular resource.
-
-In such scenarios, you can associate configuration and secret files directly with a tool.
-These files will be automatically used by the underlying capabilities each time the tool is invoked.
-
-Here's an example of how to add a tool and link it to configuration and secret files:
-
-```shell
-wanaku tools add --host http://localhost:8080 -n "meow-facts" --description "Retrieve random facts about cats" --uri "https://meowfacts.herokuapp.com?count={count or 1}" --type http --property "count:int,The count of facts to retrieve" --required count --configuration-from-file capabilities.properties --secrets-from-file secret.properties
-```
-
-In this command:
-
-- `--configuration-from-file capabilities.properties`: This flag specifies a file named `capabilities.properties` that contains configuration settings to be passed to the underlying capability whenever the `"meow-facts"` tool is used.
-- `--secrets-from-file secret.properties`: This flag points to a file named `secret.properties` that holds sensitive information (like API keys or passwords) needed by the capability to access resources, ensuring secure handling of credentials.
-
-Some capabilities within Wanaku are designed to interpret these configuration settings to dynamically adjust how they interact
-with external systems.
-For instance, Camel-based capabilities leverage these settings, particularly those prefixed with `query.`, to modify the Camel
-URI used for the endpoint.
-
-Consider the following example in a configuration file:
-
-```properties
-key=value
-query.addKey=addedValue
-```
-
-In this scenario, a Camel-based capability would automatically append `addKey=addValue` to the URI passed to the underlying
-Camel producer.
-This allows for flexible and dynamic adjustment of endpoint parameters based on the provided configuration.
-
-Secrets behave just as similarly, but are adapted by the capabilities for secure handling of the data.
-
 ### Adding Tools Using the UI
 
 It is also possible to add new tools using the UI, by accessing the Tools page and filling the form.

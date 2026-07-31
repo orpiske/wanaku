@@ -202,56 +202,11 @@ graph TB
     style ToolProvider fill:#DDA0DD
 ```
 
-## Configuration and Secrets Provisioning System
+## Service Resolution
 
-Both resource providers and tool services support a provisioning system that handles configuration and secret management. Provisioning logic is consolidated in the `ProvisionerBridge` class, which eliminates duplication between `InvokerBridge` and `ResourceAcquirerBridge`.
+The `ProvisionerBridge` class handles service resolution for capability services. It is shared by both `InvokerBridge` and `ResourceAcquirerBridge` to resolve which capability service should handle a given tool or resource request.
 
-### Provisioning Flow
-
-```mermaid
-sequenceDiagram
-    participant Router as Router Backend
-    participant PB as ProvisionerBridge
-    participant Transport as WanakuBridgeTransport
-    participant Service as Capability Service
-    participant ConfigStore as Configuration Store
-
-    Router->>PB: provision(name, config, secrets, service)
-    PB->>Transport: provision(name, config, secrets, service)
-    Transport->>Service: gRPC Provision(config, secrets)
-    Service->>Service: Apply Configuration
-    Service-->>Transport: ProvisionReply
-    Transport-->>PB: ProvisioningReference
-    PB-->>Router: ProvisioningReference
-
-    Note over Service: Service ready<br/>with configuration
-```
-
-### Provisioning Capabilities
-
-The provisioning system allows runtime configuration of services through gRPC-based provisioning requests that establish:
-
-- **Configuration URIs**: Service-specific settings (endpoints, options, parameters)
-- **Secret URIs**: Sensitive credentials (API keys, passwords, tokens)
-- **Property Schemas**: Expected configuration structure and validation rules
-
-### Benefits
-
-- **Dynamic Configuration**: Update service settings without restarting services
-- **Secure Credential Management**: Secrets delivered via encrypted gRPC channels
-- **Schema Validation**: Ensure configuration correctness before deployment
-- **Centralized Management**: Configuration managed through router backend
-- **Flexible Deployment**: Support different configurations per environment
-
-### Implementation Details
-
-Provisioning is implemented through:
-
-1. **`ProvisionerBridge`**: Consolidates provisioning logic and service resolution, shared by both tool and resource bridges
-2. **gRPC Protocol**: Capability services implement the `Provisioner` gRPC interface
-3. **Configuration Store**: Router backend stores tool/resource configurations in Infinispan
-4. **Secret Integration**: Integration with Kubernetes Secrets or external secret managers
-5. **Validation**: Schema-based validation ensures configuration correctness
+> **Note:** CLI-based provisioning (loading configuration and secret files via `--configuration-from-file` and `--secrets-from-file` when adding tools or resources) has been removed. The `ProvisionerBridge` remains in use for internal service resolution.
 
 ## Component Interaction Patterns
 

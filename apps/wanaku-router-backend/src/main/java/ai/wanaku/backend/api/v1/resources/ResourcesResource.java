@@ -14,13 +14,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
-import ai.wanaku.backend.api.v1.common.PayloadValidator;
 import ai.wanaku.backend.api.v1.forwards.ForwardsBean;
 import ai.wanaku.capabilities.sdk.api.exceptions.ResourceNotFoundException;
-import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
-import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 import ai.wanaku.core.util.CollectionsHelper;
 import ai.wanaku.core.util.StringHelper;
 
@@ -47,27 +44,6 @@ public class ResourcesResource {
 
     @Inject
     ForwardsBean forwardsBean;
-
-    /**
-     * Exposes a new resource capability with provisioning payload.
-     * <p>
-     * This endpoint accepts a resource reference along with configuration and secrets
-     * data, enabling complete provisioning of the resource capability.
-     *
-     * @param resource the resource payload containing the resource reference and provisioning data
-     * @return a response containing the exposed resource reference
-     */
-    @Path("/payloads")
-    @POST
-    public WanakuResponse<ResourceReference> exposeWithPayload(ResourcePayload resource) {
-        PayloadValidator.validate(resource);
-        if (resource.getPayload() instanceof ResourceReference resourceReference
-                && StringHelper.isEmpty(resourceReference.getName())) {
-            throw new WanakuException("The 'payload.name' is required for this request");
-        }
-        ResourceReference ret = resourcesBean.expose(resource);
-        return new WanakuResponse<>(ret);
-    }
 
     /**
      * Exposes a new resource capability.

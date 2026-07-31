@@ -15,9 +15,7 @@ import ai.wanaku.capabilities.sdk.api.types.PromptReference;
 import ai.wanaku.capabilities.sdk.api.types.PromptReference.PromptArgument;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.TextContent;
-import ai.wanaku.capabilities.sdk.api.types.io.PromptPayload;
 import ai.wanaku.cli.main.commands.BaseCommand;
-import ai.wanaku.cli.main.support.FileHelper;
 import ai.wanaku.cli.main.support.NamespaceOptions;
 import ai.wanaku.cli.main.support.WanakuPrinter;
 import ai.wanaku.core.services.api.NamespacesService;
@@ -75,12 +73,6 @@ public class PromptsAdd extends BaseCommand {
             split = ",")
     private List<String> toolReferences;
 
-    @CommandLine.Option(
-            names = {"--configuration-from-file"},
-            description = "Configure the prompt using the given file",
-            arity = "0..1")
-    private String configurationFromFile;
-
     PromptsService promptsService;
 
     @Override
@@ -115,15 +107,10 @@ public class PromptsAdd extends BaseCommand {
             promptReference.setToolReferences(toolReferences);
         }
 
-        PromptPayload promptPayload = new PromptPayload();
-        promptPayload.setPayload(promptReference);
-
-        FileHelper.loadConfigurationSources(configurationFromFile, promptPayload::setConfigurationData);
-
         promptsService = initAuthenticatedService(PromptsService.class, host);
 
         try {
-            promptsService.addWithPayload(promptPayload);
+            promptsService.add(promptReference);
             printer.printSuccessMessage("Successfully added prompt '" + name + "'");
         } catch (WebApplicationException ex) {
             Response response = ex.getResponse();

@@ -213,8 +213,6 @@ However, you must properly configure these features. See the [Security Guide](..
 
 ### How do I secure API keys and secrets used by tools?
 
-Use the provisioning system to securely provide secrets to capability services:
-
 - Store secrets in Kubernetes Secrets
 - Configure tools to reference secrets via environment variables
 - Never commit secrets to version control

@@ -13,11 +13,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.List;
-import ai.wanaku.backend.api.v1.common.PayloadValidator;
 import ai.wanaku.capabilities.sdk.api.exceptions.PromptNotFoundException;
 import ai.wanaku.capabilities.sdk.api.types.PromptReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
-import ai.wanaku.capabilities.sdk.api.types.io.PromptPayload;
 
 @ApplicationScoped
 @Path("/api/v1/prompts")
@@ -29,14 +27,6 @@ public class PromptsResource {
 
     @POST
     public WanakuResponse<PromptReference> add(PromptReference resource) {
-        var ret = promptsBean.add(resource);
-        return new WanakuResponse<>(ret);
-    }
-
-    @Path("/payloads")
-    @POST
-    public WanakuResponse<PromptReference> addWithPayload(PromptPayload resource) {
-        PayloadValidator.validate(resource);
         var ret = promptsBean.add(resource);
         return new WanakuResponse<>(ret);
     }

@@ -14,7 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.WanakuResponse;
-import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
 
 /**
  * JAX-RS service interface for managing resource capabilities in the Wanaku system.
@@ -27,21 +26,6 @@ import ai.wanaku.capabilities.sdk.api.types.io.ResourcePayload;
  */
 @Path("/api/v1/resources")
 public interface ResourcesService {
-
-    /**
-     * Exposes a new resource capability with configuration and secrets payload.
-     * <p>
-     * This endpoint allows exposing a resource along with its provisioning data,
-     * including configuration settings and secrets required for resource access.
-     *
-     * @param resourceReference the resource payload containing the resource reference and provisioning data
-     * @return a {@link WanakuResponse} containing the exposed resource reference
-     */
-    @Path("/payloads")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    WanakuResponse<ResourceReference> exposeWithPayload(ResourcePayload resourceReference);
 
     /**
      * Exposes a new resource capability in the system.
