@@ -10,9 +10,7 @@ import org.jline.terminal.Terminal;
 import ai.wanaku.capabilities.sdk.api.types.InputSchema;
 import ai.wanaku.capabilities.sdk.api.types.Property;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
-import ai.wanaku.capabilities.sdk.api.types.io.ToolPayload;
 import ai.wanaku.cli.main.commands.BaseCommand;
-import ai.wanaku.cli.main.support.FileHelper;
 import ai.wanaku.cli.main.support.NamespaceOptions;
 import ai.wanaku.cli.main.support.PropertyHelper;
 import ai.wanaku.cli.main.support.WanakuPrinter;
@@ -95,18 +93,6 @@ public class ToolsAdd extends BaseCommand {
     private List<String> required;
 
     @CommandLine.Option(
-            names = {"--configuration-from-file"},
-            description = "Configure the capability provider using the given file",
-            arity = "0..1")
-    private String configurationFromFile;
-
-    @CommandLine.Option(
-            names = {"--secrets-from-file"},
-            description = "Add the given secrets to the capability provider using the given file",
-            arity = "0..1")
-    private String secretsFromFile;
-
-    @CommandLine.Option(
             names = {"-l", "--label"},
             description = "Label key-value pair (e.g., '--label env=production --label tier=backend')",
             arity = "0..*")
@@ -148,16 +134,10 @@ public class ToolsAdd extends BaseCommand {
             inputSchema.setRequired(required);
         }
 
-        ToolPayload toolPayload = new ToolPayload();
-        toolPayload.setPayload(toolReference);
-
-        FileHelper.loadConfigurationSources(configurationFromFile, toolPayload::setConfigurationData);
-        FileHelper.loadConfigurationSources(secretsFromFile, toolPayload::setSecretsData);
-
         toolsService = initAuthenticatedService(ToolsService.class, host);
 
         try {
-            toolsService.addWithPayload(toolPayload);
+            toolsService.add(toolReference);
         } catch (WebApplicationException ex) {
             Response response = ex.getResponse();
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
