@@ -48,7 +48,6 @@ services:
   wanaku-tool-service-http:
     image: quay.io/wanaku/wanaku-tool-service-http:latest
     environment:
-      WANAKU_SERVICE_REGISTRATION_URI: http://localhost:8080/
       AUTH_SERVER: http://localhost:8543
       # Must match the wanaku-service client secret in the realm (WANAKU_SERVICE_SECRET).
       QUARKUS_OIDC_CLIENT_CREDENTIALS_SECRET: ${WANAKU_SERVICE_SECRET:-mypasswd}
@@ -66,7 +65,6 @@ services:
   wanaku-router:
     image: quay.io/wanaku/wanaku-router-backend:latest
     environment:
-      QUARKUS_MCP_SERVER_TRAFFIC_LOGGING_ENABLED: "true"
       QUARKUS_HTTP_HOST: 0.0.0.0
       AUTH_SERVER: http://localhost:8543
       AUTH_PROXY: http://localhost:8080
@@ -78,12 +76,31 @@ services:
     network_mode: host
     volumes:
       - wanaku-router:/home/jboss/.wanaku/router
-  healthcheck:
-    test: curl -f localhost:8080/q/health/ready || exit 1
-    interval: 10s
-    timeout: 10s
-    retries: 5
-    start_period: 30s
+    healthcheck:
+      test: curl -f localhost:8080/q/health/ready || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  wanaku-praxis:
+    image: quay.io/wanaku/wanaku-praxis:latest
+    environment:
+      WANAKU_CLASSIC_URL: http://localhost:8080
+      WANAKU_MGMT_LISTEN: 0.0.0.0:9090
+      WANAKU_PERSIST_BACKEND: file
+      WANAKU_PERSIST_PATH: /data/registry
+    network_mode: host
+    depends_on:
+      wanaku-router:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f localhost:9090/healthz || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   wanaku-router:
