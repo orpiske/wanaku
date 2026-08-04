@@ -1,9 +1,14 @@
 export const enum Links {
   Home = '/', // Dashboard
+  Tools = '/tools',
+  Resources = "/resources",
+  Prompts = "/prompts",
   LLMChat = "/llmchat",
   CodeExecution = "/code-execution",
   ToolCalls = "/tool-calls",
   Capabilities = "/capabilities",
+  Namespaces = "/namespaces",
+  Forwards = "/forwards",
   DataStores = "/data-stores",
   ServiceCatalog = "/service-catalog",
   Logout = "/logout"

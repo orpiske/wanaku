@@ -23,6 +23,27 @@ function SideNavComponent({ isSideNavExpanded, onClickSideNavExpand }:SideNavCom
                 >
                     Home
                 </SideNavMenuItem>
+                <SideNavMenuItem
+                    element={Link}
+                    to="/tools"
+                    onClick={onClickSideNavExpand}
+                >
+                    Tools
+                </SideNavMenuItem>
+                <SideNavMenuItem
+                    element={Link}
+                    to="/resources"
+                    onClick={onClickSideNavExpand}
+                >
+                    Resources
+                </SideNavMenuItem>
+                <SideNavMenuItem
+                    element={Link}
+                    to="/prompts"
+                    onClick={onClickSideNavExpand}
+                >
+                    Prompts
+                </SideNavMenuItem>
                 <SideNavMenu title="Developer">
                     <SideNavMenuItem
                         element={Link}
@@ -59,6 +80,20 @@ function SideNavComponent({ isSideNavExpanded, onClickSideNavExpand }:SideNavCom
                     onClick={onClickSideNavExpand}
                 >
                     Capabilities
+                </SideNavMenuItem>
+                <SideNavMenuItem
+                    element={Link}
+                    to="/namespaces"
+                    onClick={onClickSideNavExpand}
+                >
+                    Namespaces
+                </SideNavMenuItem>
+                <SideNavMenuItem
+                    element={Link}
+                    to={Links.Forwards}
+                    onClick={onClickSideNavExpand}
+                >
+                    Forwards
                 </SideNavMenuItem>
                 <SideNavMenuItem
                     element={Link}

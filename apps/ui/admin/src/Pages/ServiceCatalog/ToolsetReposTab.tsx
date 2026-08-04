@@ -24,6 +24,7 @@ import {
   useToolsetRepos,
 } from "../../hooks/api/use-toolset-repos";
 import {ToolReference} from "../../models";
+import {postApiV1Tools} from "../../api/wanaku-router-api";
 
 interface ToolsetReposTabProps {
   onError: (msg: string) => void;
@@ -148,7 +149,17 @@ export const ToolsetReposTab: React.FC<ToolsetReposTabProps> = ({onError, onSucc
   };
 
   const handleImportSelected = async () => {
-    onError("Tool import is now managed by Praxis");
+    const toImport = importTools.filter((t) => t.name && selectedToolIds.includes(t.name));
+    let imported = 0;
+    for (const tool of toImport) {
+      try {
+        await postApiV1Tools(tool);
+        imported++;
+      } catch {
+        // failed tools counted by absence from imported count
+      }
+    }
+    onSuccess(`Imported ${imported} tool(s) from '${importToolsetName}'`);
     setImportToolsetName(null);
     setImportTools([]);
     setSelectedToolIds([]);
