@@ -13,14 +13,14 @@ import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.quarkiverse.mcp.server.ResourceContents;
-import io.quarkiverse.mcp.server.ResourceManager;
-import io.quarkiverse.mcp.server.ToolResponse;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import ai.wanaku.backend.bridge.InvokerBridge;
 import ai.wanaku.backend.bridge.ResourceAcquirerBridge;
 import ai.wanaku.backend.bridge.WanakuBridgeTransport;
+import ai.wanaku.backend.bridge.types.WanakuResourceContent;
+import ai.wanaku.backend.bridge.types.WanakuResourceReadContext;
+import ai.wanaku.backend.bridge.types.WanakuToolResult;
 import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
@@ -203,7 +203,7 @@ public class GrpcTransport implements WanakuBridgeTransport {
      * @throws WanakuException if the remote service returns an error
      */
     @Override
-    public Uni<ToolResponse> invokeTool(ToolInvokeRequest request, ServiceTarget service) {
+    public Uni<WanakuToolResult> invokeTool(ToolInvokeRequest request, ServiceTarget service) {
         LOG.debugf("Invoking tool on service: %s", service.toAddress());
 
         final GrpcToolResponseTransformer transformer = new GrpcToolResponseTransformer();
@@ -262,10 +262,10 @@ public class GrpcTransport implements WanakuBridgeTransport {
      * @throws WanakuException if the remote service returns an error
      */
     @Override
-    public Uni<List<ResourceContents>> acquireResource(
+    public Uni<List<WanakuResourceContent>> acquireResource(
             ResourceRequest request,
             ServiceTarget service,
-            ResourceManager.ResourceArguments arguments,
+            WanakuResourceReadContext readContext,
             ResourceReference mcpResource) {
         LOG.debugf("Acquiring resource from service: %s", service.toAddress());
 
@@ -308,7 +308,7 @@ public class GrpcTransport implements WanakuBridgeTransport {
                                 "Service is not available at the address " + service.toAddress(), e));
                     }
                 })
-                .map(reply -> transformer.transformReply(reply, arguments, mcpResource));
+                .map(reply -> transformer.transformReply(reply, readContext, mcpResource));
     }
 
     /**

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
-import io.quarkiverse.mcp.server.ToolManager;
+import ai.wanaku.backend.bridge.types.WanakuToolCallContext;
 import ai.wanaku.capabilities.sdk.api.types.InputSchema;
 import ai.wanaku.capabilities.sdk.api.types.Property;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
@@ -45,34 +45,34 @@ public final class InvokerToolExecutor {
      * Builds a ToolInvokeRequest from the tool reference and arguments.
      *
      * @param toolReference the tool reference containing tool metadata
-     * @param toolArguments the arguments provided for the tool invocation
+     * @param toolCallContext the arguments provided for the tool invocation
      * @return a fully constructed ToolInvokeRequest
      */
     static ToolInvokeRequest buildToolInvokeRequest(
-            ToolReference toolReference, ToolManager.ToolArguments toolArguments, String requestId) {
+            ToolReference toolReference, WanakuToolCallContext toolCallContext, String requestId) {
 
         // Validate required parameters before processing
-        validateRequiredParameters(toolReference, toolArguments.args());
+        validateRequiredParameters(toolReference, toolCallContext.args());
 
         // Filter out metadata and auth args before converting to string map
-        Map<String, Object> filteredArgs = filterOutReservedArgs(toolArguments.args());
+        Map<String, Object> filteredArgs = filterOutReservedArgs(toolCallContext.args());
         Map<String, String> argumentsMap = CollectionsHelper.toStringStringMap(filteredArgs);
 
         // Extract metadata headers from args (with prefix stripped)
-        Map<String, String> metadataHeaders = extractMetadataHeaders(toolArguments);
+        Map<String, String> metadataHeaders = extractMetadataHeaders(toolCallContext);
 
         // Extract auth headers from args (with prefix stripped)
-        Map<String, String> authHeaders = extractAuthHeaders(toolArguments);
+        Map<String, String> authHeaders = extractAuthHeaders(toolCallContext);
 
         // Extract tool-defined headers from schema
-        Map<String, String> toolDefinedHeaders = extractHeaders(toolReference, toolArguments);
+        Map<String, String> toolDefinedHeaders = extractHeaders(toolReference, toolCallContext);
 
         // Merge headers: metadata first, then tool-defined, then auth (auth wins on conflict)
         Map<String, String> headers = new HashMap<>(metadataHeaders);
         headers.putAll(toolDefinedHeaders);
         headers.putAll(authHeaders);
 
-        String body = extractBody(toolReference, toolArguments);
+        String body = extractBody(toolReference, toolCallContext);
 
         return ToolInvokeRequest.newBuilder()
                 .setBody(body)
@@ -85,42 +85,25 @@ public final class InvokerToolExecutor {
                 .build();
     }
 
-    static Map<String, String> extractHeaders(ToolReference toolReference, ToolManager.ToolArguments toolArguments) {
+    static Map<String, String> extractHeaders(ToolReference toolReference, WanakuToolCallContext toolCallContext) {
         Map<String, Property> inputSchema = toolReference.getInputSchema().getProperties();
 
         // extract headers parameter
         return inputSchema.entrySet().stream()
                 .filter(InvokerToolExecutor::extractProperties)
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> evalValue(e, toolArguments)));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> evalValue(e, toolCallContext)));
     }
 
-    /**
-     * Extracts metadata headers from tool arguments.
-     * Arguments with the "wanaku_meta_" prefix are extracted and the prefix is stripped
-     * to form the header name.
-     *
-     * @param toolArguments the tool arguments containing potential metadata
-     * @return a map of header names (with prefix stripped) to their values
-     */
-    static Map<String, String> extractMetadataHeaders(ToolManager.ToolArguments toolArguments) {
-        return extractPrefixedHeaders(toolArguments, METADATA_PREFIX);
+    static Map<String, String> extractMetadataHeaders(WanakuToolCallContext toolCallContext) {
+        return extractPrefixedHeaders(toolCallContext, METADATA_PREFIX);
     }
 
-    /**
-     * Extracts authentication headers from tool arguments.
-     * Arguments with the "wanaku_auth_" prefix are extracted and the prefix is stripped
-     * to form the header name. These are treated as sensitive and must not be exposed
-     * to LLMs or logged without redaction.
-     *
-     * @param toolArguments the tool arguments containing potential auth credentials
-     * @return a map of header names (with prefix stripped) to their values
-     */
-    static Map<String, String> extractAuthHeaders(ToolManager.ToolArguments toolArguments) {
-        return extractPrefixedHeaders(toolArguments, AUTH_PREFIX);
+    static Map<String, String> extractAuthHeaders(WanakuToolCallContext toolCallContext) {
+        return extractPrefixedHeaders(toolCallContext, AUTH_PREFIX);
     }
 
-    private static Map<String, String> extractPrefixedHeaders(ToolManager.ToolArguments toolArguments, String prefix) {
-        return toolArguments.args().entrySet().stream()
+    private static Map<String, String> extractPrefixedHeaders(WanakuToolCallContext toolCallContext, String prefix) {
+        return toolCallContext.args().entrySet().stream()
                 .filter(e -> e.getKey() != null && e.getKey().startsWith(prefix))
                 .filter(e -> e.getValue() != null)
                 .collect(Collectors.toMap(e -> e.getKey().substring(prefix.length()), e -> e.getValue()
@@ -151,22 +134,22 @@ public final class InvokerToolExecutor {
                 && property.getScope().equals(ReservedPropertyNames.SCOPE_SERVICE);
     }
 
-    private static String evalValue(Map.Entry<String, Property> entry, ToolManager.ToolArguments toolArguments) {
+    private static String evalValue(Map.Entry<String, Property> entry, WanakuToolCallContext toolCallContext) {
         if (entry.getValue() == null) {
             LOG.fatalf("Malformed value for key %s: null", entry.getKey());
-            final Object fallback = toolArguments.args().get(entry.getKey());
+            final Object fallback = toolCallContext.args().get(entry.getKey());
             requireNonNullValue(entry, fallback);
             return fallback.toString();
         }
 
         if (entry.getValue().getValue() == null) {
-            final Object valueFromArgument = toolArguments.args().get(entry.getKey());
+            final Object valueFromArgument = toolCallContext.args().get(entry.getKey());
             requireNonNullValue(entry, valueFromArgument);
 
             return valueFromArgument.toString();
         }
 
-        final Object valueFromArgument = toolArguments.args().get(entry.getKey());
+        final Object valueFromArgument = toolCallContext.args().get(entry.getKey());
         if (valueFromArgument != null) {
             LOG.warnf(
                     "Overriding default value for configuration %s with the one provided by the tool", entry.getKey());
@@ -223,7 +206,7 @@ public final class InvokerToolExecutor {
         }
     }
 
-    private static String extractBody(ToolReference toolReference, ToolManager.ToolArguments toolArguments) {
+    private static String extractBody(ToolReference toolReference, WanakuToolCallContext toolCallContext) {
         // First, check if the tool specification defines it as having a body
         Map<String, Property> properties = toolReference.getInputSchema().getProperties();
         Property bodyProp = properties.get(BODY);
@@ -233,7 +216,7 @@ public final class InvokerToolExecutor {
         }
 
         // If there is a body defined, then get it from the arguments from the LLM
-        String body = (String) toolArguments.args().get(BODY);
+        String body = (String) toolCallContext.args().get(BODY);
         // If the LLM does not provide a body, then return an empty string
         return Objects.requireNonNullElse(body, EMPTY_BODY);
 

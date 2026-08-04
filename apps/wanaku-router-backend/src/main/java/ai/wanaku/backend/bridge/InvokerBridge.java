@@ -5,12 +5,12 @@ import jakarta.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import org.jboss.logging.Logger;
-import io.quarkiverse.mcp.server.ToolManager;
-import io.quarkiverse.mcp.server.ToolResponse;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.vertx.core.Vertx;
 import ai.wanaku.backend.bridge.transports.grpc.GrpcTransport;
+import ai.wanaku.backend.bridge.types.WanakuToolCallContext;
+import ai.wanaku.backend.bridge.types.WanakuToolResult;
 import ai.wanaku.backend.common.ToolCallEvent;
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceNotFoundException;
@@ -38,16 +38,16 @@ public class InvokerBridge implements ToolsBridge {
     private final Vertx vertx;
 
     static class WanakuToolContext {
-        ToolManager.ToolArguments arguments;
+        WanakuToolCallContext toolCallContext;
         ToolReference toolReference;
         ServiceTarget serviceTarget;
         ToolInvokeRequest request;
         ToolCallEvent startedEvent;
         Instant startTime;
 
-        static WanakuToolContext create(ToolManager.ToolArguments arguments, ToolReference toolReference) {
+        static WanakuToolContext create(WanakuToolCallContext toolCallContext, ToolReference toolReference) {
             WanakuToolContext context = new WanakuToolContext();
-            context.arguments = arguments;
+            context.toolCallContext = toolCallContext;
             context.toolReference = toolReference;
             return context;
         }
@@ -66,7 +66,7 @@ public class InvokerBridge implements ToolsBridge {
     }
 
     @Override
-    public Uni<ToolResponse> execute(ToolManager.ToolArguments toolArguments, CallableReference toolReference) {
+    public Uni<WanakuToolResult> execute(WanakuToolCallContext toolCallContext, CallableReference toolReference) {
         if (!(toolReference instanceof ToolReference ref)) {
             LOG.errorf(
                     "Tool reference %s not supported",
@@ -76,11 +76,11 @@ public class InvokerBridge implements ToolsBridge {
                             "Only local tool call references should be invoked by this executor"));
         }
 
-        String requestId = toolArguments.requestId().asString();
-        String connectionId = toolArguments.connection().id();
+        String requestId = toolCallContext.requestId();
+        String connectionId = toolCallContext.connectionId();
 
         return Uni.createFrom()
-                .item(() -> WanakuToolContext.create(toolArguments, ref))
+                .item(() -> WanakuToolContext.create(toolCallContext, ref))
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                 .invoke(ctx -> {
                     if (vertx != null) {
@@ -92,11 +92,11 @@ public class InvokerBridge implements ToolsBridge {
                 .invoke(ctx -> RequestIdContext.setToolName(ref.getName()))
                 .invoke(this::resolveService)
                 .invoke(ctx -> {
-                    ctx.request = InvokerToolExecutor.buildToolInvokeRequest(ref, toolArguments, requestId);
+                    ctx.request = InvokerToolExecutor.buildToolInvokeRequest(ref, toolCallContext, requestId);
                     ctx.startTime = Instant.now();
                     if (eventNotifier != null) {
                         ctx.startedEvent =
-                                eventNotifier.emitStartedEvent(toolArguments, ref, ctx.serviceTarget, ctx.request);
+                                eventNotifier.emitStartedEvent(toolCallContext, ref, ctx.serviceTarget, ctx.request);
                     }
                 })
                 .chain(ctx -> transport
@@ -107,7 +107,7 @@ public class InvokerBridge implements ToolsBridge {
                             emitFailed(ctx, failure);
 
                             LOG.debugf(failure, "Handling failure: %s", failure.getMessage());
-                            return ToolResponse.error(failure.getMessage());
+                            return WanakuToolResult.error(failure.getMessage());
                         }))
                 .onItemOrFailure()
                 .invoke((item, failure) -> {
@@ -120,11 +120,11 @@ public class InvokerBridge implements ToolsBridge {
                 .onFailure()
                 .recoverWithItem(failure -> {
                     LOG.debugf(failure, "Handling failure: %s", failure.getMessage());
-                    return ToolResponse.error(failure.getMessage());
+                    return WanakuToolResult.error(failure.getMessage());
                 });
     }
 
-    private void emitCompleted(WanakuToolContext ctx, ToolResponse response) {
+    private void emitCompleted(WanakuToolContext ctx, WanakuToolResult response) {
         if (eventNotifier != null && ctx.startedEvent != null) {
             long duration = Duration.between(ctx.startTime, Instant.now()).toMillis();
             String content = response != null ? response.toString() : "";

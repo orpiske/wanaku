@@ -1,8 +1,8 @@
 package ai.wanaku.backend.bridge;
 
-import io.quarkiverse.mcp.server.ToolResponse;
+import ai.wanaku.backend.bridge.types.WanakuToolResult;
 
 public interface ToolResponseTransformer<T> {
 
-    ToolResponse transformReply(T reply);
+    WanakuToolResult transformReply(T reply);
 }

@@ -2,10 +2,10 @@ package ai.wanaku.backend.bridge;
 
 import java.util.Iterator;
 import java.util.List;
-import io.quarkiverse.mcp.server.ResourceContents;
-import io.quarkiverse.mcp.server.ResourceManager;
-import io.quarkiverse.mcp.server.ToolResponse;
 import io.smallrye.mutiny.Uni;
+import ai.wanaku.backend.bridge.types.WanakuResourceContent;
+import ai.wanaku.backend.bridge.types.WanakuResourceReadContext;
+import ai.wanaku.backend.bridge.types.WanakuToolResult;
 import ai.wanaku.backend.support.ProvisioningReference;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
@@ -93,7 +93,7 @@ public interface WanakuBridgeTransport {
      *         if the service cannot be reached
      * @throws WanakuException if the remote service returns an error
      */
-    Uni<ToolResponse> invokeTool(ToolInvokeRequest request, ServiceTarget service);
+    Uni<WanakuToolResult> invokeTool(ToolInvokeRequest request, ServiceTarget service);
 
     /**
      * Acquires a resource from a remote service.
@@ -112,10 +112,10 @@ public interface WanakuBridgeTransport {
      *         if the service cannot be reached
      * @throws WanakuException if the remote service returns an error
      */
-    Uni<List<ResourceContents>> acquireResource(
+    Uni<List<WanakuResourceContent>> acquireResource(
             ResourceRequest request,
             ServiceTarget service,
-            ResourceManager.ResourceArguments arguments,
+            WanakuResourceReadContext readContext,
             ResourceReference mcpResource);
 
     /**

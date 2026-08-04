@@ -7,8 +7,6 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 
 import java.util.List;
-import io.quarkiverse.mcp.server.ResourceManager;
-import io.quarkiverse.mcp.server.ResourceResponse;
 import io.smallrye.mutiny.Uni;
 import ai.wanaku.backend.bridge.ProvisionerBridge;
 import ai.wanaku.backend.bridge.ResourceAcquirerBridge;
@@ -16,6 +14,8 @@ import ai.wanaku.backend.bridge.ResourceBridge;
 import ai.wanaku.backend.bridge.WanakuBridgeTransport;
 import ai.wanaku.backend.bridge.transports.grpc.GrpcChannelManager;
 import ai.wanaku.backend.bridge.transports.grpc.GrpcTransport;
+import ai.wanaku.backend.bridge.types.WanakuResourceReadContext;
+import ai.wanaku.backend.bridge.types.WanakuResourceResult;
 import ai.wanaku.backend.core.mcp.providers.ServiceRegistry;
 import ai.wanaku.backend.service.support.FirstAvailable;
 import ai.wanaku.backend.service.support.ServiceResolver;
@@ -65,9 +65,9 @@ public class ResourcesProvider {
         if (parseResult.isUsageHelpRequested() || parseResult.isVersionHelpRequested()) {
             return new ResourceBridge() {
                 @Override
-                public Uni<ResourceResponse> read(
-                        ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
-                    return Uni.createFrom().item(new ResourceResponse(List.of()));
+                public Uni<WanakuResourceResult> read(
+                        WanakuResourceReadContext readContext, ResourceReference mcpResource) {
+                    return Uni.createFrom().item(new WanakuResourceResult(List.of()));
                 }
             };
         }

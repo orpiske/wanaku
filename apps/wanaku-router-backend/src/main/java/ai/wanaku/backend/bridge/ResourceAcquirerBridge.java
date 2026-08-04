@@ -1,11 +1,11 @@
 package ai.wanaku.backend.bridge;
 
 import java.util.Objects;
-import io.quarkiverse.mcp.server.ResourceManager;
-import io.quarkiverse.mcp.server.ResourceResponse;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import ai.wanaku.backend.bridge.transports.grpc.GrpcTransport;
+import ai.wanaku.backend.bridge.types.WanakuResourceReadContext;
+import ai.wanaku.backend.bridge.types.WanakuResourceResult;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceType;
@@ -30,16 +30,15 @@ public class ResourceAcquirerBridge implements ResourceBridge {
     private final WanakuBridgeTransport transport;
 
     static class WanakuResourceContext {
-        ResourceManager.ResourceArguments arguments;
+        WanakuResourceReadContext readContext;
         ResourceReference mcpResource;
         ServiceTarget serviceTarget;
         ResourceRequest request;
 
-        static WanakuResourceContext create(
-                ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
+        static WanakuResourceContext create(WanakuResourceReadContext readContext, ResourceReference mcpResource) {
             WanakuResourceContext wanakuResourceContext = new WanakuResourceContext();
 
-            wanakuResourceContext.arguments = arguments;
+            wanakuResourceContext.readContext = readContext;
             wanakuResourceContext.mcpResource = mcpResource;
             return wanakuResourceContext;
         }
@@ -57,19 +56,19 @@ public class ResourceAcquirerBridge implements ResourceBridge {
     }
 
     @Override
-    public Uni<ResourceResponse> read(ResourceManager.ResourceArguments arguments, ResourceReference mcpResource) {
-        String requestId = arguments.requestId().asString();
-        String connectionId = arguments.connection().id();
+    public Uni<WanakuResourceResult> read(WanakuResourceReadContext readContext, ResourceReference mcpResource) {
+        String requestId = readContext.requestId();
+        String connectionId = readContext.connectionId();
 
         return Uni.createFrom()
-                .item(() -> WanakuResourceContext.create(arguments, mcpResource))
+                .item(() -> WanakuResourceContext.create(readContext, mcpResource))
                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                 .invoke(ctx -> RequestIdContext.setContext(requestId, connectionId))
                 .invoke(ctx -> RequestIdContext.setResourceName(mcpResource.getName()))
                 .invoke(this::resolveService)
                 .chain(ctx -> transport
-                        .acquireResource(ctx.request, ctx.serviceTarget, arguments, mcpResource)
-                        .map(ResourceResponse::new))
+                        .acquireResource(ctx.request, ctx.serviceTarget, readContext, mcpResource)
+                        .map(WanakuResourceResult::new))
                 .onItemOrFailure()
                 .invoke((item, failure) -> RequestIdContext.clear());
     }
@@ -93,7 +92,7 @@ public class ResourceAcquirerBridge implements ResourceBridge {
     }
 
     private WanakuResourceContext resolveService(WanakuResourceContext context) {
-        String requestId = context.arguments.requestId().asString();
+        String requestId = context.readContext.requestId();
 
         context.serviceTarget =
                 provisioner.resolveService(context.mcpResource.getType(), SERVICE_TYPE_RESOURCE_PROVIDER);

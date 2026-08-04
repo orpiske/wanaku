@@ -2,37 +2,19 @@ package ai.wanaku.backend.api.v1.resources;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import java.util.List;
 import org.jboss.logging.Logger;
-import io.quarkiverse.mcp.server.ResourceManager;
-import io.quarkus.runtime.StartupEvent;
-import ai.wanaku.backend.api.v1.namespaces.NamespacesBean;
-import ai.wanaku.backend.bridge.ResourceBridge;
 import ai.wanaku.backend.common.AbstractBean;
-import ai.wanaku.backend.common.ResourceHelper;
 import ai.wanaku.backend.core.persistence.api.ResourceReferenceRepository;
 import ai.wanaku.backend.core.persistence.api.WanakuRepository;
-import ai.wanaku.capabilities.sdk.api.exceptions.EntityAlreadyExistsException;
-import ai.wanaku.capabilities.sdk.api.types.Namespace;
 import ai.wanaku.capabilities.sdk.api.types.ResourceReference;
-import ai.wanaku.core.util.StringHelper;
 
 @ApplicationScoped
 public class ResourcesBean extends AbstractBean<ResourceReference> {
     private static final Logger LOG = Logger.getLogger(ResourcesBean.class);
-
-    @Inject
-    ResourceManager resourceManager;
-
-    @Inject
-    ResourceBridge resourceBridge;
-
-    @Inject
-    NamespacesBean namespacesBean;
 
     @Inject
     Instance<ResourceReferenceRepository> resourceReferenceRepositoryInstance;
@@ -45,13 +27,11 @@ public class ResourcesBean extends AbstractBean<ResourceReference> {
     }
 
     public ResourceReference expose(ResourceReference mcpResource) {
-        doExposeResource(mcpResource);
-
         return resourceReferenceRepository.persist(mcpResource);
     }
 
     public List<ResourceReference> list(String labelFilter) {
-        if (StringHelper.isBlank(labelFilter)) {
+        if (labelFilter == null || labelFilter.isBlank()) {
             return resourceReferenceRepository.listAll();
         }
         return resourceReferenceRepository.findAllFilterByLabelExpression(labelFilter);
@@ -61,53 +41,8 @@ public class ResourcesBean extends AbstractBean<ResourceReference> {
         return list(null);
     }
 
-    void loadResources(@Observes StartupEvent ev) {
-        // Preload data
-        namespacesBean.preload();
-
-        for (ResourceReference resourceReference : list()) {
-            try {
-                expose(resourceReference);
-            } catch (EntityAlreadyExistsException e) {
-                LOG.errorf(
-                        e,
-                        "Error registering a resource named %s during startup, but it already exists",
-                        resourceReference.getName());
-            }
-        }
-    }
-
-    private void doExposeResource(ResourceReference resourceReference) {
-        if (!StringHelper.isEmpty(resourceReference.getNamespace())) {
-            final Namespace namespace = namespacesBean.alocateNamespace(resourceReference.getNamespace());
-
-            ResourceHelper.expose(resourceReference, resourceManager, namespace, resourceBridge::read);
-        } else {
-            ResourceHelper.expose(resourceReference, resourceManager, resourceBridge::read);
-        }
-    }
-
-    private int removeReference(String name, ResourceReference resourceReference) {
-        int removed = 0;
-
-        try {
-            removed = resourceReferenceRepository.removeByField("name", name);
-        } finally {
-            if (removed > 0) {
-                resourceManager.removeResource(resourceReference.getLocation());
-            }
-        }
-
-        return removed;
-    }
-
     public int remove(String name) {
-        ResourceReference ref = getByName(name);
-        if (ref == null) {
-            return 0;
-        }
-
-        return removeReference(name, ref);
+        return resourceReferenceRepository.removeByField("name", name);
     }
 
     public ResourceReference getByName(String name) {

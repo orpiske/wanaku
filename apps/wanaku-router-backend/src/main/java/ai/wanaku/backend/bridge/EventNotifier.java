@@ -8,8 +8,8 @@ import java.util.Map;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.OnOverflow;
 import org.jboss.logging.Logger;
-import io.quarkiverse.mcp.server.ToolManager;
 import io.smallrye.reactive.messaging.MutinyEmitter;
+import ai.wanaku.backend.bridge.types.WanakuToolCallContext;
 import ai.wanaku.backend.common.ToolCallEvent;
 import ai.wanaku.capabilities.sdk.api.types.ToolReference;
 import ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget;
@@ -42,16 +42,16 @@ public class EventNotifier {
      * @return the started event (for tracking the eventId), or null if emission fails
      */
     public ToolCallEvent emitStartedEvent(
-            ToolManager.ToolArguments toolArguments,
+            WanakuToolCallContext toolCallContext,
             ToolReference toolReference,
             ServiceTarget service,
             ToolInvokeRequest request) {
         try {
-            Map<String, String> argumentsMap = CollectionsHelper.toStringStringMap(toolArguments.args());
+            Map<String, String> argumentsMap = CollectionsHelper.toStringStringMap(toolCallContext.args());
             ToolCallEvent event = ToolCallEvent.started(
                     toolReference.getName(),
                     toolReference.getType(),
-                    toolArguments.connection().id(),
+                    toolCallContext.connectionId(),
                     service.getId(),
                     service.toAddress(),
                     argumentsMap,
