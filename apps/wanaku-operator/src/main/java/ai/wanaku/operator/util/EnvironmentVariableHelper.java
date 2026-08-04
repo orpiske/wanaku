@@ -35,7 +35,6 @@ public final class EnvironmentVariableHelper {
                     resource,
                     authSpec.getAuthServer(),
                     EnvironmentVariables.AUTH_SERVER,
-                    EnvironmentVariables.WANAKU_SERVICE_REGISTRATION_URI,
                     EnvironmentVariables.QUARKUS_OIDC_CLIENT_CREDENTIALS_SECRET);
         } else {
             envVars = new java.util.ArrayList<>();
@@ -65,7 +64,6 @@ public final class EnvironmentVariableHelper {
                     resource,
                     authServerValue,
                     EnvironmentVariables.CAMEL_INTEGRATION_CAPABILITY_TOKEN_ENDPOINT,
-                    EnvironmentVariables.CAMEL_INTEGRATION_CAPABILITY_REGISTRATION_URL,
                     EnvironmentVariables.CAMEL_INTEGRATION_CAPABILITY_CLIENT_SECRET);
         } else {
             envVars = new java.util.ArrayList<>();
@@ -110,11 +108,7 @@ public final class EnvironmentVariableHelper {
      * @return a mutable list of the common environment variables
      */
     private static List<EnvVar> buildCommonEnvVars(
-            WanakuCapability resource,
-            String authServerValue,
-            String authServerEnvName,
-            String registrationUriEnvName,
-            String oidcSecretEnvName) {
+            WanakuCapability resource, String authServerValue, String authServerEnvName, String oidcSecretEnvName) {
 
         final String oidcSecret = resource.getSpec().getSecrets().getOidcCredentialsSecret();
 

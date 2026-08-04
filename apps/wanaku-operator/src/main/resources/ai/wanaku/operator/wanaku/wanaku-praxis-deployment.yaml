@@ -64,3 +64,10 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 5
             failureThreshold: 30
+          volumeMounts:
+            - mountPath: /data/registry
+              name: praxis-volume
+      volumes:
+        - name: praxis-volume
+          persistentVolumeClaim:
+            claimName: praxis-volume-claim

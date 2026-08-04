@@ -192,6 +192,22 @@ public class WanakuRouterReconciler implements Reconciler<WanakuRouter> {
     }
 
     private void deployPraxis(WanakuRouter resource, Context<WanakuRouter> context, String namespace) {
+        // Create Praxis PVC
+        final PersistentVolumeClaim praxisPVC = RouterResourceFactory.makePraxisVolumePVC(resource);
+        PersistentVolumeClaim existingPraxisPVC = kubernetesClient
+                .persistentVolumeClaims()
+                .inNamespace(namespace)
+                .withName(RouterResourceFactory.PRAXIS_VOLUME_CLAIM)
+                .get();
+        if (!match(praxisPVC, existingPraxisPVC)) {
+            LOG.infof("Creating or updating PVC praxis-volume-claim in %s", namespace);
+            kubernetesClient
+                    .persistentVolumeClaims()
+                    .inNamespace(namespace)
+                    .resource(praxisPVC)
+                    .createOr(Replaceable::update);
+        }
+
         final Service desiredService = RouterResourceFactory.makePraxisInternalService(resource);
         Service existingService = kubernetesClient
                 .services()

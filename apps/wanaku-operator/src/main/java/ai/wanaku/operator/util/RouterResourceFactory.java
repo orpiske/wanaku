@@ -38,6 +38,7 @@ public final class RouterResourceFactory {
     public static final String PRAXIS_INTERNAL_SERVICE_FILE = "wanaku-praxis-service-internal.yaml";
     public static final String SERVICES_VOLUME_PVC_FILE = "services-volume-pvc.yaml";
     public static final String ROUTER_VOLUME_CLAIM = "router-volume-claim";
+    public static final String PRAXIS_VOLUME_CLAIM = "praxis-volume-claim";
 
     private RouterResourceFactory() {}
 
@@ -284,6 +285,22 @@ public final class RouterResourceFactory {
         }
 
         service.setEnv(envVars);
+    }
+
+    public static PersistentVolumeClaim makePraxisVolumePVC(WanakuRouter resource) {
+        PersistentVolumeClaim pvc = ReconcilerUtilsInternal.loadYaml(
+                PersistentVolumeClaim.class, WanakuRouterReconciler.class, SERVICES_VOLUME_PVC_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        pvc.getMetadata().setName(PRAXIS_VOLUME_CLAIM);
+        pvc.getMetadata().setNamespace(ns);
+        pvc.getMetadata().getLabels().put("app", praxisName(deploymentName));
+        pvc.getMetadata().getLabels().put("component", "wanaku-praxis-storage");
+
+        pvc.addOwnerReference(resource);
+        return pvc;
     }
 
     public static Deployment makeDesiredPraxisDeployment(WanakuRouter resource, Context<WanakuRouter> context) {

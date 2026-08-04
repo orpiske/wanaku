@@ -91,6 +91,8 @@ services:
       WANAKU_PERSIST_BACKEND: file
       WANAKU_PERSIST_PATH: /data/registry
     network_mode: host
+    volumes:
+      - wanaku-praxis:/data/registry
     depends_on:
       wanaku-router:
         condition: service_healthy
@@ -101,7 +103,9 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+      start_period: 5s
 
 volumes:
   wanaku-router:
   wanaku-services:
+  wanaku-praxis:
