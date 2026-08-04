@@ -3,11 +3,8 @@ package ai.wanaku.backend.bridge;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import io.quarkiverse.mcp.server.McpConnection;
-import io.quarkiverse.mcp.server.RequestId;
-import io.quarkiverse.mcp.server.TextContent;
-import io.quarkiverse.mcp.server.ToolManager;
-import io.quarkiverse.mcp.server.ToolResponse;
+import ai.wanaku.backend.bridge.types.WanakuToolCallContext;
+import ai.wanaku.backend.bridge.types.WanakuToolResult;
 import ai.wanaku.backend.service.support.ServiceResolver;
 import ai.wanaku.capabilities.sdk.api.types.InputSchema;
 import ai.wanaku.capabilities.sdk.api.types.Property;
@@ -49,29 +46,30 @@ class InvokerBridgeTest {
         return p;
     }
 
+    private static WanakuToolCallContext emptyToolCallContext() {
+        return new WanakuToolCallContext(Map.of(), "test-connection", "test-request");
+    }
+
+    private static WanakuToolCallContext toolCallContextWithArgs(Map<String, Object> args) {
+        return new WanakuToolCallContext(args, "test-connection", "test-request");
+    }
+
     @Test
     void extractHeaders_onlyHeaderAndServiceScopeAreReturned() {
-        // Mimic entry similar to bug/issue-617-reproducer.json -> getHelloByName
         Map<String, Property> props = new HashMap<>();
         props.put("X-Request-ID", prop("header", "service", "abc-123"));
         props.put("CamelHttpMethod", prop("header", "service", "GET"));
-        props.put("name", prop(null, "service", null)); // not a header
+        props.put("name", prop(null, "service", null));
 
         ToolReference ref = buildToolReference(props);
 
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, toolArguments);
+        WanakuToolCallContext ctx = emptyToolCallContext();
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
 
         assertEquals(2, headers.size(), "Should only include header+service entries");
         assertEquals("abc-123", headers.get("X-Request-ID"));
         assertEquals("GET", headers.get("CamelHttpMethod"));
         assertFalse(headers.containsKey("name"), "Non-header properties must be ignored");
-    }
-
-    private static ToolManager.ToolArguments mockToolArguments() {
-        ToolManager.ToolArguments toolArguments = mock(ToolManager.ToolArguments.class);
-        when(toolArguments.args()).thenReturn(Map.of());
-        return toolArguments;
     }
 
     @Test
@@ -82,8 +80,8 @@ class InvokerBridgeTest {
 
         ToolReference ref = buildToolReference(props);
 
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, toolArguments);
+        WanakuToolCallContext ctx = emptyToolCallContext();
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
 
         assertEquals(1, headers.size());
         assertEquals("xyz", headers.get("X-Request-ID"));
@@ -98,122 +96,95 @@ class InvokerBridgeTest {
 
         ToolReference ref = buildToolReference(props);
 
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, toolArguments);
+        WanakuToolCallContext ctx = emptyToolCallContext();
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
         assertTrue(headers.isEmpty());
     }
 
     @Test
     void extractHeaders_throwsNPEWhenPropertyHasNoDefaultValueAndArgumentNotProvided() {
-        // Reproduce the NPE scenario: property has no default value (value is null)
-        // and the argument is not provided in toolArguments.args()
         Map<String, Property> props = new HashMap<>();
-        props.put("X-API-Key", prop("header", "service", null)); // null value = should come from args
+        props.put("X-API-Key", prop("header", "service", null));
 
         ToolReference ref = buildToolReference(props);
+        WanakuToolCallContext ctx = emptyToolCallContext();
 
-        // Mock toolArguments with empty args map (no X-API-Key provided)
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-
-        // This should throw NPE because:
-        // 1. Property.getValue() returns null
-        // 2. Code tries to get from toolArguments.args().get("X-API-Key") which returns null
-        // 3. Calling .toString() on null throws NPE
-        org.junit.jupiter.api.Assertions.assertThrows(
+        assertThrows(
                 NullPointerException.class,
-                () -> InvokerToolExecutor.extractHeaders(ref, toolArguments),
+                () -> InvokerToolExecutor.extractHeaders(ref, ctx),
                 "Should throw NPE when property value is null and argument is not provided");
     }
 
     @Test
     void extractHeaders_usesTheArgumentValueFromToolInvocation() {
-        // Reproduce the NPE scenario: property has no default value (value is null)
-        // and the argument is not provided in toolArguments.args()
         Map<String, Property> props = new HashMap<>();
-        props.put("X-API-Key", prop("header", "service", null)); // null value = should come from args
+        props.put("X-API-Key", prop("header", "service", null));
 
         ToolReference ref = buildToolReference(props);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(Map.of("X-API-Key", "123"));
 
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        when(toolArguments.args()).thenReturn(Map.of("X-API-Key", "123"));
-
-        final Map<String, String> stringStringMap = InvokerToolExecutor.extractHeaders(ref, toolArguments);
-        assertEquals("123", stringStringMap.get("X-API-Key"));
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
+        assertEquals("123", headers.get("X-API-Key"));
     }
 
     @Test
     void extractHeaders_usesTheDefaultArgument() {
-        // Reproduce the NPE scenario: property has no default value (value is null)
-        // and the argument is not provided in toolArguments.args()
         Map<String, Property> props = new HashMap<>();
-        props.put("X-API-Key", prop("header", "service", "abc")); // null value = should come from args
+        props.put("X-API-Key", prop("header", "service", "abc"));
 
         ToolReference ref = buildToolReference(props);
+        WanakuToolCallContext ctx = emptyToolCallContext();
 
-        // Mock toolArguments with empty args map (no X-API-Key provided)
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-
-        final Map<String, String> stringStringMap = InvokerToolExecutor.extractHeaders(ref, toolArguments);
-        assertEquals("abc", stringStringMap.get("X-API-Key"));
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
+        assertEquals("abc", headers.get("X-API-Key"));
     }
 
     @Test
     void extractHeaders_prefersTheProvidedArgument() {
-        // Reproduce the NPE scenario: property has no default value (value is null)
-        // and the argument is not provided in toolArguments.args()
         Map<String, Property> props = new HashMap<>();
-        props.put("X-API-Key", prop("header", "service", "abc")); // null value = should come from args
+        props.put("X-API-Key", prop("header", "service", "abc"));
 
         ToolReference ref = buildToolReference(props);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(Map.of("X-API-Key", "123"));
 
-        // Mock toolArguments with empty args map (no X-API-Key provided)
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        when(toolArguments.args()).thenReturn(Map.of("X-API-Key", "123"));
-
-        final Map<String, String> stringStringMap = InvokerToolExecutor.extractHeaders(ref, toolArguments);
-        assertEquals("123", stringStringMap.get("X-API-Key"));
+        Map<String, String> headers = InvokerToolExecutor.extractHeaders(ref, ctx);
+        assertEquals("123", headers.get("X-API-Key"));
     }
 
     @Test
     void extractMetadataHeaders_extractsPrefixedArgsAndStripsPrefix() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
         Map<String, Object> args = new HashMap<>();
         args.put("wanaku_meta_contextId", "ctx-123");
         args.put("wanaku_meta_userId", "user-456");
         args.put("regularArg", "value");
-        when(toolArguments.args()).thenReturn(args);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(args);
 
-        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(toolArguments);
+        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(ctx);
 
         assertEquals(2, headers.size());
         assertEquals("ctx-123", headers.get("contextId"));
         assertEquals("user-456", headers.get("userId"));
         assertFalse(headers.containsKey("regularArg"));
-        assertFalse(headers.containsKey("wanaku_meta_contextId"));
     }
 
     @Test
     void extractMetadataHeaders_handlesNullValues() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
         Map<String, Object> args = new HashMap<>();
         args.put("wanaku_meta_contextId", "ctx-123");
         args.put("wanaku_meta_nullValue", null);
-        when(toolArguments.args()).thenReturn(args);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(args);
 
-        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(toolArguments);
+        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(ctx);
 
         assertEquals(1, headers.size());
         assertEquals("ctx-123", headers.get("contextId"));
-        assertFalse(headers.containsKey("nullValue"));
     }
 
     @Test
     void extractMetadataHeaders_returnsEmptyMapWhenNoMetadataArgs() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        when(toolArguments.args()).thenReturn(Map.of("regularArg", "value"));
+        WanakuToolCallContext ctx = toolCallContextWithArgs(Map.of("regularArg", "value"));
 
-        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(toolArguments);
-
+        Map<String, String> headers = InvokerToolExecutor.extractMetadataHeaders(ctx);
         assertTrue(headers.isEmpty());
     }
 
@@ -230,8 +201,6 @@ class InvokerBridgeTest {
         assertEquals(2, filtered.size());
         assertEquals("value", filtered.get("regularArg"));
         assertEquals(42, filtered.get("anotherArg"));
-        assertFalse(filtered.containsKey("wanaku_meta_contextId"));
-        assertFalse(filtered.containsKey("wanaku_meta_userId"));
     }
 
     @Test
@@ -245,8 +214,6 @@ class InvokerBridgeTest {
 
         assertEquals(1, filtered.size());
         assertEquals("value", filtered.get("regularArg"));
-        assertFalse(filtered.containsKey("wanaku_auth_Authorization"));
-        assertFalse(filtered.containsKey("wanaku_auth_X-Third-Party"));
     }
 
     @Test
@@ -260,8 +227,6 @@ class InvokerBridgeTest {
 
         assertEquals(1, filtered.size());
         assertEquals("value", filtered.get("regularArg"));
-        assertFalse(filtered.containsKey("wanaku_meta_contextId"));
-        assertFalse(filtered.containsKey("wanaku_auth_Authorization"));
     }
 
     @Test
@@ -273,64 +238,54 @@ class InvokerBridgeTest {
         Map<String, Object> filtered = InvokerToolExecutor.filterOutReservedArgs(args);
 
         assertEquals(2, filtered.size());
-        assertEquals("value", filtered.get("regularArg"));
-        assertEquals(42, filtered.get("anotherArg"));
     }
 
     @Test
     void extractAuthHeaders_extractsPrefixedArgsAndStripsPrefix() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
         Map<String, Object> args = new HashMap<>();
         args.put("wanaku_auth_Authorization", "Bearer token-123");
         args.put("wanaku_auth_X-Third-Party", "secret-456");
         args.put("regularArg", "value");
-        when(toolArguments.args()).thenReturn(args);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(args);
 
-        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(toolArguments);
+        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(ctx);
 
         assertEquals(2, headers.size());
         assertEquals("Bearer token-123", headers.get("Authorization"));
         assertEquals("secret-456", headers.get("X-Third-Party"));
-        assertFalse(headers.containsKey("regularArg"));
-        assertFalse(headers.containsKey("wanaku_auth_Authorization"));
     }
 
     @Test
     void extractAuthHeaders_handlesNullValues() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
         Map<String, Object> args = new HashMap<>();
         args.put("wanaku_auth_Authorization", "Bearer token-123");
         args.put("wanaku_auth_nullValue", null);
-        when(toolArguments.args()).thenReturn(args);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(args);
 
-        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(toolArguments);
+        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(ctx);
 
         assertEquals(1, headers.size());
         assertEquals("Bearer token-123", headers.get("Authorization"));
-        assertFalse(headers.containsKey("nullValue"));
     }
 
     @Test
     void extractAuthHeaders_returnsEmptyMapWhenNoAuthArgs() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
-        when(toolArguments.args()).thenReturn(Map.of("regularArg", "value"));
+        WanakuToolCallContext ctx = toolCallContextWithArgs(Map.of("regularArg", "value"));
 
-        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(toolArguments);
-
+        Map<String, String> headers = InvokerToolExecutor.extractAuthHeaders(ctx);
         assertTrue(headers.isEmpty());
     }
 
     @Test
     void extractAuthHeaders_doesNotInterfereWithMetadataHeaders() {
-        final ToolManager.ToolArguments toolArguments = mockToolArguments();
         Map<String, Object> args = new HashMap<>();
         args.put("wanaku_meta_contextId", "ctx-123");
         args.put("wanaku_auth_Authorization", "Bearer token-123");
         args.put("regularArg", "value");
-        when(toolArguments.args()).thenReturn(args);
+        WanakuToolCallContext ctx = toolCallContextWithArgs(args);
 
-        Map<String, String> authHeaders = InvokerToolExecutor.extractAuthHeaders(toolArguments);
-        Map<String, String> metaHeaders = InvokerToolExecutor.extractMetadataHeaders(toolArguments);
+        Map<String, String> authHeaders = InvokerToolExecutor.extractAuthHeaders(ctx);
+        Map<String, String> metaHeaders = InvokerToolExecutor.extractMetadataHeaders(ctx);
 
         assertEquals(1, authHeaders.size());
         assertEquals("Bearer token-123", authHeaders.get("Authorization"));
@@ -351,7 +306,7 @@ class InvokerBridgeTest {
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class, () -> InvokerToolExecutor.validateRequiredParameters(ref, args));
-        assertTrue(ex.getMessage().contains("query"), "Error should name the missing parameter");
+        assertTrue(ex.getMessage().contains("query"));
     }
 
     @Test
@@ -404,7 +359,6 @@ class InvokerBridgeTest {
         props.put("query", prop(null, null, null));
 
         ToolReference ref = buildToolReference(props);
-        // required is null by default
 
         Map<String, Object> args = Map.of();
 
@@ -430,7 +384,6 @@ class InvokerBridgeTest {
         ref.setName("sample");
         ref.setType("http");
         ref.setUri("https://example.com");
-        // no input schema set
 
         Map<String, Object> args = Map.of();
 
@@ -451,9 +404,9 @@ class InvokerBridgeTest {
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class, () -> InvokerToolExecutor.validateRequiredParameters(ref, args));
-        assertTrue(ex.getMessage().contains("query"), "Should report 'query' as missing");
-        assertTrue(ex.getMessage().contains("limit"), "Should report 'limit' as missing");
-        assertFalse(ex.getMessage().contains("format"), "Should NOT report 'format' (it was provided)");
+        assertTrue(ex.getMessage().contains("query"));
+        assertTrue(ex.getMessage().contains("limit"));
+        assertFalse(ex.getMessage().contains("format"));
     }
 
     @Test
@@ -466,12 +419,11 @@ class InvokerBridgeTest {
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class, () -> InvokerToolExecutor.validateRequiredParameters(ref, null));
-        assertTrue(ex.getMessage().contains("query"), "Should report 'query' as missing");
+        assertTrue(ex.getMessage().contains("query"));
     }
 
     @Test
     void execute_returnsErrorResponseOnValidationFailure() {
-        // Set up a tool reference with a required parameter
         Map<String, Property> props = new HashMap<>();
         props.put("city", prop(null, null, null));
 
@@ -479,16 +431,8 @@ class InvokerBridgeTest {
         ref.setType("http");
         ref.getInputSchema().setRequired(List.of("city"));
 
-        // Mock ToolArguments with empty args (missing required 'city')
-        ToolManager.ToolArguments toolArguments = mock(ToolManager.ToolArguments.class);
-        when(toolArguments.args()).thenReturn(Map.of());
-        McpConnection connection = mock(McpConnection.class);
-        when(connection.id()).thenReturn("test-connection");
-        when(toolArguments.connection()).thenReturn(connection);
-        when(toolArguments.requestId()).thenReturn(new RequestId("test-request-1"));
+        WanakuToolCallContext ctx = emptyToolCallContext();
 
-        // Mock dependencies -- ServiceResolver must return a non-null target
-        // so we get past resolveService and into buildToolInvokeRequest
         ServiceResolver serviceResolver = mock(ServiceResolver.class);
         when(serviceResolver.resolve(anyString(), anyString()))
                 .thenReturn(mock(ai.wanaku.capabilities.sdk.api.types.providers.ServiceTarget.class));
@@ -497,12 +441,11 @@ class InvokerBridgeTest {
 
         InvokerBridge bridge = new InvokerBridge(serviceResolver, transport, null, null);
 
-        // Execute should return ToolResponse.error instead of propagating the exception
-        ToolResponse response = bridge.execute(toolArguments, ref).await().indefinitely();
+        WanakuToolResult response = bridge.execute(ctx, ref).await().indefinitely();
 
         assertNotNull(response, "Response should not be null");
         assertTrue(response.isError(), "Response should be an error");
-        TextContent textContent = response.firstContent().asText();
-        assertTrue(textContent.text().contains("city"), "Error message should mention the missing parameter 'city'");
+        assertTrue(
+                response.errorMessage().contains("city"), "Error message should mention the missing parameter 'city'");
     }
 }

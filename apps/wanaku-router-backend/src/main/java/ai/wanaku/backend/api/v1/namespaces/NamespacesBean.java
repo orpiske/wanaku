@@ -50,26 +50,8 @@ public class NamespacesBean {
     }
 
     public synchronized void preload() {
-        // Preload data
-        if (namespaceRepository.size() < maxNamespaces) {
-            for (int i = 1; i <= maxNamespaces; i++) {
-                final String namespacePath = String.format("ns-%d", i);
-                Namespace namespace = new Namespace();
-                namespace.setPath(namespacePath);
-                namespace.setName(null);
-                markPreallocated(namespace);
-
-                namespaceRepository.persist(namespace);
-
-                LOG.infof("Created new namespace path %s", namespacePath);
-            }
-        } else {
-            LOG.infof("This instance already has %d namespaces allocated", namespaceRepository.size());
-        }
-
         List<Namespace> publicList = namespaceRepository.findByName("public");
         if (publicList.isEmpty()) {
-            // Register the public namespace
             Namespace publicNs = new Namespace();
             publicNs.setPath("public");
             publicNs.setName("public");

@@ -40,7 +40,7 @@ public class LlmChatResource {
 
     private static final Logger LOG = Logger.getLogger(LlmChatResource.class);
 
-    @ConfigProperty(name = "wanaku.chat.mcp-url", defaultValue = "http://localhost:8080/public/mcp")
+    @ConfigProperty(name = "wanaku.chat.mcp-url", defaultValue = "http://localhost:8081/mcp")
     String mcpServerUrl;
 
     @ConfigProperty(name = "wanaku.chat.allowlist")

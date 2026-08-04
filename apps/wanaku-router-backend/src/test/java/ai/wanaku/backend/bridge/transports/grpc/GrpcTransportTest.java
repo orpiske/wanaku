@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.quarkiverse.mcp.server.RequestUri;
-import io.quarkiverse.mcp.server.ResourceManager;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import ai.wanaku.backend.bridge.types.WanakuResourceReadContext;
 import ai.wanaku.backend.support.MockGrpcCapabilityServer;
 import ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException;
 import ai.wanaku.capabilities.sdk.api.exceptions.WanakuException;
@@ -26,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class GrpcTransportTest {
 
@@ -116,7 +113,7 @@ class GrpcTransportTest {
 
         var response = transport.invokeTool(request, target).await().atMost(Duration.ofSeconds(5));
 
-        assertFalse(response.content().isEmpty());
+        assertFalse(response.contents().isEmpty());
     }
 
     @Test
@@ -128,11 +125,10 @@ class GrpcTransportTest {
         var mcpResource = new ResourceReference();
         mcpResource.setMimeType("text/plain");
 
-        var arguments = mock(ResourceManager.ResourceArguments.class);
-        when(arguments.requestUri()).thenReturn(new RequestUri("test://resource"));
+        var readContext = new WanakuResourceReadContext("test-request", "test-connection", "test://resource");
 
         var response = transport
-                .acquireResource(request, target, arguments, mcpResource)
+                .acquireResource(request, target, readContext, mcpResource)
                 .await()
                 .atMost(Duration.ofSeconds(5));
 
@@ -164,11 +160,10 @@ class GrpcTransportTest {
         var mcpResource = new ResourceReference();
         mcpResource.setMimeType("text/plain");
 
-        var arguments = mock(ResourceManager.ResourceArguments.class);
-        when(arguments.requestUri()).thenReturn(new RequestUri("test://resource"));
+        var readContext = new WanakuResourceReadContext("test-request", "test-connection", "test://resource");
 
         var subscriber = transport
-                .acquireResource(request, target, arguments, mcpResource)
+                .acquireResource(request, target, readContext, mcpResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
