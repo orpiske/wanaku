@@ -105,7 +105,6 @@
             <artifactId>core-mcp-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.kaoto.forage</groupId>
             <artifactId>forage-catalog-reader</artifactId>
@@ -187,12 +186,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.quarkiverse.mcp</groupId>
-            <artifactId>quarkus-mcp-server-http</artifactId>
-            <version>${quarkus-mcp-server.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
@@ -230,13 +223,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-keycloak-server</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.quarkiverse.mcp</groupId>
-            <artifactId>quarkus-mcp-server-test</artifactId>
-            <version>${quarkus-mcp-server.version}</version>
             <scope>test</scope>
         </dependency>
 

@@ -35,8 +35,6 @@ spec:
               value: ""
             - name: AUTH_REALM
               value: ""
-            - name: QUARKUS_MCP_SERVER_TRAFFIC_LOGGING_ENABLED
-              value: "true"
           livenessProbe:
             failureThreshold: 5
             httpGet:
