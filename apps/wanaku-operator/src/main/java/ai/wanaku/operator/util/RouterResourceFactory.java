@@ -34,6 +34,8 @@ public final class RouterResourceFactory {
     public static final String ROUTER_BACKEND_INTERNAL_SERVICE_FILE = "wanaku-router-service-internal.yaml";
     public static final String ROUTER_BACKEND_EXTERNAL_SERVICE_FILE = "wanaku-router-service-external.yaml";
     public static final String ROUTER_INGRESS_FILE = "wanaku-router-ingress.yaml";
+    public static final String PRAXIS_DEPLOYMENT_FILE = "wanaku-praxis-deployment.yaml";
+    public static final String PRAXIS_INTERNAL_SERVICE_FILE = "wanaku-praxis-service-internal.yaml";
     public static final String SERVICES_VOLUME_PVC_FILE = "services-volume-pvc.yaml";
     public static final String ROUTER_VOLUME_CLAIM = "router-volume-claim";
 
@@ -284,7 +286,94 @@ public final class RouterResourceFactory {
         service.setEnv(envVars);
     }
 
+    public static Deployment makeDesiredPraxisDeployment(WanakuRouter resource, Context<WanakuRouter> context) {
+        Deployment desiredDeployment = ReconcilerUtilsInternal.loadYaml(
+                Deployment.class, WanakuRouterReconciler.class, PRAXIS_DEPLOYMENT_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        desiredDeployment.getMetadata().setName(praxisName(deploymentName));
+        desiredDeployment.getMetadata().setNamespace(ns);
+
+        final DeploymentSpec serviceSpec = desiredDeployment.getSpec();
+        serviceSpec.getSelector().getMatchLabels().put("app", praxisName(deploymentName));
+        serviceSpec.getSelector().getMatchLabels().put("component", "wanaku-praxis");
+        serviceSpec.getTemplate().getMetadata().getLabels().put("app", praxisName(deploymentName));
+        serviceSpec.getTemplate().getMetadata().getLabels().put("component", "wanaku-praxis");
+
+        final Container praxisContainer = serviceSpec.getTemplate().getSpec().getContainers().stream()
+                .filter(c -> c.getName().equals("wanaku-praxis"))
+                .findFirst()
+                .get();
+
+        String classicUrl = "http://internal-" + deploymentName + ":8080";
+        List<EnvVar> envVars = new java.util.ArrayList<>();
+        envVars.add(new EnvVarBuilder()
+                .withName("WANAKU_CLASSIC_URL")
+                .withValue(classicUrl)
+                .build());
+
+        final WanakuRouterSpec.PraxisSpec praxisSpec = resource.getSpec().getPraxis();
+        if (praxisSpec != null) {
+            if (praxisSpec.getImage() != null && !praxisSpec.getImage().isEmpty()) {
+                OperatorUtil.validateImageAllowed(praxisSpec.getImage());
+                praxisContainer.setImage(praxisSpec.getImage());
+            }
+
+            String componentPolicy = praxisSpec.getImagePullPolicy();
+            String globalPolicy = resource.getSpec().getImagePullPolicy();
+            praxisContainer.setImagePullPolicy(OperatorUtil.resolveImagePullPolicy(componentPolicy, globalPolicy));
+
+            if (praxisSpec.getEnv() != null) {
+                for (WanakuTypes.EnvVar env : praxisSpec.getEnv()) {
+                    envVars.add(new EnvVarBuilder()
+                            .withName(env.getName())
+                            .withValue(env.getValue())
+                            .build());
+                }
+            }
+        }
+
+        final List<EnvVar> templateEnvs = praxisContainer.getEnv();
+        for (EnvVar templateVar : templateEnvs) {
+            final Optional<EnvVar> override = envVars.stream()
+                    .filter(envVar -> envVar.getName().equals(templateVar.getName()))
+                    .findFirst();
+            if (override.isEmpty()) {
+                envVars.add(templateVar);
+            }
+        }
+        praxisContainer.setEnv(envVars);
+
+        desiredDeployment.addOwnerReference(resource);
+        return desiredDeployment;
+    }
+
+    public static Service makePraxisInternalService(WanakuRouter resource) {
+        Service service = ReconcilerUtilsInternal.loadYaml(
+                Service.class, WanakuRouterReconciler.class, PRAXIS_INTERNAL_SERVICE_FILE);
+
+        String deploymentName = resource.getMetadata().getName();
+        String ns = resource.getMetadata().getNamespace();
+
+        service.getMetadata().setName("praxis-" + deploymentName);
+        service.getMetadata().setNamespace(ns);
+        service.getMetadata().getLabels().put("app", praxisName(deploymentName));
+        service.getMetadata().getLabels().put("component", "wanaku-praxis");
+
+        ServiceSpec serviceSpec = service.getSpec();
+        serviceSpec.setSelector(Map.of("app", praxisName(deploymentName), "component", "wanaku-praxis"));
+
+        service.addOwnerReference(resource);
+        return service;
+    }
+
     private static String routerName(String deploymentName) {
         return deploymentName + "-mcp-router";
+    }
+
+    private static String praxisName(String deploymentName) {
+        return deploymentName + "-praxis";
     }
 }

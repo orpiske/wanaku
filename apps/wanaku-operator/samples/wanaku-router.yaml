@@ -20,6 +20,11 @@ spec:
 # Uncomment and set the host when deploying on vanilla Kubernetes:
 #  ingress:
 #    host: wanaku.example.com
+# Praxis settings (Rust MCP engine)
+  praxis:
+    enabled: true
+#    image: quay.io/wanaku/wanaku-praxis:latest
+#    imagePullPolicy: IfNotPresent
 # Router settings are optional
   router:
     env:

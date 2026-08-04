@@ -117,15 +117,10 @@ public final class EnvironmentVariableHelper {
             String oidcSecretEnvName) {
 
         final String oidcSecret = resource.getSpec().getSecrets().getOidcCredentialsSecret();
-        String registrationUri = getInternalRegistrationUri(resource);
 
         EnvVar authServerEnv = new EnvVarBuilder()
                 .withName(authServerEnvName)
                 .withValue(authServerValue)
-                .build();
-        EnvVar registrationUriEnv = new EnvVarBuilder()
-                .withName(registrationUriEnvName)
-                .withValue(registrationUri)
                 .build();
         EnvVar oidcSecretEnv = new EnvVarBuilder()
                 .withName(oidcSecretEnvName)
@@ -134,7 +129,6 @@ public final class EnvironmentVariableHelper {
 
         List<EnvVar> envVars = new java.util.ArrayList<>();
         envVars.add(authServerEnv);
-        envVars.add(registrationUriEnv);
         envVars.add(oidcSecretEnv);
 
         return envVars;
@@ -156,15 +150,5 @@ public final class EnvironmentVariableHelper {
                 envVars.add(customEnvVar);
             }
         }
-    }
-
-    /**
-     * Constructs the internal registration URI for a capability based on its router reference.
-     *
-     * @param resource the WanakuCapability custom resource
-     * @return the internal registration URI
-     */
-    private static String getInternalRegistrationUri(WanakuCapability resource) {
-        return OperatorUtil.getRouterBaseUrl(resource.getSpec().getRouterRef()) + "/";
     }
 }

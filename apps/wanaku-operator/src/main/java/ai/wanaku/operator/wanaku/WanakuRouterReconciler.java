@@ -183,6 +183,50 @@ public class WanakuRouterReconciler implements Reconciler<WanakuRouter> {
                     .resource(desiredDeployment)
                     .createOr(Replaceable::update);
         }
+
+        // Deploy Praxis if enabled (default)
+        WanakuRouterSpec.PraxisSpec praxisSpec = resource.getSpec().getPraxis();
+        if (praxisSpec == null || praxisSpec.isEnabled()) {
+            deployPraxis(resource, context, namespace);
+        }
+    }
+
+    private void deployPraxis(WanakuRouter resource, Context<WanakuRouter> context, String namespace) {
+        final Service desiredService = RouterResourceFactory.makePraxisInternalService(resource);
+        Service existingService = kubernetesClient
+                .services()
+                .inNamespace(namespace)
+                .withName(desiredService.getMetadata().getName())
+                .get();
+        if (!match(desiredService, existingService)) {
+            LOG.infof(
+                    "Creating or updating Praxis Service %s in %s",
+                    desiredService.getMetadata().getName(), namespace);
+            kubernetesClient
+                    .services()
+                    .inNamespace(namespace)
+                    .resource(desiredService)
+                    .createOr(Replaceable::update);
+        }
+
+        final Deployment desiredDeployment = RouterResourceFactory.makeDesiredPraxisDeployment(resource, context);
+        Deployment existingDeployment = kubernetesClient
+                .apps()
+                .deployments()
+                .inNamespace(namespace)
+                .withName(desiredDeployment.getMetadata().getName())
+                .get();
+        if (!match(desiredDeployment, existingDeployment)) {
+            LOG.infof(
+                    "Creating or updating Praxis Deployment %s in %s",
+                    desiredDeployment.getMetadata().getName(), namespace);
+            kubernetesClient
+                    .apps()
+                    .deployments()
+                    .inNamespace(namespace)
+                    .resource(desiredDeployment)
+                    .createOr(Replaceable::update);
+        }
     }
 
     private static String createRouteAndGetHost(
