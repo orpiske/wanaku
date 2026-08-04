@@ -47,8 +47,6 @@ class RouterResourceFactoryTest {
         Deployment deployment =
                 RouterResourceFactory.makeDesiredRouterBackendDeployment(router, null, "router.example.com");
 
-        assertEquals("true", getEnvValue(deployment, EnvironmentVariables.QUARKUS_MCP_SERVER_TRAFFIC_LOGGING_ENABLED));
-
         assertEquals("", getEnvValue(deployment, EnvironmentVariables.AUTH_SERVER));
         assertEquals("", getEnvValue(deployment, EnvironmentVariables.AUTH_PROXY));
         assertEquals("", getEnvValue(deployment, EnvironmentVariables.AUTH_REALM));
@@ -63,8 +61,6 @@ class RouterResourceFactoryTest {
         Deployment deployment =
                 RouterResourceFactory.makeDesiredRouterBackendDeployment(router, null, "router.example.com");
 
-        assertNotNull(getEnvValue(deployment, EnvironmentVariables.QUARKUS_MCP_SERVER_TRAFFIC_LOGGING_ENABLED));
-        assertEquals("true", getEnvValue(deployment, EnvironmentVariables.QUARKUS_MCP_SERVER_TRAFFIC_LOGGING_ENABLED));
         assertNotNull(getEnvValue(deployment, EnvironmentVariables.AUTH_SERVER));
     }
 

@@ -13,6 +13,7 @@
 
     <properties>
         <keycloak.docker.image>quay.io/keycloak/keycloak:26.6.1</keycloak.docker.image>
+        <skipUI>true</skipUI>
     </properties>
 
     <dependencyManagement>

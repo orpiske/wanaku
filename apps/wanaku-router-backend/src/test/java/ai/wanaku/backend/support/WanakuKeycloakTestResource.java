@@ -6,7 +6,6 @@ import org.keycloak.representations.idm.RealmRepresentation;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import io.quarkus.test.keycloak.server.KeycloakContainer;
-import ai.wanaku.backend.api.v1.management.discovery.DiscoveryResourceTest;
 
 public class WanakuKeycloakTestResource implements QuarkusTestResourceLifecycleManager {
 
@@ -17,8 +16,9 @@ public class WanakuKeycloakTestResource implements QuarkusTestResourceLifecycleM
         keycloak = new KeycloakContainer().withUseHttps(false);
         keycloak.start();
 
-        final String path =
-                DiscoveryResourceTest.class.getResource("/wanaku-realm.json").getPath();
+        final String path = WanakuKeycloakTestResource.class
+                .getResource("/wanaku-realm.json")
+                .getPath();
 
         KeycloakTestClient keycloakClient = new KeycloakTestClient(keycloak.getServerUrl());
 
@@ -38,7 +38,6 @@ public class WanakuKeycloakTestResource implements QuarkusTestResourceLifecycleM
         Map<String, String> conf = new HashMap<>();
         conf.put("wanaku.persistence.infinispan.base-folder", "target/wanaku/router");
         conf.put("wanaku.persistence.infinispan.file-store", "false");
-        conf.put("quarkus.mcp.server.invalid-server-name-strategy", "ignore");
         conf.put("quarkus.log.console.enable", "false");
         conf.put("quarkus.log.file.enable", "true");
         conf.put("quarkus.log.file.path", "target/logs/wanaku-test.log");
