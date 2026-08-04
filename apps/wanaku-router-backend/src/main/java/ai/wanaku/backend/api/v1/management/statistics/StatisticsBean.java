@@ -7,23 +7,11 @@ import java.util.List;
 import java.util.Map;
 import ai.wanaku.backend.api.v1.capabilities.CapabilitiesBean;
 import ai.wanaku.backend.api.v1.datastores.DataStoresBean;
-import ai.wanaku.backend.api.v1.prompts.PromptsBean;
-import ai.wanaku.backend.api.v1.resources.ResourcesBean;
-import ai.wanaku.backend.api.v1.tools.ToolsBean;
 import ai.wanaku.capabilities.sdk.api.types.discovery.ActivityRecord;
 import ai.wanaku.capabilities.sdk.api.types.discovery.HealthStatus;
 
 @ApplicationScoped
 public class StatisticsBean {
-
-    @Inject
-    ToolsBean toolsBean;
-
-    @Inject
-    PromptsBean promptsBean;
-
-    @Inject
-    ResourcesBean resourcesBean;
 
     @Inject
     DataStoresBean dataStoresBean;
@@ -32,9 +20,9 @@ public class StatisticsBean {
     CapabilitiesBean capabilitiesBean;
 
     public SystemStatistics getStatistics() {
-        long toolsCount = toolsBean.list(null).size();
-        long resourcesCount = resourcesBean.list(null).size();
-        long promptsCount = promptsBean.list().size();
+        long toolsCount = 0;
+        long resourcesCount = 0;
+        long promptsCount = 0;
         long forwardsCount = 0;
         long dataStoresCount = dataStoresBean.list(null).size();
 
