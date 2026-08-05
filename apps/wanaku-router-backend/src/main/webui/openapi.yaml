@@ -138,17 +138,6 @@ components:
           format: int32
         overall:
           type: string
-    ForwardReference:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        address:
-          type: string
-        namespace:
-          type: string
     HealthStatus:
       type: string
       enum:
@@ -192,19 +181,6 @@ components:
           type: boolean
         wildcardSubtype:
           type: boolean
-    Namespace:
-      type: object
-      properties:
-        labels:
-          type: object
-          additionalProperties:
-            type: string
-        id:
-          type: string
-        name:
-          type: string
-        path:
-          type: string
     OutboundSseEvent:
       type: object
       properties:
@@ -226,13 +202,6 @@ components:
         mediaType:
           $ref: "#/components/schemas/MediaType"
         data: {}
-    Param:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
     PlaceholderDefinition:
       type: object
       properties:
@@ -246,52 +215,6 @@ components:
           type: string
         type:
           type: string
-    PromptArgument:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        required:
-          type: boolean
-    PromptContent:
-      type: object
-      properties:
-        type:
-          type: string
-    PromptMessage:
-      type: object
-      properties:
-        role:
-          type: string
-        content:
-          $ref: "#/components/schemas/PromptContent"
-    PromptReference:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        messages:
-          type: array
-          items:
-            $ref: "#/components/schemas/PromptMessage"
-        arguments:
-          type: array
-          items:
-            $ref: "#/components/schemas/PromptArgument"
-        toolReferences:
-          type: array
-          items:
-            type: string
-        namespace:
-          type: string
-        configurationURI:
-          type: string
     Property:
       type: object
       properties:
@@ -304,35 +227,6 @@ components:
         scope:
           type: string
         value:
-          type: string
-    ResourceReference:
-      type: object
-      properties:
-        labels:
-          type: object
-          additionalProperties:
-            type: string
-        id:
-          type: string
-        location:
-          type: string
-        type:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        mimeType:
-          type: string
-        params:
-          type: array
-          items:
-            $ref: "#/components/schemas/Param"
-        configurationURI:
-          type: string
-        secretsURI:
-          type: string
-        namespace:
           type: string
     ServerInfo:
       type: object
@@ -524,13 +418,6 @@ components:
           $ref: "#/components/schemas/WanakuError"
         data:
           $ref: "#/components/schemas/FleetStatus"
-    WanakuResponseForwardReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/ForwardReference"
     WanakuResponseInteger:
       type: object
       properties:
@@ -548,15 +435,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DataStore"
-    WanakuResponseListForwardReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/ForwardReference"
     WanakuResponseListMapStringObject:
       type: object
       properties:
@@ -578,33 +456,6 @@ components:
             type: object
             additionalProperties:
               type: string
-    WanakuResponseListNamespace:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Namespace"
-    WanakuResponseListPromptReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/PromptReference"
-    WanakuResponseListResourceReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResourceReference"
     WanakuResponseListServiceTarget:
       type: object
       properties:
@@ -680,27 +531,6 @@ components:
           type: object
           additionalProperties:
             type: string
-    WanakuResponseNamespace:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/Namespace"
-    WanakuResponsePromptReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/PromptReference"
-    WanakuResponseResourceReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/ResourceReference"
     WanakuResponseServerInfo:
       type: object
       properties:
@@ -708,13 +538,6 @@ components:
           $ref: "#/components/schemas/WanakuError"
         data:
           $ref: "#/components/schemas/ServerInfo"
-    WanakuResponseServiceTarget:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/ServiceTarget"
     WanakuResponseSystemStatistics:
       type: object
       properties:
@@ -729,13 +552,6 @@ components:
           $ref: "#/components/schemas/WanakuError"
         data:
           $ref: "#/components/schemas/ToolCallRecord"
-    WanakuResponseToolReference:
-      type: object
-      properties:
-        error:
-          $ref: "#/components/schemas/WanakuError"
-        data:
-          $ref: "#/components/schemas/ToolReference"
     WanakuResponseVoid:
       type: object
       properties:
@@ -1022,157 +838,6 @@ paths:
       summary: Get By Id
       tags:
       - Data Stores Resource
-  /api/v1/forwards:
-    get:
-      parameters:
-      - name: labelFilter
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListForwardReference"
-      summary: List Forwards
-      tags:
-      - Forwards Resource
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ForwardReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Add Forward
-      tags:
-      - Forwards Resource
-  /api/v1/forwards/{name}:
-    put:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ForwardReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Forwards Resource
-    delete:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Remove Forward
-      tags:
-      - Forwards Resource
-    get:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseForwardReference"
-      summary: Get By Name
-      tags:
-      - Forwards Resource
-  /api/v1/forwards/{name}/refreshes:
-    post:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Refresh
-      tags:
-      - Forwards Resource
-  /api/v1/management/discovery:
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ServiceTarget"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseServiceTarget"
-        "400":
-          description: Bad Request
-      summary: Register
-      tags:
-      - Discovery Resource
-    delete:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ServiceTarget"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Deregister
-      tags:
-      - Discovery Resource
   /api/v1/management/info/version:
     get:
       responses:
@@ -1197,334 +862,6 @@ paths:
       summary: Get Statistics
       tags:
       - Statistics Resource
-  /api/v1/namespaces:
-    get:
-      parameters:
-      - name: labelFilter
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListNamespace"
-      summary: List
-      tags:
-      - Namespaces Resource
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Namespace"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseNamespace"
-        "400":
-          description: Bad Request
-      summary: Create
-      tags:
-      - Namespaces Resource
-  /api/v1/namespaces/stale:
-    get:
-      parameters:
-      - name: includeUnlabeled
-        in: query
-        schema:
-          type: boolean
-      - name: maxAgeSeconds
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: unassignedOnly
-        in: query
-        schema:
-          type: boolean
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListNamespace"
-      summary: List Stale
-      tags:
-      - Namespaces Resource
-    delete:
-      parameters:
-      - name: includeUnlabeled
-        in: query
-        schema:
-          type: boolean
-      - name: maxAgeSeconds
-        in: query
-        schema:
-          type: integer
-          format: int64
-      - name: unassignedOnly
-        in: query
-        schema:
-          type: boolean
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseInteger"
-      summary: Cleanup Stale
-      tags:
-      - Namespaces Resource
-  /api/v1/namespaces/{id}:
-    put:
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Namespace"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Namespaces Resource
-    get:
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseNamespace"
-      summary: Get By Id
-      tags:
-      - Namespaces Resource
-    delete:
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Delete
-      tags:
-      - Namespaces Resource
-  /api/v1/prompts:
-    put:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PromptReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Prompts Resource
-    get:
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListPromptReference"
-      summary: List
-      tags:
-      - Prompts Resource
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PromptReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponsePromptReference"
-        "400":
-          description: Bad Request
-      summary: Add
-      tags:
-      - Prompts Resource
-  /api/v1/prompts/{name}:
-    delete:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Remove
-      tags:
-      - Prompts Resource
-    get:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponsePromptReference"
-      summary: Get By Name
-      tags:
-      - Prompts Resource
-  /api/v1/resources:
-    get:
-      parameters:
-      - name: labelFilter
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListResourceReference"
-      summary: List
-      tags:
-      - Resources Resource
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ResourceReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseResourceReference"
-        "400":
-          description: Bad Request
-      summary: Expose
-      tags:
-      - Resources Resource
-  /api/v1/resources/{name}:
-    put:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ResourceReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Resources Resource
-    delete:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Remove
-      tags:
-      - Resources Resource
-    get:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseResourceReference"
-      summary: Get By Name
-      tags:
-      - Resources Resource
   /api/v1/service-catalog:
     get:
       parameters:
@@ -1759,118 +1096,6 @@ paths:
       summary: Remove
       tags:
       - Service Template Resource
-  /api/v1/tools:
-    delete:
-      parameters:
-      - name: labelExpression
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseInteger"
-      summary: Remove If
-      tags:
-      - Tools Resource
-    get:
-      parameters:
-      - name: labelFilter
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseListToolReference"
-      summary: List
-      tags:
-      - Tools Resource
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ToolReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseToolReference"
-        "400":
-          description: Bad Request
-      summary: Add
-      tags:
-      - Tools Resource
-  /api/v1/tools/{name}:
-    put:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ToolReference"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-        "400":
-          description: Bad Request
-      summary: Update
-      tags:
-      - Tools Resource
-    delete:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseVoid"
-      summary: Remove
-      tags:
-      - Tools Resource
-    get:
-      parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WanakuResponseToolReference"
-      summary: Get By Name
-      tags:
-      - Tools Resource
   /api/v1/toolset-repos:
     get:
       responses:
