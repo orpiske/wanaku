@@ -184,7 +184,6 @@ public class WanakuRouterReconciler implements Reconciler<WanakuRouter> {
                     .createOr(Replaceable::update);
         }
 
-        // Deploy Praxis if enabled (default)
         WanakuRouterSpec.PraxisSpec praxisSpec = resource.getSpec().getPraxis();
         if (praxisSpec == null || praxisSpec.isEnabled()) {
             deployPraxis(resource, context, namespace);
@@ -192,7 +191,6 @@ public class WanakuRouterReconciler implements Reconciler<WanakuRouter> {
     }
 
     private void deployPraxis(WanakuRouter resource, Context<WanakuRouter> context, String namespace) {
-        // Create Praxis PVC
         final PersistentVolumeClaim praxisPVC = RouterResourceFactory.makePraxisVolumePVC(resource);
         PersistentVolumeClaim existingPraxisPVC = kubernetesClient
                 .persistentVolumeClaims()
