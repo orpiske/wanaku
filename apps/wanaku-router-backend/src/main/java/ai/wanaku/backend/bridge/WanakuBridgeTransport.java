@@ -105,7 +105,7 @@ public interface WanakuBridgeTransport {
      *
      * @param request the resource acquisition request containing resource details
      * @param service the target service that provides the resource
-     * @param arguments the original request arguments for URI resolution
+     * @param readContext the resource read context for URI resolution
      * @param mcpResource the resource reference for MIME type resolution
      * @return a Uni that will emit the resource contents with transport-specific types already transformed
      * @throws ai.wanaku.capabilities.sdk.api.exceptions.ServiceUnavailableException

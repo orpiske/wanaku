@@ -35,7 +35,7 @@ public class EventNotifier {
     /**
      * Emits a STARTED event for a tool call.
      *
-     * @param toolArguments the tool arguments
+     * @param toolCallContext the tool call context
      * @param toolReference the tool reference
      * @param service the resolved service target
      * @param request the built tool invoke request
