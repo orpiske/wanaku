@@ -1,17 +1,15 @@
 package ai.wanaku.tests.mcp.server;
 
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 import io.quarkiverse.mcp.server.Resource;
 import io.quarkiverse.mcp.server.TextResourceContents;
 import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
-import ai.wanaku.core.forward.discovery.client.ForwardRegistrationManager;
 
 public class MockMcp {
-    @Inject
-    Instance<ForwardRegistrationManager> registrationManager;
+    //    @Inject
+    //    Instance<ForwardRegistrationManager> registrationManager;
 
     @Inject
     MockMcpPerformanceConfig config;
