@@ -20,7 +20,7 @@ test.describe('Dashboard', () => {
   });
 
   test('displays statistics tiles with numeric values', async ({ page }) => {
-    const labels = ['Tools', 'Resources', 'Prompts', 'Forwards', 'Data Stores'];
+    const labels = ['Service Catalogs', 'Service Templates', 'Toolset Repositories', 'Data Stores'];
     for (const label of labels) {
       const tile = dashboard.statTile(label);
       await expect(tile).toBeVisible();
