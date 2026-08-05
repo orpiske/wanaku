@@ -181,12 +181,6 @@
             <artifactId>quarkus-keycloak-authorization</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkiverse.oidc-proxy</groupId>
-            <artifactId>quarkus-oidc-proxy</artifactId>
-            <version>${quarkus-oidc-proxy.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
