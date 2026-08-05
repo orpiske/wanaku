@@ -116,7 +116,7 @@ See the [Usage Guide](usage.md#managing-mcp-tools) for detailed instructions.
 wanaku capabilities list
 
 # Add the resource
-wanaku resources add --uri <resource-uri> --service <service-name>
+wanaku resources expose --uri <resource-uri> --service <service-name>
 ```
 
 ### What are namespaces and when should I use them?
