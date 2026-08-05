@@ -70,7 +70,6 @@ public class AuthConfigSource implements ConfigSource {
             props.put("quarkus.oidc.discovery-enabled", "false");
             props.put("quarkus.oidc.resource-metadata.enabled", "false");
             props.put("quarkus.http.auth.permission.authenticated.policy", "permit");
-            props.put("quarkus.http.auth.permission.web.policy", "permit");
             noauthProperties = Collections.unmodifiableMap(props);
         }
         return noauthProperties;
