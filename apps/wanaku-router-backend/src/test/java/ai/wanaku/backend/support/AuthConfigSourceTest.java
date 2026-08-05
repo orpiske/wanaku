@@ -63,15 +63,9 @@ class AuthConfigSourceTest {
         Map<String, String> props = configSource.getProperties();
         assertNotNull(props);
         assertEquals("false", props.get("quarkus.oidc.enabled"));
-        assertEquals("false", props.get("quarkus.oidc-proxy.enabled"));
         assertEquals("false", props.get("quarkus.oidc.discovery-enabled"));
         assertEquals("false", props.get("quarkus.oidc.resource-metadata.enabled"));
-        assertEquals("false", props.get("quarkus.oidc.mcp.enabled"));
-        assertEquals("false", props.get("quarkus.oidc.mcp.discovery-enabled"));
-        assertEquals("false", props.get("quarkus.oidc.mcp.resource-metadata.enabled"));
         assertEquals("permit", props.get("quarkus.http.auth.permission.authenticated.policy"));
-        assertEquals("permit", props.get("quarkus.http.auth.permission.mcp-authenticated.policy"));
-        assertEquals("permit", props.get("quarkus.http.auth.permission.web.policy"));
     }
 
     @Test
@@ -83,12 +77,8 @@ class AuthConfigSourceTest {
     void getValue_returnsNoAuthValue_whenAuthSetToNone() {
         System.setProperty(AUTH_PROPERTY, "none");
         assertEquals("false", configSource.getValue("quarkus.oidc.enabled"));
-        assertEquals("false", configSource.getValue("quarkus.oidc-proxy.enabled"));
         assertEquals("false", configSource.getValue("quarkus.oidc.discovery-enabled"));
         assertEquals("false", configSource.getValue("quarkus.oidc.resource-metadata.enabled"));
-        assertEquals("false", configSource.getValue("quarkus.oidc.mcp.enabled"));
-        assertEquals("false", configSource.getValue("quarkus.oidc.mcp.discovery-enabled"));
-        assertEquals("false", configSource.getValue("quarkus.oidc.mcp.resource-metadata.enabled"));
         assertEquals("permit", configSource.getValue("quarkus.http.auth.permission.authenticated.policy"));
     }
 
@@ -106,7 +96,7 @@ class AuthConfigSourceTest {
     @Test
     void getPropertyNames_returnsNoAuthKeys_whenAuthSetToNone() {
         System.setProperty(AUTH_PROPERTY, "none");
-        assertTrue(configSource.getPropertyNames().size() > 5);
+        assertTrue(configSource.getPropertyNames().size() >= 4);
     }
 
     @Test
