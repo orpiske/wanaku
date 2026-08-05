@@ -7,10 +7,9 @@
 import type { CapabilityStatistics } from "./capabilityStatistics";
 
 export interface SystemStatistics {
-  toolsCount?: number;
-  resourcesCount?: number;
-  promptsCount?: number;
-  forwardsCount?: number;
+  serviceCatalogsCount?: number;
+  serviceTemplatesCount?: number;
+  toolsetReposCount?: number;
   dataStoresCount?: number;
   toolCapabilities?: CapabilityStatistics;
   resourceCapabilities?: CapabilityStatistics;

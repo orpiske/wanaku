@@ -7,11 +7,23 @@ import java.util.List;
 import java.util.Map;
 import ai.wanaku.backend.api.v1.capabilities.CapabilitiesBean;
 import ai.wanaku.backend.api.v1.datastores.DataStoresBean;
+import ai.wanaku.backend.api.v1.servicecatalog.ServiceCatalogBean;
+import ai.wanaku.backend.api.v1.servicecatalog.ServiceTemplateBean;
+import ai.wanaku.backend.api.v1.toolsetrepos.ToolsetReposBean;
 import ai.wanaku.capabilities.sdk.api.types.discovery.ActivityRecord;
 import ai.wanaku.capabilities.sdk.api.types.discovery.HealthStatus;
 
 @ApplicationScoped
 public class StatisticsBean {
+
+    @Inject
+    ServiceCatalogBean serviceCatalogBean;
+
+    @Inject
+    ServiceTemplateBean serviceTemplateBean;
+
+    @Inject
+    ToolsetReposBean toolsetReposBean;
 
     @Inject
     DataStoresBean dataStoresBean;
@@ -20,20 +32,18 @@ public class StatisticsBean {
     CapabilitiesBean capabilitiesBean;
 
     public SystemStatistics getStatistics() {
-        long toolsCount = 0;
-        long resourcesCount = 0;
-        long promptsCount = 0;
-        long forwardsCount = 0;
+        long serviceCatalogsCount = serviceCatalogBean.list(null).size();
+        long serviceTemplatesCount = serviceTemplateBean.list(null).size();
+        long toolsetReposCount = toolsetReposBean.list().size();
         long dataStoresCount = dataStoresBean.list(null).size();
 
         CapabilityStatistics toolCapabilities = buildCapabilityStatistics(capabilitiesBean.toolsState());
         CapabilityStatistics resourceCapabilities = buildCapabilityStatistics(capabilitiesBean.resourcesState());
 
         return new SystemStatistics(
-                toolsCount,
-                resourcesCount,
-                promptsCount,
-                forwardsCount,
+                serviceCatalogsCount,
+                serviceTemplatesCount,
+                toolsetReposCount,
                 dataStoresCount,
                 toolCapabilities,
                 resourceCapabilities);

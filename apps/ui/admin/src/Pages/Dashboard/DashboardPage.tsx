@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Button, Column, Grid, Tile, ToastNotification,} from "@carbon/react";
-import {ArrowRight, DataBase, Document, Renew, TextAlignJustify, Tools,} from "@carbon/icons-react";
+import {Catalog, DataBase, Renew, RepoSourceCode, Template,} from "@carbon/icons-react";
 import {useStatistics} from "../../hooks/api/use-statistics";
 import {CapabilityStatistics, SystemStatistics} from "../../models";
 import "./DashboardPage.scss";
@@ -60,7 +60,7 @@ export const DashboardPage: React.FC = () => {
       )}
       <h1 className="title">Dashboard</h1>
       <p className="description">
-        System overview showing counts for registered entities and capability
+        System overview showing counts for registered artifacts and capability
         status.
       </p>
       <div className="dashboard-actions">
@@ -76,38 +76,27 @@ export const DashboardPage: React.FC = () => {
       {statistics && (
         <>
           <section className="dashboard-section">
-            <h3 className="section-heading">Overview</h3>
+            <h3 className="section-heading">Registry</h3>
             <Grid className="stats-grid">
               <Column lg={4} md={4} sm={4}>
                 <Tile className="stat-tile">
-                  <Tools size={24} className="stat-icon" />
-                  <div className="stat-value">{statistics.toolsCount ?? 0}</div>
-                  <div className="stat-label">Tools</div>
+                  <Catalog size={24} className="stat-icon" />
+                  <div className="stat-value">{statistics.serviceCatalogsCount ?? 0}</div>
+                  <div className="stat-label">Service Catalogs</div>
                 </Tile>
               </Column>
               <Column lg={4} md={4} sm={4}>
                 <Tile className="stat-tile">
-                  <Document size={24} className="stat-icon" />
-                  <div className="stat-value">
-                    {statistics.resourcesCount ?? 0}
-                  </div>
-                  <div className="stat-label">Resources</div>
+                  <Template size={24} className="stat-icon" />
+                  <div className="stat-value">{statistics.serviceTemplatesCount ?? 0}</div>
+                  <div className="stat-label">Service Templates</div>
                 </Tile>
               </Column>
               <Column lg={4} md={4} sm={4}>
                 <Tile className="stat-tile">
-                  <TextAlignJustify size={24} className="stat-icon" />
-                  <div className="stat-value">{statistics.promptsCount ?? 0}</div>
-                  <div className="stat-label">Prompts</div>
-                </Tile>
-              </Column>
-              <Column lg={4} md={4} sm={4}>
-                <Tile className="stat-tile">
-                  <ArrowRight size={24} className="stat-icon" />
-                  <div className="stat-value">
-                    {statistics.forwardsCount ?? 0}
-                  </div>
-                  <div className="stat-label">Forwards</div>
+                  <RepoSourceCode size={24} className="stat-icon" />
+                  <div className="stat-value">{statistics.toolsetReposCount ?? 0}</div>
+                  <div className="stat-label">Toolset Repositories</div>
                 </Tile>
               </Column>
               <Column lg={4} md={4} sm={4}>

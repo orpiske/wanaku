@@ -1,10 +1,9 @@
 package ai.wanaku.backend.api.v1.management.statistics;
 
 public class SystemStatistics {
-    private long toolsCount;
-    private long resourcesCount;
-    private long promptsCount;
-    private long forwardsCount;
+    private long serviceCatalogsCount;
+    private long serviceTemplatesCount;
+    private long toolsetReposCount;
     private long dataStoresCount;
     private CapabilityStatistics toolCapabilities;
     private CapabilityStatistics resourceCapabilities;
@@ -12,52 +11,42 @@ public class SystemStatistics {
     public SystemStatistics() {}
 
     public SystemStatistics(
-            long toolsCount,
-            long resourcesCount,
-            long promptsCount,
-            long forwardsCount,
+            long serviceCatalogsCount,
+            long serviceTemplatesCount,
+            long toolsetReposCount,
             long dataStoresCount,
             CapabilityStatistics toolCapabilities,
             CapabilityStatistics resourceCapabilities) {
-        this.toolsCount = toolsCount;
-        this.resourcesCount = resourcesCount;
-        this.promptsCount = promptsCount;
-        this.forwardsCount = forwardsCount;
+        this.serviceCatalogsCount = serviceCatalogsCount;
+        this.serviceTemplatesCount = serviceTemplatesCount;
+        this.toolsetReposCount = toolsetReposCount;
         this.dataStoresCount = dataStoresCount;
         this.toolCapabilities = toolCapabilities;
         this.resourceCapabilities = resourceCapabilities;
     }
 
-    public long getToolsCount() {
-        return toolsCount;
+    public long getServiceCatalogsCount() {
+        return serviceCatalogsCount;
     }
 
-    public void setToolsCount(long toolsCount) {
-        this.toolsCount = toolsCount;
+    public void setServiceCatalogsCount(long serviceCatalogsCount) {
+        this.serviceCatalogsCount = serviceCatalogsCount;
     }
 
-    public long getResourcesCount() {
-        return resourcesCount;
+    public long getServiceTemplatesCount() {
+        return serviceTemplatesCount;
     }
 
-    public void setResourcesCount(long resourcesCount) {
-        this.resourcesCount = resourcesCount;
+    public void setServiceTemplatesCount(long serviceTemplatesCount) {
+        this.serviceTemplatesCount = serviceTemplatesCount;
     }
 
-    public long getPromptsCount() {
-        return promptsCount;
+    public long getToolsetReposCount() {
+        return toolsetReposCount;
     }
 
-    public void setPromptsCount(long promptsCount) {
-        this.promptsCount = promptsCount;
-    }
-
-    public long getForwardsCount() {
-        return forwardsCount;
-    }
-
-    public void setForwardsCount(long forwardsCount) {
-        this.forwardsCount = forwardsCount;
+    public void setToolsetReposCount(long toolsetReposCount) {
+        this.toolsetReposCount = toolsetReposCount;
     }
 
     public long getDataStoresCount() {

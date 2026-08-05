@@ -423,19 +423,15 @@
       "SystemStatistics" : {
         "type" : "object",
         "properties" : {
-          "toolsCount" : {
+          "serviceCatalogsCount" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "resourcesCount" : {
+          "serviceTemplatesCount" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "promptsCount" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "forwardsCount" : {
+          "toolsetReposCount" : {
             "type" : "integer",
             "format" : "int64"
           },
