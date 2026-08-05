@@ -49,23 +49,8 @@ function HeaderComponent({ onClickSideNavExpand, isSideNavExpanded }:HeaderCompo
                 <HeaderMenuItem as={Link} to={Links.Home}>
                     Home
                 </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Tools}>
-                    Tools
-                </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Resources}>
-                    Resources
-                </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Prompts}>
-                    Prompts
-                </HeaderMenuItem>
                 <HeaderMenuItem as={Link} to={Links.Capabilities}>
                     Capabilities
-                </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Namespaces}>
-                    Namespaces
-                </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Forwards}>
-                    Forwards
                 </HeaderMenuItem>
                 <HeaderMenuItem as={Link} to={Links.ServiceCatalog}>
                     Service Catalog
