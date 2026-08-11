@@ -7,8 +7,7 @@ const outDir = "./dist";
 export default defineConfig({
   plugins: [react()],
   define: {
-    VITE_API_URL:
-      process.env.VITE_API_URL ?? JSON.stringify(""),
+    VITE_API_URL: JSON.stringify(process.env.VITE_API_URL ?? ""),
   },
   build: {
     outDir,

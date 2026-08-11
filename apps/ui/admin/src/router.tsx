@@ -11,23 +11,7 @@ export const router = createHashRouter([
     children: [
       {
         index: true,
-        lazy: async () => import("./Pages/Dashboard"),
-      },
-      {
-        path: Links.LLMChat,
-        lazy: async () => import("./Pages/LLMChat"),
-      },
-      {
-        path: Links.CodeExecution,
-        lazy: async () => import("./Pages/CodeExecution"),
-      },
-      {
-        path: Links.ToolCalls,
-        lazy: async () => import("./Pages/ToolCalls"),
-      },
-      {
-        path: Links.Capabilities,
-        lazy: async () => import("./Pages/Targets"),
+        lazy: async () => import("./Pages/DataStores"),
       },
       {
         path: Links.DataStores,

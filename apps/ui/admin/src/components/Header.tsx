@@ -2,7 +2,6 @@ import {
     Header,
     HeaderGlobalAction,
     HeaderGlobalBar,
-    HeaderMenu,
     HeaderMenuButton,
     HeaderMenuItem,
     HeaderName,
@@ -46,29 +45,12 @@ function HeaderComponent({ onClickSideNavExpand, isSideNavExpanded }:HeaderCompo
             </HeaderName>
 
             <HeaderNavigation aria-label="Wanaku">
-                <HeaderMenuItem as={Link} to={Links.Home}>
-                    Home
-                </HeaderMenuItem>
-                <HeaderMenuItem as={Link} to={Links.Capabilities}>
-                    Capabilities
+                <HeaderMenuItem as={Link} to={Links.DataStores}>
+                    Data Stores
                 </HeaderMenuItem>
                 <HeaderMenuItem as={Link} to={Links.ServiceCatalog}>
                     Service Catalog
                 </HeaderMenuItem>
-                <HeaderMenu aria-label="Developer" menuLinkName="Developer">
-                    <HeaderMenuItem as={Link} to={Links.LLMChat}>
-                        LLMChat
-                    </HeaderMenuItem>
-                    <HeaderMenuItem as={Link} to={Links.CodeExecution}>
-                        Code Execution
-                    </HeaderMenuItem>
-                    <HeaderMenuItem as={Link} to={Links.ToolCalls}>
-                        Tool Call Debugger
-                    </HeaderMenuItem>
-                    <HeaderMenuItem as={Link} to={Links.DataStores}>
-                        Data Stores
-                    </HeaderMenuItem>
-                </HeaderMenu>
             </HeaderNavigation>
             <HeaderGlobalBar>
                 <HeaderGlobalAction

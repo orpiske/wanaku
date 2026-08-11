@@ -1,4 +1,4 @@
-import {SideNav, SideNavItems, SideNavMenu, SideNavMenuItem,} from '@carbon/react';
+import {SideNav, SideNavItems, SideNavMenuItem,} from '@carbon/react';
 import {Links} from "../router/links.models";
 import {Link} from 'react-router-dom';
 
@@ -18,47 +18,10 @@ function SideNavComponent({ isSideNavExpanded, onClickSideNavExpand }:SideNavCom
             <SideNavItems>
                 <SideNavMenuItem
                     element={Link}
-                    to="/home"
+                    to={Links.DataStores}
                     onClick={onClickSideNavExpand}
                 >
-                    Home
-                </SideNavMenuItem>
-                <SideNavMenu title="Developer">
-                    <SideNavMenuItem
-                        element={Link}
-                        to={Links.LLMChat}
-                        onClick={onClickSideNavExpand}
-                    >
-                        LLMChat
-                    </SideNavMenuItem>
-                    <SideNavMenuItem
-                        element={Link}
-                        to={Links.CodeExecution}
-                        onClick={onClickSideNavExpand}
-                    >
-                        Code Execution
-                    </SideNavMenuItem>
-                    <SideNavMenuItem
-                        element={Link}
-                        to={Links.ToolCalls}
-                        onClick={onClickSideNavExpand}
-                    >
-                        Tool Call Debugger
-                    </SideNavMenuItem>
-                    <SideNavMenuItem
-                        element={Link}
-                        to={Links.DataStores}
-                        onClick={onClickSideNavExpand}
-                    >
-                        Data Stores
-                    </SideNavMenuItem>
-                </SideNavMenu>
-                <SideNavMenuItem
-                    element={Link}
-                    to="/capabilities"
-                    onClick={onClickSideNavExpand}
-                >
-                    Capabilities
+                    Data Stores
                 </SideNavMenuItem>
                 <SideNavMenuItem
                     element={Link}

@@ -1,4 +1,6 @@
-const getBody = <T>(c: Response | Request): Promise<T> => {
+import {getPluginHost, getBackendUrl, isPluginMode, SERVICE_ID} from "./plugin-host";
+
+  const getBody = <T>(c: Response | Request): Promise<T> => {
     const contentType = c.headers.get('content-type');
 
     if (contentType && contentType.includes('application/json')) {
@@ -8,19 +10,17 @@ const getBody = <T>(c: Response | Request): Promise<T> => {
     return c.text() as Promise<T>;
   };
 
-  // NOTE: Update just base url
   export const getUrl = (contextUrl: string): string => {
-    const baseUrl = VITE_API_URL || window.location.origin;
-    const url = new URL(contextUrl, baseUrl);
+    const base = getBackendUrl() || VITE_API_URL || window.location.origin;
+    const url = new URL(contextUrl, base);
     const pathname = url.pathname;
     const search = url.search;
 
-    const requestUrl = new URL(`${baseUrl}${pathname}${search}`);
+    const requestUrl = new URL(`${base}${pathname}${search}`);
 
     return requestUrl.toString();
   };
 
-  // NOTE: Add headers
   const getHeaders = (headers?: HeadersInit): HeadersInit => {
     return {
       ...headers
@@ -30,10 +30,57 @@ const getBody = <T>(c: Response | Request): Promise<T> => {
   const REDIRECT_TS_KEY = 'wanaku_auth_redirect_ts';
   const REDIRECT_LOOP_MS = 10_000;
 
+  async function pluginFetch<T>(url: string, options: RequestInit): Promise<T> {
+    const host = getPluginHost();
+    if (!host) {
+      throw new Error('Plugin host is not available');
+    }
+
+    const parsed = new URL(url, 'http://localhost');
+    const path = parsed.pathname + parsed.search;
+    const method = (options.method || 'GET').toUpperCase();
+
+    let body: unknown = undefined;
+    if (options.body && typeof options.body === 'string') {
+      try {
+        body = JSON.parse(options.body);
+      } catch {
+        body = options.body;
+      }
+    }
+
+    let data: unknown;
+    switch (method) {
+      case 'POST':
+        data = await host.http.post(SERVICE_ID, path, body);
+        break;
+      case 'PUT':
+        data = await host.http.put(SERVICE_ID, path, body);
+        break;
+      case 'DELETE':
+        data = await host.http.delete(SERVICE_ID, path);
+        break;
+      default:
+        data = await host.http.get(SERVICE_ID, path);
+        break;
+    }
+
+    const errorData = data as Record<string, unknown> | null;
+    if (errorData && typeof errorData === 'object' && 'error' in errorData && errorData.error) {
+      throw new Error(String(errorData.error));
+    }
+
+    return { status: 200, data, headers: new Headers() } as T;
+  }
+
   export const customFetch = async <T>(
     url: string,
     options: RequestInit,
   ): Promise<T> => {
+    if (isPluginMode()) {
+      return pluginFetch<T>(url, options);
+    }
+
     const requestUrl = getUrl(url);
     const requestHeaders = getHeaders(options.headers);
 

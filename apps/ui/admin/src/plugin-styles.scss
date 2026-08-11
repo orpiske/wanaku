@@ -1,0 +1,17 @@
+@use "@carbon/react" with (
+  $font-path: "@ibm/plex"
+);
+
+@use "@carbon/react/scss/grid";
+@use "@carbon/react/scss/layer";
+@use "@carbon/react/scss/themes";
+@use "@carbon/react/scss/theme";
+
+.wanaku-classic-plugin {
+  @include theme.theme(themes.$g10);
+  @include grid.flex-grid();
+
+  @media (prefers-color-scheme: dark) {
+    @include theme.theme(themes.$g100);
+  }
+}

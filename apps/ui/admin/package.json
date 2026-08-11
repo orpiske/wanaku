@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "orval --config ./orval.config.ts && vite",
     "build": "orval --config ./orval.config.ts && tsc -b && vite build",
+    "build:plugin": "orval --config ./orval.config.ts && tsc -b && vite build --config vite.plugin.config.ts && cp plugin.json plugin-dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -20,13 +21,9 @@
     "@carbon/icons-react": "^11.76.0",
     "@carbon/layout": "^11.49.0",
     "@carbon/react": "^1.103.0",
-    "@modelcontextprotocol/sdk": "^1.27.1",
-    "axios": "^1.15.2",
-    "highlight.js": "^11.11.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-is": "^19.2.4",
-    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.30.3",
     "sass": "^1.98.0"
   },
