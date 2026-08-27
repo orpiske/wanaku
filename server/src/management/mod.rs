@@ -277,6 +277,8 @@ mod dispatch_tests {
         let data = data_field(&resp);
         assert!(data.get("name").and_then(|v| v.as_str()).is_some());
         assert!(data.get("version").and_then(|v| v.as_str()).is_some());
+        let channel = data.get("channel").and_then(|v| v.as_str());
+        assert!(channel == Some("early-access") || channel == Some("stable"));
     }
 
     #[tokio::test]

@@ -196,7 +196,7 @@ const fn get_metrics() {}
 // -- Info ---------------------------------------------------------------------
 
 #[utoipa::path(get, path = "/api/v1/management/info", tag = "Management",
-    responses((status = 200, description = "Server name and version", body = serde_json::Value))
+    responses((status = 200, description = "Server name, version and release channel", body = serde_json::Value))
 )]
 const fn get_info() {}
 

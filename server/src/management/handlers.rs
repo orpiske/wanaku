@@ -791,9 +791,13 @@ pub(super) fn handle_statistics(registry: &InMemoryRegistry) -> Response<Vec<u8>
 }
 
 pub(super) fn handle_info() -> Response<Vec<u8>> {
+    // The release channel is derived from the build profile: debug builds track the
+    // rolling `early-access` pre-release, release builds point at the tagged `stable` release.
+    let channel = if cfg!(debug_assertions) { "early-access" } else { "stable" };
     json_ok(&serde_json::json!({
         "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
+        "channel": channel,
     }))
 }
 
@@ -1404,6 +1408,8 @@ mod tests {
         let data = data_field(&resp);
         assert!(data.get("name").and_then(|v| v.as_str()).is_some());
         assert!(data.get("version").and_then(|v| v.as_str()).is_some());
+        let channel = data.get("channel").and_then(|v| v.as_str());
+        assert!(channel == Some("early-access") || channel == Some("stable"));
     }
 }
 
